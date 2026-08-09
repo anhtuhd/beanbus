@@ -194,13 +194,16 @@ Supabase SSR intentionally keeps auth cookies readable by its browser client so 
 
 **Description:** Add order/order-item/voucher persistence and a server action or route that validates customer input and recalculates all commercial values from trusted catalog data.
 
+**Implementation status:** The private order/voucher schema and idempotent `create_server_priced_order` transaction are implemented with catalog pricing, option validation, bounded vouchers, snapshots, ownership RLS, and focused pgTAP coverage. The Next.js Server Action and production checkout/confirmation wiring remain in progress.
+
 **Acceptance criteria:**
 - [ ] Client sends product IDs, option IDs, quantities, fulfillment details, and voucher code; server returns canonical prices/totals.
-- [ ] Invalid options, unavailable products, stale prices, expired vouchers, excessive quantities, and malformed contact data are rejected.
-- [ ] Order creation is idempotent and generates a collision-safe ID plus a readable order number.
+- [x] The database transaction rejects invalid options, unavailable products, expired/exhausted vouchers, excessive quantities, and malformed fulfillment/contact data.
+- [x] Order creation is idempotent and generates a collision-safe UUID plus a readable identity number.
 
 **Verification:**
-- [ ] Unit/integration tests cover pricing, voucher bounds, duplicate submission, and unavailable products.
+- [x] Contract tests cover pricing ownership, voucher bounds, idempotency, and catalog trust boundaries.
+- [ ] Run the written pgTAP pricing, duplicate submission, and unavailable-product cases on Supabase.
 - [ ] E2E test covers menu -> cart -> checkout -> pending order for pickup and delivery.
 
 **Dependencies:** Tasks 4 and 5  

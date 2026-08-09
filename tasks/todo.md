@@ -35,6 +35,8 @@
 ## Phase 2: Commerce
 
 - [ ] Task 6: Create server-priced, idempotent orders.
+- [x] Task 6 pricing core: private schema, ownership RLS, canonical pricing RPC, and contract tests.
+- [ ] Task 6 application wiring: Server Action, checkout, confirmation, and production E2E.
 - [ ] Task 7: Integrate verified, idempotent Sepay payments.
 - [ ] Task 8: Implement loyalty ledger and member account data.
 - [ ] Task 9: Add safe `/account/topup` and `/flash-sale` flows.
