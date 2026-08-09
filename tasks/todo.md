@@ -2,7 +2,7 @@
 
 **Active plan:** `tasks/plan.md`  
 **Updated:** 2026-08-09  
-**Current checkpoint:** Phase 1 — Task 3 next
+**Current checkpoint:** Phase 1 — Task 4 next
 
 ## Baseline Snapshot
 
@@ -23,7 +23,7 @@
 
 ## Phase 1: Trusted Data
 
-- [ ] Task 3: Add Supabase server/browser infrastructure.
+- [x] Task 3: Add Supabase server/browser infrastructure.
 - [ ] Task 4: Ship real authentication and role authorization.
 - [ ] Task 5: Migrate catalog and add `/menu/[id]`.
 - [ ] Checkpoint B: Auth/RLS/catalog pass tests and browser checks.
@@ -51,7 +51,7 @@
 
 ## Owner Decisions
 
-- [ ] Approve Supabase project and access method.
+- [x] Approve Supabase architecture and access method; hosted credentials pending.
 - [ ] Confirm phone OTP, Google login, or both.
 - [ ] Provide/approve Sepay production contract and credentials.
 - [ ] Approve loyalty, COD, refund, and stored-value rules.

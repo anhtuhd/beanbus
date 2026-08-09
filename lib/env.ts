@@ -3,7 +3,7 @@ type Environment = Record<string, string | undefined>;
 const CORE_PRODUCTION_KEYS = [
   'NEXT_PUBLIC_SITE_URL',
   'NEXT_PUBLIC_SUPABASE_URL',
-  'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+  'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
 ] as const;
 
 const SEPAY_KEYS = [

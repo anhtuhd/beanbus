@@ -9,7 +9,7 @@ test('getAppMode defaults to demo', () => {
 test('assertProductionEnv rejects a production app without core configuration', () => {
   assert.throws(
     () => assertProductionEnv({ NEXT_PUBLIC_APP_MODE: 'production' }),
-    /NEXT_PUBLIC_SITE_URL, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY/
+    /NEXT_PUBLIC_SITE_URL, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY/
   );
 });
 
@@ -18,7 +18,7 @@ test('assertProductionEnv requires Sepay secrets only when Sepay is enabled', ()
     NEXT_PUBLIC_APP_MODE: 'production',
     NEXT_PUBLIC_SITE_URL: 'https://beanbus.vn',
     NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co',
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: 'public-key',
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'public-key',
   };
 
   assert.doesNotThrow(() => assertProductionEnv(coreEnv));

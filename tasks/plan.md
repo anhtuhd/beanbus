@@ -82,7 +82,7 @@ Every implementation task must meet all applicable items below before its checkb
 - Protected data has authentication, authorization, and ownership/RLS tests.
 - Payment or points mutations are idempotent and auditable.
 - Changed UI is checked at 375 px, 768 px, and 1440 px with keyboard navigation.
-- No secrets, service-role keys, or personal data are committed or logged.
+- No secrets, Supabase privileged keys, or personal data are committed or logged.
 
 ## 6. Task Plan
 
@@ -132,15 +132,17 @@ Every implementation task must meet all applicable items below before its checkb
 **Description:** Configure Supabase clients using the Next.js 16 guidance, cookie-backed server sessions, typed environment access, and a migration workflow. This task does not yet migrate feature data.
 
 **Acceptance criteria:**
-- [ ] Browser, server, and privileged clients are separated; service-role access cannot enter the client bundle.
-- [ ] Session refresh/cookie handling follows the installed Next.js and Supabase documentation.
-- [ ] A repeatable migration command and local/preview setup are documented.
+- [x] Browser, server, and privileged clients are separated; the Supabase secret key cannot enter the client bundle.
+- [x] Session refresh/cookie handling follows the installed Next.js and Supabase documentation.
+- [x] A repeatable migration command and local/preview setup are documented.
 
 **Verification:**
-- [ ] Automated test proves public and server client construction with valid/invalid environment states.
-- [ ] Build output contains no service-role secret and authenticated session cookies are `httpOnly`, `secure` in production, and `sameSite`.
+- [x] Automated tests prove public configuration validation, server client construction, and cookie policy.
+- [x] Build output contains no Supabase secret key; authenticated cookies are `secure` in production and `sameSite=lax`.
 
-**Dependencies:** Task 2; owner approval/credentials  
+Supabase SSR intentionally keeps auth cookies readable by its browser client so refresh-token rotation works; `HttpOnly` is therefore not part of this architecture. Authorization still relies on verified claims and RLS, never on cookie contents alone. See the [Supabase SSR advanced guide](https://supabase.com/docs/guides/auth/server-side/advanced-guide#how-do-i-make-the-cookies-httponly).
+
+**Dependencies:** Task 2; owner-approved Supabase architecture. Hosted credentials remain deferred.
 **Estimated scope:** Medium, 3-5 files.
 
 ## Task 4: Ship real authentication and role authorization
