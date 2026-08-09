@@ -272,14 +272,18 @@ Supabase SSR intentionally keeps auth cookies readable by its browser client so 
 
 **Description:** Convert the four success-only forms into validated server submissions. Store requests first; add outbound email/SMS only after a provider is approved.
 
+**Implementation status:** The booking vertical slice is implemented with normalized server validation, a pending-only idempotent RPC, serialized phone rate limiting, consent storage, private member/admin RLS, an honest reference receipt, and responsive UI states. Applying pgTAP against Supabase, capacity policy, contact/RSVP/B2B persistence, and admin request operations remain open.
+
 **Acceptance criteria:**
 - [ ] Each form validates field shape/length, rate-limits abuse, persists consent-aware contact data, and returns a real reference ID.
-- [ ] Booking begins as `pending` unless an explicit capacity rule confirms it; no UI claims an SMS/Zalo was sent unless delivery succeeded.
+- [x] Booking begins as `pending` unless an explicit capacity rule confirms it; no UI claims an SMS/Zalo was sent unless delivery succeeded.
 - [ ] Admin can view and update request status through authorized operations.
 
 **Verification:**
 - [ ] Tests cover validation, rate limiting, duplicate submission, capacity conflict, and authorization.
 - [ ] Browser-check loading, success, validation, network failure, and retry states for each form.
+
+Booking contract/unit tests cover validation, serialized rate limiting, idempotency, and RLS structure. Written pgTAP adds member/admin authorization coverage; browser E2E covers demo success and 375 px layout. Capacity conflict and production runtime checks remain deferred until the owner confirms capacity rules and Supabase is available.
 
 **Dependencies:** Tasks 3 and 4  
 **Estimated scope:** Split booking and lead/RSVP forms into separate Medium subtasks.

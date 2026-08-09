@@ -213,6 +213,24 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      create_booking_request: {
+        Args: {
+          p_consent_to_contact: boolean;
+          p_customer_name: string;
+          p_customer_phone: string;
+          p_guest_count: number;
+          p_idempotency_key: string;
+          p_note: string | null;
+          p_reservation_at: string;
+          p_seating_area: string;
+        };
+        Returns: {
+          booking_id: string;
+          booking_number: number;
+          booking_status: string;
+          reservation_at: string;
+        }[];
+      };
       create_sepay_payment: {
         Args: {
           p_account_number: string;

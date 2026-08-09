@@ -48,6 +48,9 @@
 ## Phase 3: Operations
 
 - [ ] Task 10: Deliver booking, contact, RSVP, and B2B submissions.
+- [x] Task 10 booking slice: pending requests, consent, idempotency, serialized rate limiting, RLS, reference receipt, and responsive UI.
+- [ ] Task 10 lead slice: persist contact, RSVP, and B2B forms with honest delivery states.
+- [ ] Task 10 external/admin verification: run pgTAP, confirm capacity policy, and expose authorized request operations.
 - [ ] Task 11: Replace demo admin with protected operations.
 - [ ] Checkpoint D: Staff can act on real requests through authorized workflows.
 

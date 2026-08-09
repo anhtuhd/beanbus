@@ -122,6 +122,10 @@
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .seatActive {
@@ -149,6 +153,9 @@
   font-size: 16px;
   font-weight: 800;
   color: var(--brown-dark);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .infoCard ul {
@@ -182,6 +189,9 @@
   color: var(--green);
   font-size: 16px;
   margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .successCard {
@@ -227,6 +237,62 @@
   font-size: 13.5px;
 }
 
+.bRow > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bRow strong {
+  max-width: 58%;
+  text-align: right;
+}
+
+.pendingBadge {
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: var(--orange-light);
+  color: var(--orange-hover);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.consentRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: var(--brown);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.consentRow input {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  accent-color: var(--orange);
+  flex: 0 0 auto;
+}
+
+.submitError {
+  padding: 10px 12px;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.spinner {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .reminder {
   font-size: 13px;
   color: var(--brown-dark);
@@ -239,5 +305,30 @@
 @media (max-width: 900px) {
   .bookingGrid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .pageHeader {
+    padding: 40px 0 36px;
+  }
+
+  .formCard,
+  .successCard {
+    padding: 20px;
+  }
+
+  .rowTwo,
+  .seatingGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .timeGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .bRow {
+    align-items: flex-start;
+    gap: 12px;
   }
 }
