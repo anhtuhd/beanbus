@@ -96,6 +96,6 @@ Run the focused E2E command added by Task 2 for every affected customer workflow
 
 ## Commit Checklist
 
-- [ ] Stage the completed release milestone after the final diff and secret scan.
-- [ ] Commit the release milestone with a descriptive message.
-- [ ] Push `main` to `origin` and confirm the remote commit list.
+- [x] Stage the completed release milestone after the final diff and secret scan.
+- [x] Commit the release milestone with a descriptive message.
+- [x] Push `main` to `origin` and confirm the remote commit list.
