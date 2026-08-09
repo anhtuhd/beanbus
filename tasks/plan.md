@@ -109,21 +109,21 @@ Every implementation task must meet all applicable items below before its checkb
 **Description:** Add the minimum test harness for pure business rules and browser-critical flows, plus a documented environment template with fail-fast validation.
 
 **Acceptance criteria:**
-- [ ] Repository has a `test` script for business logic and an E2E script for critical browser flows. Unit test script is complete; E2E remains.
+- [x] Repository has a `test` script for business logic and an E2E script for critical browser flows.
 - [x] `.env.example` lists names only, and server startup fails clearly when required production variables are missing.
 - [x] CI-ready unit-test commands do not depend on a developer's persisted browser or `localStorage` state.
 
 **Verification:**
 - [x] Run the new unit test command against at least one pricing or status-transition test.
-- [ ] Run one smoke E2E test for menu -> cart -> checkout shell.
+- [x] Run one smoke E2E test for menu -> cart -> checkout shell.
 
 **Dependencies:** Task 1  
 **Estimated scope:** Medium, 3-5 files.
 
 ### Checkpoint A
 
-- [ ] Type check, lint, unit smoke, E2E smoke, and production build are green.
-- [ ] Owner approves Supabase, authentication methods, and the Sepay production path before external integration work begins.
+- [x] Type check, lint, unit smoke, E2E smoke, and production build are green.
+- [x] Owner approved completing UI/server with Supabase and leaving third-party credentials feature-gated for later configuration.
 
 ### Phase 1: Trusted Data Foundation
 

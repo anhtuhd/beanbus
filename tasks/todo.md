@@ -2,7 +2,7 @@
 
 **Active plan:** `tasks/plan.md`  
 **Updated:** 2026-08-09  
-**Current checkpoint:** Phase 0 — Task 2 in progress
+**Current checkpoint:** Phase 1 — Task 3 next
 
 ## Baseline Snapshot
 
@@ -12,14 +12,14 @@
 - [x] Production build passes.
 - [x] Lint passes; 19 image optimization warnings remain assigned to Task 13.
 - [x] Application unit tests exist and pass.
-- [ ] Critical browser E2E tests exist.
+- [x] Critical browser E2E smoke test exists and passes in Chromium.
 - [ ] Production backend/auth/payment exists.
 
 ## Phase 0: Stabilize
 
 - [x] Task 1: Restore lint and navigation quality baseline.
-- [ ] Task 2: Add test harness and environment contract.
-- [ ] Checkpoint A: All local quality gates pass; owner approves providers.
+- [x] Task 2: Add test harness and environment contract.
+- [x] Checkpoint A: All local quality gates pass; provider credentials remain feature-gated.
 
 ## Phase 1: Trusted Data
 

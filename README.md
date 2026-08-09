@@ -7,6 +7,7 @@ Website thương hiệu và thương mại cho Beanbus Coffee Roaster, xây dự
 - [x] UI public, menu, cart, checkout, booking, account và admin prototype
 - [x] Type check, lint gate và production build
 - [x] Test runner cho business rules
+- [x] Playwright E2E smoke cho menu → cart → checkout
 - [ ] Supabase database, authentication và RLS
 - [ ] Order/payment/loyalty chạy hoàn toàn phía server
 - [ ] Sepay webhook production
