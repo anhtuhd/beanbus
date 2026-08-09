@@ -194,7 +194,7 @@ Supabase SSR intentionally keeps auth cookies readable by its browser client so 
 
 **Description:** Add order/order-item/voucher persistence and a server action or route that validates customer input and recalculates all commercial values from trusted catalog data.
 
-**Implementation status:** The private order/voucher schema and idempotent `create_server_priced_order` transaction are implemented with catalog pricing, option validation, bounded vouchers, snapshots, ownership RLS, and focused pgTAP coverage. The Next.js Server Action and production checkout/confirmation wiring remain in progress.
+**Implementation status:** The private order/voucher schema, idempotent `create_server_priced_order` transaction, narrow input parser, and provider-gated Next.js Server Action are implemented. Production checkout/confirmation wiring remains in progress.
 
 **Acceptance criteria:**
 - [ ] Client sends product IDs, option IDs, quantities, fulfillment details, and voucher code; server returns canonical prices/totals.

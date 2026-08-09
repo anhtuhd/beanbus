@@ -213,6 +213,27 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      create_server_priced_order: {
+        Args: {
+          p_customer_name: string;
+          p_customer_phone: string;
+          p_delivery_address: string | null;
+          p_fulfillment: Database['public']['Enums']['order_fulfillment'];
+          p_idempotency_key: string;
+          p_items: Json;
+          p_note: string | null;
+          p_payment_method: Database['public']['Enums']['order_payment_method'];
+          p_pickup_at: string | null;
+          p_voucher_code: string | null;
+        };
+        Returns: {
+          discount_vnd: number;
+          order_id: string;
+          order_number: number;
+          subtotal_vnd: number;
+          total_vnd: number;
+        }[];
+      };
       current_user_role: {
         Args: Record<PropertyKey, never>;
         Returns: Database['public']['Enums']['app_role'];
@@ -220,6 +241,11 @@ export type Database = {
     };
     Enums: {
       app_role: 'member' | 'staff' | 'admin';
+      discount_type: 'percent' | 'fixed';
+      order_fulfillment: 'pickup' | 'delivery';
+      order_payment_method: 'sepay_qr' | 'cod';
+      order_payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
+      order_status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled';
     };
     CompositeTypes: Record<string, never>;
   };
