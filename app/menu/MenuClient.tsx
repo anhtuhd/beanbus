@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import type { Category, Product } from '@/data/products';
@@ -95,7 +96,7 @@ export default function MenuClient({ categories, products }: MenuClientProps) {
           </div>
         ) : (
           <div className={styles.productsGrid}>
-            {filtered.map((product) => (
+            {filtered.map((product, index) => (
               <article key={product.id} className={styles.productCard}>
                 {product.badge && (
                   <span className={styles.badge}>
@@ -109,7 +110,15 @@ export default function MenuClient({ categories, products }: MenuClientProps) {
                   </span>
                 )}
                 <Link href={`/menu/${product.id}`} className={styles.imgWrapper}>
-                  <img src={product.image} alt={product.nameVi} className={styles.productImg} />
+                  <Image
+                    src={product.image}
+                    alt={lang === 'en' ? product.nameEn : product.nameVi}
+                    width={640}
+                    height={440}
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw"
+                    className={styles.productImg}
+                  />
                 </Link>
                 <div className={styles.cardBody}>
                   <h2 className={styles.productName}>

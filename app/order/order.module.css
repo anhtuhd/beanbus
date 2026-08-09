@@ -112,6 +112,7 @@
 
 .productImage {
   aspect-ratio: 1;
+  height: 116px;
   object-fit: cover;
   width: 116px;
 }
@@ -257,7 +258,7 @@
 }
 
 @media (max-width: 440px) {
-  .productImage { width: 96px; }
+  .productImage { height: 96px; width: 96px; }
   .productBody { padding: 13px; }
   .productHeading h2 { font-size: 14px; }
   .productBody p { -webkit-line-clamp: 2; }

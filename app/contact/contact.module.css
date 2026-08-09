@@ -158,6 +158,51 @@
   padding: 30px 0;
 }
 
+.reference {
+  color: var(--brown);
+  font-size: 13px;
+}
+
+.reference strong {
+  color: var(--orange-hover);
+  font-family: 'Montserrat', sans-serif;
+}
+
+.consentRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: var(--brown);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.consentRow input {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  accent-color: var(--orange);
+  flex: 0 0 auto;
+}
+
+.submitError {
+  padding: 10px 12px;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.spinner {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 @media (max-width: 900px) {
   .contactGrid {
     grid-template-columns: 1fr;
@@ -167,5 +212,19 @@
   }
   .mapWrap {
     min-height: 380px;
+  }
+}
+
+@media (max-width: 600px) {
+  .pageHeader {
+    padding: 40px 0 36px;
+  }
+
+  .formCard {
+    padding: 20px;
+  }
+
+  .rowTwo {
+    grid-template-columns: 1fr;
   }
 }

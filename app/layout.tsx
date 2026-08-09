@@ -8,10 +8,11 @@ import { StoreSettingsProvider } from '@/context/StoreSettingsContext';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { CartDrawer } from '@/components/ui/CartDrawer';
-import { assertProductionEnv, getAppMode } from '@/lib/env';
+import { assertProductionEnv, getAppMode, getSiteUrl } from '@/lib/env';
 
 assertProductionEnv();
 const appMode = getAppMode();
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   title: 'Beanbus Coffee Roaster — Brew Better Every Day',
@@ -28,11 +29,11 @@ export const metadata: Metadata = {
     'Cà phê muối Hải Phòng',
   ],
   authors: [{ name: 'Beanbus Coffee Roaster Team' }],
-  metadataBase: new URL('https://beanbus.vn'),
+  metadataBase: new URL(siteUrl),
   openGraph: {
     title: 'Beanbus Coffee Roaster — Brew Better Every Day',
     description: 'Cà phê đặc sản từ farm đến cup tại Hải Phòng.',
-    url: 'https://beanbus.vn',
+    url: siteUrl,
     siteName: 'Beanbus Coffee Roaster',
     images: [
       {
@@ -52,9 +53,23 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const localBusiness = {
+    '@context': 'https://schema.org',
+    '@type': 'CafeOrCoffeeShop',
+    name: 'Beanbus Coffee Roaster',
+    url: siteUrl,
+    image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=1200&auto=format&fit=crop',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: '25-27 Thanh Bình',
+      addressLocality: 'Hải Phòng',
+      addressCountry: 'VN',
+    },
+  };
   return (
     <html lang="vi" data-scroll-behavior="smooth">
       <body>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusiness).replace(/</g, '\\u003c') }} />
         <LanguageProvider>
           <AuthProvider mode={appMode}>
             <StoreSettingsProvider>

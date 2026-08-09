@@ -2,6 +2,8 @@
 
 import { parseBookingRequestInput } from '@/lib/requests/booking-input';
 import { getAppMode } from '@/lib/env';
+import { logOperationalFailure } from '@/lib/observability/logger';
+import { getRequestCorrelationId } from '@/lib/observability/request';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 export type CreateBookingResult =
@@ -13,7 +15,7 @@ export type CreateBookingResult =
         status: 'pending';
       };
     }
-  | { error: string; ok: false };
+  | { error: string; ok: false; reference?: string };
 
 export async function createProductionBooking(input: unknown): Promise<CreateBookingResult> {
   if (getAppMode() !== 'production') return { ok: false, error: 'PRODUCTION_MODE_REQUIRED' };
@@ -21,6 +23,7 @@ export async function createProductionBooking(input: unknown): Promise<CreateBoo
   const parsed = parseBookingRequestInput(input);
   if (!parsed.ok) return parsed;
 
+  const correlationId = await getRequestCorrelationId();
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.rpc('create_booking_request', {
     p_idempotency_key: parsed.data.idempotencyKey,
@@ -33,7 +36,15 @@ export async function createProductionBooking(input: unknown): Promise<CreateBoo
     p_consent_to_contact: parsed.data.consentToContact,
   });
   const booking = data?.[0];
-  if (error || !booking) return { ok: false, error: 'BOOKING_CREATION_FAILED' };
+  if (error || !booking) {
+    logOperationalFailure({
+      correlationId,
+      event: 'booking_failed',
+      operation: 'create_booking',
+      reason: error ? 'database_error' : 'missing_result',
+    });
+    return { ok: false, error: 'BOOKING_CREATION_FAILED', reference: correlationId };
+  }
 
   return {
     ok: true,

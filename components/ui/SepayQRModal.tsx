@@ -6,6 +6,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useOrders } from '@/context/OrderContext';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
+import { useDialogFocus } from '@/lib/ui/use-dialog-focus';
 import { X, Copy, CheckCircle, RefreshCw, ShieldCheck, QrCode } from 'lucide-react';
 import styles from './SepayQRModal.module.css';
 
@@ -26,6 +27,7 @@ export const SepayQRModal: React.FC<Props> = ({ orderId, sepayCode, finalTotal, 
   const [copiedAcc, setCopiedAcc] = useState(false);
   const [copiedContent, setCopiedContent] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
+  const dialogRef = useDialogFocus<HTMLDivElement>(true, onClose);
 
   const bankName = 'MBBank (Ngân hàng Quân Đội)';
   const accNumber = '0937936688';
@@ -58,14 +60,14 @@ export const SepayQRModal: React.FC<Props> = ({ orderId, sepayCode, finalTotal, 
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div ref={dialogRef} className={styles.modal} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="sepay-dialog-title" tabIndex={-1}>
         {/* HEADER */}
         <div className={styles.header}>
           <div className={styles.headerTitle}>
             <QrCode className={styles.icon} />
-            <h3>{t('Thanh Toán QR Code Sepay', 'Sepay QR Payment')}</h3>
+            <h3 id="sepay-dialog-title">{t('Thanh Toán QR Code Sepay', 'Sepay QR Payment')}</h3>
           </div>
-          <button className={styles.closeBtn} onClick={onClose}>
+          <button className={styles.closeBtn} onClick={onClose} aria-label={t('Đóng thanh toán QR', 'Close QR payment')}>
             <X size={20} />
           </button>
         </div>
@@ -105,7 +107,7 @@ export const SepayQRModal: React.FC<Props> = ({ orderId, sepayCode, finalTotal, 
                 <span className={styles.label}>{t('Số tài khoản', 'Account No.')}</span>
                 <div className={styles.copyValue}>
                   <span className={styles.highlight}>{accNumber}</span>
-                  <button onClick={() => copyToClipboard(accNumber, 'acc')}>
+                  <button onClick={() => copyToClipboard(accNumber, 'acc')} aria-label={t('Sao chép số tài khoản', 'Copy account number')}>
                     {copiedAcc ? <CheckCircle size={14} color="#10b981" /> : <Copy size={14} />}
                   </button>
                 </div>
@@ -122,7 +124,7 @@ export const SepayQRModal: React.FC<Props> = ({ orderId, sepayCode, finalTotal, 
                 <span className={styles.label}>{t('Nội dung CK (Bắt buộc)', 'Transfer Note')}</span>
                 <div className={styles.copyValue}>
                   <span className={styles.codeHighlight}>{sepayCode}</span>
-                  <button onClick={() => copyToClipboard(sepayCode, 'content')}>
+                  <button onClick={() => copyToClipboard(sepayCode, 'content')} aria-label={t('Sao chép nội dung chuyển khoản', 'Copy transfer note')}>
                     {copiedContent ? <CheckCircle size={14} color="#10b981" /> : <Copy size={14} />}
                   </button>
                 </div>
@@ -138,6 +140,10 @@ export const SepayQRModal: React.FC<Props> = ({ orderId, sepayCode, finalTotal, 
               <span>{t('Hệ thống sẽ tự động cập nhật ngay khi tiền về tài khoản.', 'System updates automatically upon payment.')}</span>
             </div>
           </div>
+          <p className={styles.copyStatus} role="status" aria-live="polite">
+            {copiedAcc ? t('Đã sao chép số tài khoản.', 'Account number copied.') : ''}
+            {copiedContent ? t('Đã sao chép nội dung chuyển khoản.', 'Transfer note copied.') : ''}
+          </p>
         </div>
 
         {/* FOOTER */}

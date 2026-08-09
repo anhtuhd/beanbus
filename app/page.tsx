@@ -1,11 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { createCustomerRequest } from '@/app/request-actions';
 import { useLanguage } from '@/context/LanguageContext';
 import { PRODUCTS, Product } from '@/data/products';
 import { COFFEE_BEANS, CoffeeBean } from '@/data/beans';
 import { ProductCustomizerModal } from '@/components/ui/ProductCustomizerModal';
+import { useDialogFocus } from '@/lib/ui/use-dialog-focus';
+import { withSupportReference } from '@/lib/observability/support-reference';
 import {
   Coffee,
   Sparkles,
@@ -17,8 +21,12 @@ import {
   Maximize2,
   X,
   CheckCircle,
+  LoaderCircle,
+  Send,
 } from 'lucide-react';
 import styles from './page.module.css';
+
+const isProduction = process.env.NEXT_PUBLIC_APP_MODE === 'production';
 
 export default function HomePage() {
   const { t, lang } = useLanguage();
@@ -27,6 +35,15 @@ export default function HomePage() {
   const [quoteModalOpen, setQuoteModalOpen] = useState(false);
   const [quoteSubmitted, setQuoteSubmitted] = useState(false);
   const [quoteBean, setQuoteBean] = useState<CoffeeBean | null>(null);
+  const [quoteName, setQuoteName] = useState('');
+  const [quotePhone, setQuotePhone] = useState('');
+  const [quoteOrganization, setQuoteOrganization] = useState('');
+  const [quoteVolume, setQuoteVolume] = useState<'10_30' | '30_100' | 'over_100'>('10_30');
+  const [quoteConsent, setQuoteConsent] = useState(false);
+  const [quoteSubmitting, setQuoteSubmitting] = useState(false);
+  const [quoteError, setQuoteError] = useState('');
+  const [quoteReference, setQuoteReference] = useState('');
+  const quoteIdempotencyKey = useRef<string | null>(null);
 
   const bestSellers = PRODUCTS.filter((p) => p.badge === 'best' || p.badge === 'signature').slice(0, 4);
 
@@ -38,17 +55,65 @@ export default function HomePage() {
   ];
 
   const handleOpenQuote = (bean?: CoffeeBean) => {
+    quoteIdempotencyKey.current = null;
     setQuoteBean(bean || null);
     setQuoteModalOpen(true);
     setQuoteSubmitted(false);
+    setQuoteName('');
+    setQuotePhone('');
+    setQuoteOrganization('');
+    setQuoteVolume('10_30');
+    setQuoteConsent(false);
+    setQuoteError('');
+    setQuoteReference('');
   };
 
-  const handleSendQuote = (e: React.FormEvent) => {
+  const closeQuote = () => {
+    if (quoteSubmitting) return;
+    setQuoteModalOpen(false);
+  };
+  const quoteDialogRef = useDialogFocus<HTMLDivElement>(quoteModalOpen, closeQuote);
+  const lightboxRef = useDialogFocus<HTMLDivElement>(Boolean(lightboxImg), () => setLightboxImg(null));
+
+  const handleSendQuote = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (quoteSubmitting) return;
+    setQuoteError('');
+
+    if (isProduction) {
+      setQuoteSubmitting(true);
+      quoteIdempotencyKey.current ??= crypto.randomUUID();
+      try {
+        const result = await createCustomerRequest({
+          type: 'b2b_quote',
+          idempotencyKey: quoteIdempotencyKey.current,
+          name: quoteName,
+          phone: quotePhone,
+          organization: quoteOrganization,
+          volumeRange: quoteVolume,
+          subjectReference: quoteBean?.id,
+          consentToContact: quoteConsent,
+        });
+        if (!result.ok) {
+          setQuoteError(withSupportReference(
+            t('Thông tin chưa hợp lệ hoặc chưa thể gửi. Vui lòng kiểm tra và thử lại.', 'Please check your details and try again.'),
+            result.reference,
+            t('Mã hỗ trợ', 'Support reference')
+          ));
+          return;
+        }
+        setQuoteReference(result.request.reference);
+        setQuoteSubmitted(true);
+      } catch {
+        setQuoteError(t('Kết nối bị gián đoạn. Vui lòng thử lại.', 'Connection interrupted. Please try again.'));
+      } finally {
+        setQuoteSubmitting(false);
+      }
+      return;
+    }
+
+    setQuoteReference(`BQ-DEMO-${Date.now().toString().slice(-6)}`);
     setQuoteSubmitted(true);
-    setTimeout(() => {
-      setQuoteModalOpen(false);
-    }, 2000);
   };
 
   return (
@@ -124,9 +189,12 @@ export default function HomePage() {
         <div className="wrap">
           <div className={styles.storyGrid}>
             <div className={styles.storyImgWrap}>
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=800&auto=format&fit=crop"
                 alt="Beanbus Coffee Roaster signage"
+                width={800}
+                height={700}
+                sizes="(max-width: 900px) 100vw, 50vw"
                 className={styles.storyImg}
               />
               <div className={styles.storyBadge}>
@@ -224,7 +292,14 @@ export default function HomePage() {
                   </span>
                 )}
                 <div className={styles.dishImgBox}>
-                  <img src={item.image} alt={item.nameVi} className={styles.dishImg} />
+                  <Image
+                    src={item.image}
+                    alt={lang === 'en' ? item.nameEn : item.nameVi}
+                    width={640}
+                    height={400}
+                    sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 25vw"
+                    className={styles.dishImg}
+                  />
                 </div>
                 <div className={styles.dishContent}>
                   <h4>{lang === 'en' ? item.nameEn : item.nameVi}</h4>
@@ -353,13 +428,20 @@ export default function HomePage() {
           </div>
           <div className={styles.galleryGrid}>
             {galleryImages.map((img, idx) => (
-              <div key={idx} className={styles.galleryCard} onClick={() => setLightboxImg(img.src)}>
-                <img src={img.src} alt={img.caption} className={styles.galleryImg} />
+              <button key={idx} type="button" className={styles.galleryCard} onClick={() => setLightboxImg(img.src)} aria-label={`${t('Xem ảnh', 'View image')}: ${img.caption}`}>
+                <Image
+                  src={img.src}
+                  alt={img.caption}
+                  width={640}
+                  height={480}
+                  sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 25vw"
+                  className={styles.galleryImg}
+                />
                 <div className={styles.galleryOverlay}>
                   <Maximize2 size={24} color="#fff" />
                   <span>{img.caption}</span>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -367,11 +449,18 @@ export default function HomePage() {
 
       {/* ============ LIGHTBOX MODAL ============ */}
       {lightboxImg && (
-        <div className={styles.lightbox} onClick={() => setLightboxImg(null)}>
-          <button className={styles.lightboxClose} onClick={() => setLightboxImg(null)}>
+        <div ref={lightboxRef} className={styles.lightbox} onClick={() => setLightboxImg(null)} role="dialog" aria-modal="true" aria-label={t('Xem ảnh không gian Beanbus', 'Beanbus gallery image')} tabIndex={-1}>
+          <button className={styles.lightboxClose} onClick={() => setLightboxImg(null)} aria-label={t('Đóng ảnh', 'Close image')}>
             <X size={32} />
           </button>
-          <img src={lightboxImg} alt="Lightbox view" className={styles.lightboxImg} />
+          <Image
+            src={lightboxImg}
+            alt={t('Ảnh không gian Beanbus phóng lớn', 'Enlarged Beanbus gallery view')}
+            width={1200}
+            height={900}
+            sizes="90vw"
+            className={styles.lightboxImg}
+          />
         </div>
       )}
 
@@ -385,47 +474,58 @@ export default function HomePage() {
 
       {/* ============ B2B QUOTE MODAL ============ */}
       {quoteModalOpen && (
-        <div className={styles.lightbox} onClick={() => setQuoteModalOpen(false)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.lightbox} onClick={closeQuote}>
+          <div ref={quoteDialogRef} className={styles.modalContent} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="quote-title" tabIndex={-1}>
             <div className={styles.modalHeader}>
-              <h3>{t('Yêu Cầu Báo Giá Cà Phê Sỉ (B2B)', 'Request B2B Wholesale Quote')}</h3>
-              <button onClick={() => setQuoteModalOpen(false)}><X size={20} /></button>
+              <h3 id="quote-title">{t('Yêu Cầu Báo Giá Cà Phê Sỉ (B2B)', 'Request B2B Wholesale Quote')}</h3>
+              <button onClick={closeQuote} aria-label={t('Đóng', 'Close')} disabled={quoteSubmitting}><X size={20} /></button>
             </div>
             {quoteSubmitted ? (
               <div className={styles.submittedSuccess}>
                 <CheckCircle size={48} color="#10b981" />
-                <h4>{t('Gửi yêu cầu thành công!', 'Request Sent Successfully!')}</h4>
-                <p>{t('Đội ngũ Beanbus sẽ liên hệ tư vấn & gửi mẫu thử trong vòng 2 giờ.', 'Our team will contact you within 2 hours with samples.')}</p>
+                <h4>{t('Đã nhận yêu cầu báo giá', 'Quote Request Received')}</h4>
+                <p className={styles.reference}>{t('Mã yêu cầu:', 'Request reference:')} <strong>{quoteReference}</strong></p>
+                <p>{t('Beanbus đã lưu thông tin. Nhân viên sẽ liên hệ sau khi xem nhu cầu sản lượng của bạn.', 'Beanbus saved your request. A team member will contact you after reviewing your volume needs.')}</p>
+                <button className="btn btn-dark btn-sm" onClick={closeQuote}>{t('Đóng', 'Close')}</button>
               </div>
             ) : (
               <form onSubmit={handleSendQuote} className={styles.quoteForm}>
                 {quoteBean && (
                   <div className={styles.beanSelectedInfo}>
-                    ☕ {t('Hạt đã chọn:', 'Selected Bean:')} <strong>{quoteBean.name}</strong>
+                    <Coffee size={16} /> {t('Hạt đã chọn:', 'Selected Bean:')} <strong>{quoteBean.name}</strong>
                   </div>
                 )}
                 <div className={styles.inputGroup}>
-                  <label>{t('Họ và tên của bạn', 'Your Name')} *</label>
-                  <input type="text" required placeholder="Nguyễn Văn A" />
+                  <label htmlFor="quote-name">{t('Họ và tên của bạn', 'Your Name')} *</label>
+                  <input id="quote-name" type="text" required placeholder="Nguyễn Văn A" value={quoteName} onChange={(event) => setQuoteName(event.target.value)} />
                 </div>
                 <div className={styles.inputGroup}>
-                  <label>{t('Số điện thoại / Zalo', 'Phone / Zalo')} *</label>
-                  <input type="tel" required placeholder="0937 xxx xxx" />
+                  <label htmlFor="quote-phone">{t('Số điện thoại liên hệ', 'Phone Number')} *</label>
+                  <input id="quote-phone" type="tel" required placeholder="0937 xxx xxx" value={quotePhone} onChange={(event) => setQuotePhone(event.target.value)} />
                 </div>
                 <div className={styles.inputGroup}>
-                  <label>{t('Tên Quán Cà Phê / Đơn vị', 'Café / Business Name')}</label>
-                  <input type="text" placeholder="Ví dụ: Beanbus Coffee Hải Phòng" />
+                  <label htmlFor="quote-organization">{t('Tên Quán Cà Phê / Đơn vị', 'Café / Business Name')}</label>
+                  <input id="quote-organization" type="text" placeholder="Ví dụ: Beanbus Coffee Hải Phòng" value={quoteOrganization} onChange={(event) => setQuoteOrganization(event.target.value)} />
                 </div>
                 <div className={styles.inputGroup}>
-                  <label>{t('Sản lượng dự kiến / Tháng', 'Estimated kg/month')}</label>
-                  <select>
-                    <option>10kg - 30kg / tháng</option>
-                    <option>30kg - 100kg / tháng</option>
-                    <option>Trên 100kg / tháng (Ưu đãi đặc biệt)</option>
+                  <label htmlFor="quote-volume">{t('Sản lượng dự kiến / Tháng', 'Estimated kg/month')}</label>
+                  <select id="quote-volume" value={quoteVolume} onChange={(event) => setQuoteVolume(event.target.value as typeof quoteVolume)}>
+                    <option value="10_30">10kg - 30kg / {t('tháng', 'month')}</option>
+                    <option value="30_100">30kg - 100kg / {t('tháng', 'month')}</option>
+                    <option value="over_100">{t('Trên 100kg / tháng', 'Over 100kg / month')}</option>
                   </select>
                 </div>
-                <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
-                  <span>{t('Gửi Yêu Cầu Báo Giá', 'Submit Quote Request')}</span>
+
+                <label className={styles.consentRow}>
+                  <input type="checkbox" checked={quoteConsent} onChange={(event) => setQuoteConsent(event.target.checked)} required />
+                  <span>{t('Tôi đồng ý để Beanbus liên hệ về yêu cầu báo giá này.', 'I agree that Beanbus may contact me about this quote request.')}</span>
+                </label>
+
+                {quoteError && <p className={styles.submitError} role="alert">{quoteError}</p>}
+
+                <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }} disabled={quoteSubmitting}>
+                  {quoteSubmitting ? <LoaderCircle size={18} className={styles.spinner} /> : <Send size={18} />}
+                  <span>{quoteSubmitting ? t('Đang gửi...', 'Sending...') : t('Gửi Yêu Cầu Báo Giá', 'Submit Quote Request')}</span>
                 </button>
               </form>
             )}

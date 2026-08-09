@@ -56,8 +56,9 @@ select is((select price_vnd from public.products where id = 'cd-1'), 35000, 'mem
 set local role authenticated;
 set local request.jwt.claim.sub = '44444444-4444-4444-8444-444444444444';
 update public.products set is_available = false where id = 'cd-1';
-select is((select is_available from public.products where id = 'cd-1'), false, 'admins can update catalog state');
-update public.products set is_published = false where id = 'cd-1';
+select is((select is_available from public.products where id = 'cd-1'), true, 'admins cannot bypass audited catalog operations');
+create temporary table catalog_admin_update as
+select * from public.update_product_status('cd-1', false, false);
 
 set local role anon;
 select is((select count(*)::integer from public.products), 13, 'anonymous visitors cannot see unpublished products');

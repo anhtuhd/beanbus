@@ -16,9 +16,9 @@ Turn the current Beanbus UI prototype into a production-ready website for market
 - Public UI exists for home, about, menu, ordering, cart, checkout, confirmation, booking, events, blog, contact, account, and admin.
 - Product customization, cart persistence, voucher demo, order/booking demo, membership demo, and Sepay QR demo are clickable end to end.
 - `npx tsc --noEmit` passes.
-- `npm run build` passes and emits 15 application routes.
+- `npm run build` passes and emits 28 application and metadata routes.
 
-### Required findings
+### Original findings and resolution targets
 
 | Priority | Finding | Evidence | Required outcome |
 |---|---|---|---|
@@ -30,19 +30,22 @@ Turn the current Beanbus UI prototype into a production-ready website for market
 | P1 | Confirmation trusts `?paid=true` and fabricates a fallback order when an ID is unknown. | `app/order/confirmation/[id]/page.tsx` | Load an authorized order from the server and show not-found/forbidden states. |
 | P1 | Booking, contact, event RSVP, and B2B quote forms show success without delivering data. | `app/booking`, `app/contact`, `app/events`, `app/page.tsx` | Persist or deliver submissions, validate server-side, and expose real failure states. |
 | P1 | Header/account links point to missing `/account/topup` and `/flash-sale` routes; planned detail routes are also absent. | `components/layout/Header.tsx` | Remove premature links or implement the routes only when their backing flow exists. |
-| P1 | Lint gate originally failed with 14 errors and 63 warnings and had no application tests. | `npm run lint`, repository inventory | The current gate passes with 18 deferred image warnings and focused unit/E2E coverage. |
+| P1 | Lint gate originally failed with 14 errors and 63 warnings and had no application tests. | `npm run lint`, repository inventory | The current gate passes with 3 provider-controlled image warnings and focused unit/E2E coverage. |
 | P2 | Every page is a Client Component; page-level metadata, server rendering, and content SEO are limited. | `app/**/page.tsx` | Make static/content shells server-rendered and isolate only interactive islands as clients. |
 | P2 | Remote `<img>` usage is unoptimized and image hosts are not configured. | 20 occurrences across pages/components | Define an image strategy and convert above-the-fold/product content where beneficial. |
 
-### Current progress estimate
+### Review status and current progress estimate
 
-- UI prototype: about 75% complete.
-- Functional demo: about 60% complete.
-- Production backend/security: about 20% complete.
-- Automated quality and launch readiness: about 25% complete.
-- Overall production readiness: about 35%.
+Production paths now isolate the intentionally client-only demo behavior. Server implementations exist for auth/role guards, catalog reads and operations, server-priced orders, Sepay verification, protected receipts, customer requests, admin operations, and content/SEO. These paths have contract tests but still require a real Supabase runtime and provider credentials before they can be considered production-verified. Loyalty/stored-value policy and implementation remain open.
 
-These percentages describe readiness, not lines of code. Existing UI is useful and should be retained; the main remaining work is trusted data flow and verification.
+- UI and responsive implementation: about 95% complete.
+- Functional demo: about 90% complete.
+- Production backend/security implementation: about 75% complete.
+- Automated local quality and release readiness: about 80% complete.
+- Hosted integration and staging verification: about 15% complete.
+- Overall production readiness: about 65%.
+
+These percentages describe release readiness, not lines of code. The highest-risk remaining work is hosted database/provider verification, loyalty policy, observability/CI, owner content/assets, and staging sign-off.
 
 ## 3. Scope Decisions
 
@@ -272,18 +275,18 @@ Supabase SSR intentionally keeps auth cookies readable by its browser client so 
 
 **Description:** Convert the four success-only forms into validated server submissions. Store requests first; add outbound email/SMS only after a provider is approved.
 
-**Implementation status:** The booking vertical slice is implemented with normalized server validation, a pending-only idempotent RPC, serialized phone rate limiting, consent storage, private member/admin RLS, an honest reference receipt, and responsive UI states. Applying pgTAP against Supabase, capacity policy, contact/RSVP/B2B persistence, and admin request operations remain open.
+**Implementation status:** Booking, contact, RSVP, and B2B quote submissions are implemented with discriminated server validation, pending-only idempotent RPCs, serialized phone rate limiting, consent storage, private member/admin RLS, honest reference receipts, responsive loading/error/retry states, and protected admin operations. Applying pgTAP against Supabase and the owner-approved booking capacity policy remain open.
 
 **Acceptance criteria:**
-- [ ] Each form validates field shape/length, rate-limits abuse, persists consent-aware contact data, and returns a real reference ID.
+- [x] Each form validates field shape/length, rate-limits abuse, persists consent-aware contact data, and returns a real reference ID.
 - [x] Booking begins as `pending` unless an explicit capacity rule confirms it; no UI claims an SMS/Zalo was sent unless delivery succeeded.
-- [ ] Admin can view and update request status through authorized operations.
+- [x] Admin can view and update request status through authorized operations.
 
 **Verification:**
 - [ ] Tests cover validation, rate limiting, duplicate submission, capacity conflict, and authorization.
-- [ ] Browser-check loading, success, validation, network failure, and retry states for each form.
+- [x] Browser-check loading, success, validation, network failure, and retry states for each form.
 
-Booking contract/unit tests cover validation, serialized rate limiting, idempotency, and RLS structure. Written pgTAP adds member/admin authorization coverage; browser E2E covers demo success and 375 px layout. Capacity conflict and production runtime checks remain deferred until the owner confirms capacity rules and Supabase is available.
+Contract/unit tests cover discriminated validation, serialized rate limiting, idempotency, and RLS structure for every form. Written pgTAP covers valid contact/RSVP/B2B submissions plus member/admin authorization. Browser E2E covers each demo success receipt, 375 px layouts, and production loading/network-failure/retry behavior. Capacity conflict and configured production success remain deferred until the owner confirms capacity rules and Supabase is available.
 
 **Dependencies:** Tasks 3 and 4  
 **Estimated scope:** Split booking and lead/RSVP forms into separate Medium subtasks.
@@ -292,13 +295,15 @@ Booking contract/unit tests cover validation, serialized rate limiting, idempote
 
 **Description:** Split the single admin demo into focused dashboard, orders, catalog, bookings/leads, members, events, and blog routes backed by authorized server mutations.
 
+**Implementation status:** Production request, order, catalog, and content operations are implemented at `/admin/requests`, `/admin/orders`, `/admin/catalog`, and `/admin/content`: guarded narrow queries, search/filters, pagination, responsive rows, `useActionState` feedback, locked RPCs, payment-boundary enforcement, and actor/system audit history. `/admin/members` provides the policy-safe read-only directory; role and loyalty mutations remain deliberately deferred.
+
 **Acceptance criteria:**
-- [ ] Admin pages are unreachable to anonymous/member users and every mutation repeats authorization server-side.
-- [ ] Order and booking state transitions follow explicit allowed-transition rules with actor/audit history.
-- [ ] Lists support search/filter/pagination and remain usable on mobile without relying on wide tables alone.
+- [x] Admin routes call the server role guard and every mutation repeats authorization in both Server Action and locked RPC boundaries.
+- [x] Order and booking state transitions follow explicit allowed-transition rules with actor/audit history.
+- [x] Lists support search/filter/pagination and remain usable on mobile without relying on wide tables alone.
 
 **Verification:**
-- [ ] Authorization and state-machine tests cover forbidden and invalid transitions.
+- [x] Contract tests and written pgTAP cover forbidden access, invalid transitions, idempotency, and audit records; pgTAP execution remains external verification.
 - [ ] Browser-check desktop/mobile admin workflows with an admin and a non-admin session.
 
 **Dependencies:** Tasks 4, 5, 6, 8, and 10  
@@ -315,13 +320,15 @@ Booking contract/unit tests cover validation, serialized rate limiting, idempote
 
 **Description:** Add `/events/[id]`, make blog/event content server-backed, add not-found handling and page metadata, and convert static page shells to Server Components where practical.
 
+**Implementation status:** Event/blog content schema, public-only RLS, production query layer, seeded current content, `/events/[id]`, real blog not-found behavior, loading/error states, canonical/Open Graph metadata, Product/Event/Blog/LocalBusiness JSON-LD, dynamic sitemap, robots policy, and audited admin publication controls are implemented. Owner-approved final assets/content and the stricter interactive-island/no-JavaScript audit remain open.
+
 **Acceptance criteria:**
-- [ ] Product, event, and blog detail deep links render useful indexed content with canonical metadata and not-found behavior.
-- [ ] Sitemap, robots policy, Open Graph assets, and local business/product/event structured data reflect production URLs/content.
+- [x] Product, event, and blog detail deep links render useful indexed content with canonical metadata and not-found behavior.
+- [x] Sitemap, robots policy, Open Graph assets, and local business/product/event structured data derive URLs from production configuration and published content.
 - [ ] Client Components are limited to interactive islands; Vietnamese canonical content remains available without client JavaScript.
 
 **Verification:**
-- [ ] Build route output and generated metadata are inspected for representative pages.
+- [x] Build route output plus representative product/event/blog canonical metadata, JSON-LD, sitemap, robots, 404s, and 375 px overflow are browser-tested.
 - [ ] Validate structured data and check no stale placeholder domain/content remains.
 
 **Dependencies:** Tasks 5 and 10; content ownership decision  
@@ -331,14 +338,17 @@ Booking contract/unit tests cover validation, serialized rate limiting, idempote
 
 **Description:** Finish modal/drawer focus management, keyboard navigation, form semantics, responsive admin/data views, and image/loading performance.
 
+**Implementation status:** Shared dialog focus management now covers Escape, focus trap/return, scroll lock, accessible names, and status announcements. Header dropdown/mobile navigation is keyboard-operable. Public routes and the admin demo pass 375/768/1440 overflow checks, and catalog/content media uses `next/image` with stable dimensions and eager loading for LCP candidates. Three provider-controlled images remain intentionally unoptimized until their production hosts are approved.
+
 **Acceptance criteria:**
-- [ ] Header menus, dialogs, cart drawer, customizer, and Sepay dialog support keyboard, Escape, focus trap/return, and accessible names/status announcements.
-- [ ] No overlap or horizontal overflow at 375, 768, and 1440 px; admin data remains scannable on mobile.
-- [ ] Above-the-fold and catalog media use an approved optimized image strategy with stable dimensions.
+- [x] Header menus, dialogs, cart drawer, customizer, and Sepay dialog support keyboard, Escape, focus trap/return, and accessible names/status announcements.
+- [x] Representative public/admin views have no horizontal overflow at 375, 768, and 1440 px; the mobile admin fixture remains scannable.
+- [x] Above-the-fold and catalog media use the Next.js 16 image strategy with stable dimensions and explicit LCP loading.
 
 **Verification:**
-- [ ] Run automated accessibility checks on critical routes and manually complete keyboard-only order/account/admin flows.
-- [ ] Capture responsive screenshots and inspect console/network errors and Core Web Vitals baseline.
+- [x] Automated keyboard checks cover header, cart, customizer, RSVP, B2B, gallery, and Sepay dialogs.
+- [x] Responsive screenshots cover home/admin plus order, booking, and request workflows; the browser suite exposed and now guards a broken catalog image URL.
+- [ ] Complete a screen-reader/automated WCAG scan, Core Web Vitals baseline, and keyboard-only account/admin workflow with configured member/admin sessions.
 
 **Dependencies:** Feature UI tasks complete  
 **Estimated scope:** Deliver per workflow in Medium subtasks.
@@ -347,13 +357,16 @@ Booking contract/unit tests cover validation, serialized rate limiting, idempote
 
 **Description:** Add privacy-aware error/transaction logging, deployment checks, backup/rollback notes, and a final browser regression suite.
 
+**Implementation status:** Bounded structured failure logging, request correlation propagation, support references, an uncached health endpoint, baseline browser security headers, GitHub Actions quality/E2E/database jobs, and a deployment/rollback runbook are implemented. Hosted Supabase/provider execution and final staging sign-off remain owner-controlled.
+
 **Acceptance criteria:**
-- [ ] Order/payment/webhook/admin failures have correlation IDs and actionable logs without secrets or full PII.
-- [ ] CI runs type check, lint, tests, production build, and critical E2E against an isolated environment.
-- [ ] Deployment runbook covers environment variables, migrations, webhook setup, smoke checks, backup, rollback, and incident contacts.
+- [x] Order/payment/webhook/admin failures have correlation IDs and actionable logs without secrets or full PII.
+- [x] CI runs type check, lint, tests, production build, dependency audit, critical E2E, and local database checks.
+- [x] Deployment runbook covers environment variables, migrations, webhook setup, smoke checks, backup, rollback, and incident contacts.
 
 **Verification:**
-- [ ] Run the complete CI command set from a clean install against the committed lockfile.
+- [x] Local gates pass: 113 unit/contract tests, lint, type check, production build, `npm audit --omit=dev --audit-level=high`, demo E2E, and auth-gated E2E.
+- [ ] Run the complete CI command set from a clean install against the committed lockfile and execute hosted database checks.
 - [ ] Execute a staging smoke test for auth, order, payment callback, booking, account, and admin authorization.
 
 **Dependencies:** Tasks 1-13  

@@ -1,9 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { createCustomerRequest } from '@/app/request-actions';
 import { useLanguage } from '@/context/LanguageContext';
-import { MapPin, Phone, Clock, Mail, MessageSquare, CheckCircle, Send } from 'lucide-react';
+import { withSupportReference } from '@/lib/observability/support-reference';
+import { MapPin, Phone, Clock, Mail, MessageSquare, CheckCircle, LoaderCircle, Send } from 'lucide-react';
 import styles from './contact.module.css';
+
+const isProduction = process.env.NEXT_PUBLIC_APP_MODE === 'production';
 
 export default function ContactPage() {
   const { t } = useLanguage();
@@ -11,17 +15,63 @@ export default function ContactPage() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
+  const [consentToContact, setConsentToContact] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [reference, setReference] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const idempotencyKey = useRef<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setSubmitError('');
+
+    if (isProduction) {
+      setIsSubmitting(true);
+      idempotencyKey.current ??= crypto.randomUUID();
+      try {
+        const result = await createCustomerRequest({
+          type: 'contact',
+          idempotencyKey: idempotencyKey.current,
+          name,
+          phone,
+          email,
+          message,
+          consentToContact,
+        });
+        if (!result.ok) {
+          setSubmitError(withSupportReference(
+            t('Thông tin chưa hợp lệ hoặc chưa thể gửi. Vui lòng kiểm tra và thử lại.', 'Please check your details and try again.'),
+            result.reference,
+            t('Mã hỗ trợ', 'Support reference')
+          ));
+          return;
+        }
+        setReference(result.request.reference);
+        setSubmitted(true);
+      } catch {
+        setSubmitError(t('Kết nối bị gián đoạn. Vui lòng thử lại.', 'Connection interrupted. Please try again.'));
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    setReference(`CT-DEMO-${Date.now().toString().slice(-6)}`);
     setSubmitted(true);
-    setTimeout(() => {
-      setName('');
-      setPhone('');
-      setEmail('');
-      setMessage('');
-    }, 1000);
+  };
+
+  const startAnotherMessage = () => {
+    idempotencyKey.current = null;
+    setName('');
+    setPhone('');
+    setEmail('');
+    setMessage('');
+    setConsentToContact(false);
+    setSubmitError('');
+    setReference('');
+    setSubmitted(false);
   };
 
   return (
@@ -87,9 +137,10 @@ export default function ContactPage() {
               {submitted ? (
                 <div className={styles.submittedBox}>
                   <CheckCircle size={44} color="#10b981" />
-                  <h4>{t('Cảm ơn bạn đã liên hệ Beanbus!', 'Thank you for reaching out!')}</h4>
-                  <p>{t('Chúng tôi đã nhận được thông tin và sẽ phản hồi qua Zalo/Phone trong thời gian sớm nhất.', 'We received your message and will respond shortly.')}</p>
-                  <button className="btn btn-dark btn-sm" onClick={() => setSubmitted(false)}>
+                  <h4>{t('Beanbus đã nhận yêu cầu liên hệ', 'Contact Request Received')}</h4>
+                  <p className={styles.reference}>{t('Mã yêu cầu:', 'Request reference:')} <strong>{reference}</strong></p>
+                  <p>{t('Thông tin đã được lưu. Nhân viên sẽ liên hệ theo thông tin bạn đồng ý cung cấp sau khi xem nội dung.', 'Your request was saved. A team member will contact you after reviewing it.')}</p>
+                  <button className="btn btn-dark btn-sm" onClick={startAnotherMessage}>
                     {t('Gửi tin nhắn khác', 'Send another message')}
                   </button>
                 </div>
@@ -97,8 +148,9 @@ export default function ContactPage() {
                 <form onSubmit={handleSubmit} className={styles.form}>
                   <div className={styles.rowTwo}>
                     <div className={styles.inputGroup}>
-                      <label>{t('Họ và tên', 'Your Name')} *</label>
+                      <label htmlFor="contact-name">{t('Họ và tên', 'Your Name')} *</label>
                       <input
+                        id="contact-name"
                         type="text"
                         required
                         placeholder="Nguyễn Văn A"
@@ -107,8 +159,9 @@ export default function ContactPage() {
                       />
                     </div>
                     <div className={styles.inputGroup}>
-                      <label>{t('Số điện thoại', 'Phone Number')} *</label>
+                      <label htmlFor="contact-phone">{t('Số điện thoại', 'Phone Number')} *</label>
                       <input
+                        id="contact-phone"
                         type="tel"
                         required
                         placeholder="0987 xxx xxx"
@@ -119,8 +172,9 @@ export default function ContactPage() {
                   </div>
 
                   <div className={styles.inputGroup}>
-                    <label>Email ({t('Không bắt buộc', 'Optional')})</label>
+                    <label htmlFor="contact-email">Email ({t('Không bắt buộc', 'Optional')})</label>
                     <input
+                      id="contact-email"
                       type="email"
                       placeholder="email@domain.com"
                       value={email}
@@ -129,19 +183,34 @@ export default function ContactPage() {
                   </div>
 
                   <div className={styles.inputGroup}>
-                    <label>{t('Nội dung nhắn gửi', 'Message')} *</label>
+                    <label htmlFor="contact-message">{t('Nội dung nhắn gửi', 'Message')} *</label>
                     <textarea
+                      id="contact-message"
                       rows={4}
                       required
+                      minLength={10}
+                      maxLength={2000}
                       placeholder={t('Nhập thắc mắc, phản hồi hoặc yêu cầu hợp tác...', 'Write your message or inquiry...')}
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                     ></textarea>
                   </div>
 
-                  <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
-                    <Send size={18} />
-                    <span>{t('Gửi Tin Nhắn Ngay', 'Send Message Now')}</span>
+                  <label className={styles.consentRow}>
+                    <input
+                      type="checkbox"
+                      checked={consentToContact}
+                      onChange={(event) => setConsentToContact(event.target.checked)}
+                      required
+                    />
+                    <span>{t('Tôi đồng ý để Beanbus liên hệ về nội dung này.', 'I agree that Beanbus may contact me about this request.')}</span>
+                  </label>
+
+                  {submitError && <p className={styles.submitError} role="alert">{submitError}</p>}
+
+                  <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }} disabled={isSubmitting}>
+                    {isSubmitting ? <LoaderCircle size={18} className={styles.spinner} /> : <Send size={18} />}
+                    <span>{isSubmitting ? t('Đang gửi...', 'Sending...') : t('Gửi Tin Nhắn', 'Send Message')}</span>
                   </button>
                 </form>
               )}

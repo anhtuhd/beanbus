@@ -4,16 +4,17 @@ import { createSupabaseServerClient } from './server-client.ts';
 
 export async function updateSupabaseSession(
   request: NextRequest,
-  config: SupabasePublicConfig
+  config: SupabasePublicConfig,
+  requestHeaders: Headers = request.headers
 ) {
-  let response = NextResponse.next({ request });
+  let response = NextResponse.next({ request: { headers: requestHeaders } });
   const supabase = createSupabaseServerClient(config, {
     getAll() {
       return request.cookies.getAll();
     },
     setAll(cookiesToSet, headers) {
       cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-      response = NextResponse.next({ request });
+      response = NextResponse.next({ request: { headers: requestHeaders } });
       cookiesToSet.forEach(({ name, value, options }) => {
         response.cookies.set(name, value, options);
       });

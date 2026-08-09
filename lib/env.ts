@@ -20,6 +20,13 @@ export function getAppMode(env: Environment = process.env): AppMode {
   return env.NEXT_PUBLIC_APP_MODE === 'production' ? 'production' : 'demo';
 }
 
+export function getSiteUrl(env: Environment = process.env): string {
+  const configured = env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://beanbus.vn';
+  const url = new URL(configured);
+  if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Site URL must use HTTP or HTTPS.');
+  return url.origin;
+}
+
 export function assertProductionEnv(env: Environment = process.env): void {
   if (getAppMode(env) !== 'production') return;
 
@@ -31,4 +38,5 @@ export function assertProductionEnv(env: Environment = process.env): void {
   if (missing.length > 0) {
     throw new Error(`Missing required production environment variables: ${missing.join(', ')}`);
   }
+  getSiteUrl(env);
 }

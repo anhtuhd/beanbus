@@ -1,9 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { assertProductionEnv, getAppMode } from '../lib/env.ts';
+import { assertProductionEnv, getAppMode, getSiteUrl } from '../lib/env.ts';
 
 test('getAppMode defaults to demo', () => {
   assert.equal(getAppMode({}), 'demo');
+});
+
+test('getSiteUrl returns a validated origin without paths', () => {
+  assert.equal(getSiteUrl({ NEXT_PUBLIC_SITE_URL: 'https://beanbus.vn/path' }), 'https://beanbus.vn');
+  assert.equal(getSiteUrl({}), 'https://beanbus.vn');
+  assert.throws(() => getSiteUrl({ NEXT_PUBLIC_SITE_URL: 'javascript:alert(1)' }), /HTTP/);
 });
 
 test('assertProductionEnv rejects a production app without core configuration', () => {

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ShieldCheck } from 'lucide-react';
+import { Coffee, FileText, Inbox, ShieldCheck, ShoppingBag, Users } from 'lucide-react';
 import AdminClient from './AdminClient';
 import styles from './admin.module.css';
 import { getAppMode } from '@/lib/env';
@@ -17,10 +17,16 @@ export default async function AdminDashboardPage() {
           <ShieldCheck size={32} className={styles.shieldIcon} />
           <div>
             <h1>Beanbus Operations</h1>
-            <p>Chưa có dữ liệu vận hành.</p>
+            <p>Quản lý dữ liệu production qua các luồng được phân quyền.</p>
           </div>
         </div>
-        <Link href="/" className="btn btn-dark btn-sm">Về trang chủ</Link>
+        <div className={styles.adminActions}>
+          <Link href="/admin/orders" className="btn btn-primary btn-sm"><ShoppingBag size={16} /> Orders</Link>
+          <Link href="/admin/requests" className="btn btn-dark btn-sm"><Inbox size={16} /> Booking & Requests</Link>
+          <Link href="/admin/catalog" className="btn btn-dark btn-sm"><Coffee size={16} /> Catalog</Link>
+          <Link href="/admin/content" className="btn btn-dark btn-sm"><FileText size={16} /> Events & Blog</Link>
+          <Link href="/admin/members" className="btn btn-dark btn-sm"><Users size={16} /> Members</Link>
+        </div>
       </div>
     </div>
   );

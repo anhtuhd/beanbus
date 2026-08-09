@@ -1,5 +1,6 @@
 export interface EventItem {
   id: string;
+  slug: string;
   titleVi: string;
   titleEn: string;
   date: string;
@@ -19,6 +20,7 @@ export interface EventItem {
 export const EVENTS: EventItem[] = [
   {
     id: 'event-1',
+    slug: 'workshop-cupping-ca-phe-dac-san-g20',
     titleVi: 'Workshop Cupping & Nếm Thử Cà Phê Đặc Sản G20',
     titleEn: 'Specialty Coffee Cupping Workshop G20',
     date: '2026-08-20',
@@ -36,6 +38,7 @@ export const EVENTS: EventItem[] = [
   },
   {
     id: 'event-2',
+    slug: 'dem-nhac-acoustic-brew-and-melodies',
     titleVi: 'Đêm Nhạc Acoustic: Brew & Melodies',
     titleEn: 'Acoustic Night: Brew & Melodies',
     date: '2026-08-25',
@@ -53,6 +56,7 @@ export const EVENTS: EventItem[] = [
   },
   {
     id: 'event-3',
+    slug: 'giai-dau-barista-pour-over-hai-phong-open-2026',
     titleVi: 'Giải Đấu Barista Pour-Over Hải Phòng Open 2026',
     titleEn: 'Hải Phòng Open Pour-Over Barista Championship 2026',
     date: '2026-09-05',
@@ -79,6 +83,7 @@ export interface BlogPost {
   author: string;
   date: string;
   readTime: string;
+  readTimeEn: string;
   excerptVi: string;
   excerptEn: string;
   contentVi: string;
@@ -97,6 +102,7 @@ export const BLOG_POSTS: BlogPost[] = [
     author: 'Hiếu Bean',
     date: '2026-08-01',
     readTime: '5 phút đọc',
+    readTimeEn: '5 min read',
     excerptVi: 'Hiểu rõ sự khác biệt giữa hai giống cà phê phổ biến nhất thế giới và lý do Beanbus kết hợp chúng trong mẻ rang.',
     excerptEn: 'Understand the key differences between the world two most popular coffee species and why Beanbus blends them.',
     contentVi: `Cà phê Arabica và Robusta là hai trụ cột chính của ngành cà phê thế giới.
@@ -130,6 +136,7 @@ Arabica shines with floral, berry, caramel and honey notes. Robusta delivers dar
     author: 'Beanbus Barista Team',
     date: '2026-07-25',
     readTime: '4 phút đọc',
+    readTimeEn: '4 min read',
     excerptVi: 'Tự tay ngâm ủ một bình Cold-Brew ngọt hậu, mượt mà chỉ với 3 bước đơn giản cùng hạt cà phê Beanbus.',
     excerptEn: 'Brew a smooth, naturally sweet batch of Cold-Brew at home with just 3 simple steps.',
     contentVi: `Cold-brew là phương pháp chiết xuất cà phê bằng nước lạnh trong thời gian kéo dài 12-24 giờ.

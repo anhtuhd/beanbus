@@ -3,6 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { createProductionBooking } from './actions';
 import { useLanguage } from '@/context/LanguageContext';
+import { withSupportReference } from '@/lib/observability/support-reference';
 import { useOrders } from '@/context/OrderContext';
 import { Armchair, Calendar, CalendarDays, CheckCircle, Coffee, LoaderCircle, MapPin, Snowflake, Sparkles, Trees, Users } from 'lucide-react';
 import styles from './booking.module.css';
@@ -57,7 +58,11 @@ export default function BookingPage() {
           consentToContact,
         });
         if (!result.ok) {
-          setSubmitError(t('Thông tin chưa hợp lệ hoặc chưa thể gửi yêu cầu. Vui lòng kiểm tra và thử lại.', 'Please check your details and try again.'));
+          setSubmitError(withSupportReference(
+            t('Thông tin chưa hợp lệ hoặc chưa thể gửi yêu cầu. Vui lòng kiểm tra và thử lại.', 'Please check your details and try again.'),
+            result.reference,
+            t('Mã hỗ trợ', 'Support reference')
+          ));
           return;
         }
         setConfirmedBooking({

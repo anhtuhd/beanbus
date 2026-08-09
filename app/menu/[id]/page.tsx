@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import ProductDetailClient from './ProductDetailClient';
 import { CATEGORIES, PRODUCTS, type Product } from '@/data/products';
 import { getCatalog, getCatalogProduct } from '@/lib/catalog/queries';
-import { getAppMode } from '@/lib/env';
+import { getAppMode, getSiteUrl } from '@/lib/env';
 
 type ProductPageProps = {
   params: Promise<{ id: string }>;
@@ -24,9 +24,11 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   return {
     title: `${product.nameVi} | Beanbus Coffee`,
     description: product.descriptionVi,
+    alternates: { canonical: `/menu/${product.id}` },
     openGraph: {
       title: product.nameVi,
       description: product.descriptionVi,
+      url: `/menu/${product.id}`,
       images: [{ url: product.image, alt: product.nameVi }],
     },
   };
@@ -40,6 +42,28 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const categories = getAppMode() === 'demo' ? CATEGORIES : (await getCatalog()).categories;
   const category = categories.find((item) => item.id === product.categoryId);
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.nameVi,
+    description: product.descriptionVi,
+    image: [product.image],
+    category: category?.nameVi,
+    url: `${getSiteUrl()}/menu/${product.id}`,
+    offers: {
+      '@type': 'Offer',
+      price: product.price,
+      priceCurrency: 'VND',
+      availability: product.isAvailable
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
+    },
+  };
 
-  return <ProductDetailClient product={product} category={category} />;
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }} />
+      <ProductDetailClient product={product} category={category} />
+    </>
+  );
 }

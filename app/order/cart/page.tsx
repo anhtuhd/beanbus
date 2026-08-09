@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { FormEvent, useState } from 'react';
 import { ArrowLeft, ArrowRight, Minus, Plus, ShoppingBag, Tag, Trash2, X } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
@@ -48,7 +49,12 @@ export default function CartPage() {
         <section className={styles.items} aria-label={t('Sản phẩm trong giỏ', 'Items in your cart')}>
           {cart.map((item) => (
             <article key={item.cartItemId} className={styles.item}>
-              <img src={item.product.image} alt={lang === 'en' ? item.product.nameEn : item.product.nameVi} />
+              <Image
+                src={item.product.image}
+                alt={lang === 'en' ? item.product.nameEn : item.product.nameVi}
+                width={112}
+                height={112}
+              />
               <div className={styles.itemInfo}>
                 <div className={styles.itemTitle}>
                   <h2>{lang === 'en' ? item.product.nameEn : item.product.nameVi}</h2>

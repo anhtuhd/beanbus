@@ -1,6 +1,8 @@
 'use server';
 
 import { parseCreateOrderInput } from '@/lib/orders/input';
+import { logOperationalFailure } from '@/lib/observability/logger';
+import { getRequestCorrelationId } from '@/lib/observability/request';
 import { getSepayConfig } from '@/lib/payments/sepay-config';
 import { createAdminSupabaseClient } from '@/lib/supabase/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
@@ -17,7 +19,7 @@ export type CreateOrderResult =
         totalVnd: number;
       };
     }
-  | { error: string; ok: false };
+  | { error: string; ok: false; reference?: string };
 
 export async function createProductionOrder(input: unknown): Promise<CreateOrderResult> {
   const parsed = parseCreateOrderInput(input);
@@ -26,6 +28,7 @@ export async function createProductionOrder(input: unknown): Promise<CreateOrder
     return { ok: false, error: 'PAYMENT_METHOD_UNAVAILABLE' };
   }
 
+  const correlationId = await getRequestCorrelationId();
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.rpc('create_server_priced_order', {
     p_idempotency_key: parsed.data.idempotencyKey,
@@ -41,13 +44,29 @@ export async function createProductionOrder(input: unknown): Promise<CreateOrder
   });
   const order = data?.[0];
 
-  if (error || !order) return { ok: false, error: 'ORDER_CREATION_FAILED' };
+  if (error || !order) {
+    logOperationalFailure({
+      correlationId,
+      event: 'order_failed',
+      operation: 'create_order',
+      reason: error ? 'database_error' : 'missing_result',
+    });
+    return { ok: false, error: 'ORDER_CREATION_FAILED', reference: correlationId };
+  }
 
   const { data: receiptData, error: receiptError } = await supabase.rpc('issue_order_receipt', {
     p_idempotency_key: parsed.data.idempotencyKey,
   });
   const receipt = receiptData?.[0]?.receipt_token;
-  if (receiptError || !receipt) return { ok: false, error: 'ORDER_RECEIPT_FAILED' };
+  if (receiptError || !receipt) {
+    logOperationalFailure({
+      correlationId,
+      event: 'order_failed',
+      operation: 'issue_order_receipt',
+      reason: receiptError ? 'database_error' : 'missing_result',
+    });
+    return { ok: false, error: 'ORDER_RECEIPT_FAILED', reference: correlationId };
+  }
 
   if (parsed.data.paymentMethod === 'sepay_qr') {
     try {
@@ -59,9 +78,23 @@ export async function createProductionOrder(input: unknown): Promise<CreateOrder
         p_bank_code: config.bankCode,
         p_account_number: config.accountNumber,
       });
-      if (paymentError || !paymentData?.[0]) return { ok: false, error: 'PAYMENT_CREATION_FAILED' };
+      if (paymentError || !paymentData?.[0]) {
+        logOperationalFailure({
+          correlationId,
+          event: 'payment_failed',
+          operation: 'create_payment',
+          reason: paymentError ? 'database_error' : 'missing_result',
+        });
+        return { ok: false, error: 'PAYMENT_CREATION_FAILED', reference: correlationId };
+      }
     } catch {
-      return { ok: false, error: 'PAYMENT_CONFIGURATION_FAILED' };
+      logOperationalFailure({
+        correlationId,
+        event: 'payment_failed',
+        operation: 'create_payment',
+        reason: 'configuration_error',
+      });
+      return { ok: false, error: 'PAYMENT_CONFIGURATION_FAILED', reference: correlationId };
     }
   }
 

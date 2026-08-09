@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useLanguage } from '@/context/LanguageContext';
 import { ChevronRight } from 'lucide-react';
 import styles from './about.module.css';
@@ -80,9 +81,12 @@ export default function AboutPage() {
             </div>
 
             <div className={styles.imgSide}>
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=800&auto=format&fit=crop"
                 alt="Beanbus Roastery"
+                width={800}
+                height={600}
+                sizes="(max-width: 900px) 100vw, 50vw"
                 className={styles.mainImg}
               />
             </div>
@@ -123,9 +127,12 @@ export default function AboutPage() {
             </Link>
           </div>
           <div className={styles.rImgBox}>
-            <img
+            <Image
               src="https://images.unsplash.com/photo-1517256064527-09c73fc73e38?q=80&w=800&auto=format&fit=crop"
               alt="Roastery machine"
+              width={800}
+              height={600}
+              sizes="(max-width: 900px) 100vw, 50vw"
               className={styles.rImg}
             />
           </div>

@@ -9,6 +9,61 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      booking_requests: {
+        Row: {
+          consent_to_contact: boolean;
+          created_at: string;
+          customer_name: string;
+          customer_phone: string;
+          guest_count: number;
+          id: string;
+          idempotency_key: string;
+          note: string | null;
+          notification_status: 'not_configured' | 'pending' | 'sent' | 'failed';
+          reference_number: number;
+          reservation_at: string;
+          seating_area: 'indoor' | 'balcony' | 'roastery_bar';
+          status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'rejected';
+          updated_at: string;
+          user_id: string | null;
+        };
+        Insert: {
+          consent_to_contact: boolean;
+          created_at?: string;
+          customer_name: string;
+          customer_phone: string;
+          guest_count: number;
+          id?: string;
+          idempotency_key: string;
+          note?: string | null;
+          notification_status?: 'not_configured' | 'pending' | 'sent' | 'failed';
+          reference_number?: never;
+          reservation_at: string;
+          seating_area: 'indoor' | 'balcony' | 'roastery_bar';
+          status?: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'rejected';
+          updated_at?: string;
+          user_id?: string | null;
+        };
+        Update: {
+          notification_status?: 'not_configured' | 'pending' | 'sent' | 'failed';
+          status?: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'rejected';
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      booking_request_status_history: {
+        Row: {
+          actor_user_id: string;
+          booking_request_id: string;
+          created_at: string;
+          from_status: string;
+          id: number;
+          to_status: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       catalog_categories: {
         Row: {
           created_at: string;
@@ -103,6 +158,217 @@ export type Database = {
             referencedColumns: ['id'];
           },
         ];
+      };
+      customer_requests: {
+        Row: {
+          consent_to_contact: boolean;
+          contact_email: string | null;
+          contact_name: string;
+          contact_phone: string;
+          created_at: string;
+          id: string;
+          idempotency_key: string;
+          message: string | null;
+          notification_status: 'not_configured' | 'pending' | 'sent' | 'failed';
+          organization: string | null;
+          reference_number: number;
+          request_type: 'contact' | 'rsvp' | 'b2b_quote';
+          status: 'pending' | 'in_progress' | 'resolved' | 'rejected';
+          subject_reference: string | null;
+          updated_at: string;
+          user_id: string | null;
+          volume_range: '10_30' | '30_100' | 'over_100' | null;
+        };
+        Insert: {
+          consent_to_contact: boolean;
+          contact_email?: string | null;
+          contact_name: string;
+          contact_phone: string;
+          created_at?: string;
+          id?: string;
+          idempotency_key: string;
+          message?: string | null;
+          notification_status?: 'not_configured' | 'pending' | 'sent' | 'failed';
+          organization?: string | null;
+          reference_number?: never;
+          request_type: 'contact' | 'rsvp' | 'b2b_quote';
+          status?: 'pending' | 'in_progress' | 'resolved' | 'rejected';
+          subject_reference?: string | null;
+          updated_at?: string;
+          user_id?: string | null;
+          volume_range?: '10_30' | '30_100' | 'over_100' | null;
+        };
+        Update: {
+          notification_status?: 'not_configured' | 'pending' | 'sent' | 'failed';
+          status?: 'pending' | 'in_progress' | 'resolved' | 'rejected';
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      customer_request_status_history: {
+        Row: {
+          actor_user_id: string;
+          created_at: string;
+          customer_request_id: string;
+          from_status: string;
+          id: number;
+          to_status: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      content_publication_history: {
+        Row: {
+          actor_user_id: string;
+          content_id: string;
+          content_type: 'event' | 'blog_post';
+          created_at: string;
+          from_is_published: boolean;
+          id: number;
+          to_is_published: boolean;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      events: {
+        Row: {
+          created_at: string;
+          description_en: string;
+          description_vi: string;
+          ends_at: string | null;
+          id: string;
+          image_url: string;
+          is_featured: boolean;
+          is_published: boolean;
+          location: string;
+          max_seats: number | null;
+          published_at: string | null;
+          slug: string;
+          sort_order: number;
+          starts_at: string;
+          summary_en: string;
+          summary_vi: string;
+          time_label: string;
+          title_en: string;
+          title_vi: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['events']['Row'], 'created_at' | 'updated_at'> & {
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['events']['Insert']>;
+        Relationships: [];
+      };
+      blog_posts: {
+        Row: {
+          author: string;
+          category_en: string;
+          category_vi: string;
+          content_en: string;
+          content_vi: string;
+          cover_image_url: string;
+          created_at: string;
+          excerpt_en: string;
+          excerpt_vi: string;
+          id: string;
+          is_published: boolean;
+          published_at: string | null;
+          read_time_en: string;
+          read_time_vi: string;
+          slug: string;
+          sort_order: number;
+          title_en: string;
+          title_vi: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['blog_posts']['Row'], 'created_at' | 'updated_at'> & {
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['blog_posts']['Insert']>;
+        Relationships: [];
+      };
+      orders: {
+        Row: {
+          created_at: string;
+          customer_name: string;
+          customer_phone: string;
+          delivery_address: string | null;
+          discount_vnd: number;
+          fulfillment: Database['public']['Enums']['order_fulfillment'];
+          id: string;
+          idempotency_key: string;
+          note: string | null;
+          order_number: number;
+          payment_method: Database['public']['Enums']['order_payment_method'];
+          payment_status: Database['public']['Enums']['order_payment_status'];
+          pickup_at: string | null;
+          status: Database['public']['Enums']['order_status'];
+          subtotal_vnd: number;
+          total_vnd: number;
+          updated_at: string;
+          user_id: string | null;
+          voucher_code: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          customer_name: string;
+          customer_phone: string;
+          delivery_address?: string | null;
+          discount_vnd?: number;
+          fulfillment: Database['public']['Enums']['order_fulfillment'];
+          id?: string;
+          idempotency_key: string;
+          note?: string | null;
+          order_number?: never;
+          payment_method: Database['public']['Enums']['order_payment_method'];
+          payment_status?: Database['public']['Enums']['order_payment_status'];
+          pickup_at?: string | null;
+          status?: Database['public']['Enums']['order_status'];
+          subtotal_vnd?: number;
+          total_vnd?: number;
+          updated_at?: string;
+          user_id?: string | null;
+          voucher_code?: string | null;
+        };
+        Update: {
+          payment_status?: Database['public']['Enums']['order_payment_status'];
+          status?: Database['public']['Enums']['order_status'];
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      order_status_history: {
+        Row: {
+          actor_type: 'admin' | 'system';
+          actor_user_id: string | null;
+          created_at: string;
+          from_status: Database['public']['Enums']['order_status'];
+          id: number;
+          order_id: string;
+          to_status: Database['public']['Enums']['order_status'];
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      product_status_history: {
+        Row: {
+          actor_user_id: string;
+          created_at: string;
+          from_is_available: boolean;
+          from_is_published: boolean;
+          id: number;
+          product_id: string;
+          to_is_available: boolean;
+          to_is_published: boolean;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
       };
       products: {
         Row: {
@@ -213,6 +479,26 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      create_customer_request: {
+        Args: {
+          p_consent_to_contact: boolean;
+          p_contact_email: string | null;
+          p_contact_name: string;
+          p_contact_phone: string;
+          p_idempotency_key: string;
+          p_message: string | null;
+          p_organization: string | null;
+          p_request_type: string;
+          p_subject_reference: string | null;
+          p_volume_range: string | null;
+        };
+        Returns: {
+          created_request_type: string;
+          request_id: string;
+          request_number: number;
+          request_status: string;
+        }[];
+      };
       create_booking_request: {
         Args: {
           p_consent_to_contact: boolean;
@@ -266,6 +552,56 @@ export type Database = {
           subtotal_vnd: number;
           total_vnd: number;
         }[];
+      };
+      update_booking_request_status: {
+        Args: {
+          p_request_id: string;
+          p_status: string;
+        };
+        Returns: {
+          booking_id: string;
+          booking_status: string;
+        }[];
+      };
+      update_customer_request_status: {
+        Args: {
+          p_request_id: string;
+          p_status: string;
+        };
+        Returns: {
+          customer_request_id: string;
+          customer_request_status: string;
+        }[];
+      };
+      update_order_status: {
+        Args: {
+          p_order_id: string;
+          p_status: Database['public']['Enums']['order_status'];
+        };
+        Returns: {
+          updated_order_id: string;
+          updated_order_status: Database['public']['Enums']['order_status'];
+        }[];
+      };
+      update_product_status: {
+        Args: {
+          p_is_available: boolean;
+          p_is_published: boolean;
+          p_product_id: string;
+        };
+        Returns: {
+          updated_is_available: boolean;
+          updated_is_published: boolean;
+          updated_product_id: string;
+        }[];
+      };
+      update_event_publication: {
+        Args: { p_event_id: string; p_is_published: boolean };
+        Returns: { updated_event_id: string; updated_is_published: boolean }[];
+      };
+      update_blog_post_publication: {
+        Args: { p_post_id: string; p_is_published: boolean };
+        Returns: { updated_post_id: string; updated_is_published: boolean }[];
       };
       get_order_receipt: {
         Args: {

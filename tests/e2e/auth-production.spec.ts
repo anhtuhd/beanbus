@@ -19,5 +19,20 @@ test('protected routes redirect to a provider-gated login screen', async ({ page
 
   await page.goto('/admin');
   await expect(page).toHaveURL(/\/login\?next=%2Fadmin$/);
+
+  await page.goto('/admin/requests');
+  await expect(page).toHaveURL(/\/login\?next=%2Fadmin$/);
+
+  await page.goto('/admin/orders');
+  await expect(page).toHaveURL(/\/login\?next=%2Fadmin$/);
+
+  await page.goto('/admin/catalog');
+  await expect(page).toHaveURL(/\/login\?next=%2Fadmin$/);
+
+  await page.goto('/admin/content');
+  await expect(page).toHaveURL(/\/login\?next=%2Fadmin$/);
+
+  await page.goto('/admin/members');
+  await expect(page).toHaveURL(/\/login\?next=%2Fadmin$/);
   expect(consoleErrors).toEqual([]);
 });

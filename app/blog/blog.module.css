@@ -147,6 +147,7 @@
 }
 
 .coverBox {
+  position: relative;
   height: 400px;
   border-radius: var(--radius);
   overflow: hidden;
@@ -162,8 +163,13 @@
   font-size: 16.5px;
   line-height: 1.8;
   color: var(--ink);
-  white-space: pre-line;
 }
+
+.articleBody h2 { margin: 24px 0 8px; color: var(--brown-dark); font-size: 22px; }
+.articleBody p { margin: 0 0 16px; }
+.articleBody ul,
+.articleBody ol { margin: 0 0 20px; padding-left: 24px; }
+.articleBody li { margin-bottom: 8px; }
 
 .shareBox {
   display: flex;

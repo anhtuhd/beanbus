@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
@@ -23,6 +23,7 @@ interface NavItem {
 }
 
 interface MobileNavItemProps {
+  menuId: string;
   item: NavItem;
   t: (vi: string, en: string) => string;
   pathname: string;
@@ -60,7 +61,39 @@ const navConfig: NavItem[] = [
   { href: '/contact', labelVi: 'Liên hệ', labelEn: 'Contact' },
 ];
 
-const MobileNavItem = ({ item, t, pathname, setMobileOpen }: MobileNavItemProps) => {
+function focusFirstMenuItem(event: React.KeyboardEvent<HTMLButtonElement>) {
+  if (event.key !== 'ArrowDown') return;
+  event.preventDefault();
+  const wrapper = event.currentTarget.parentElement;
+  wrapper?.setAttribute('data-keyboard-open', 'true');
+  event.currentTarget.setAttribute('aria-expanded', 'true');
+  const firstItem = wrapper?.querySelector<HTMLElement>('a[href]');
+  requestAnimationFrame(() => firstItem?.focus());
+}
+
+function toggleKeyboardMenu(event: React.MouseEvent<HTMLButtonElement>) {
+  const wrapper = event.currentTarget.parentElement;
+  const open = wrapper?.getAttribute('data-keyboard-open') !== 'true';
+  if (open) wrapper?.setAttribute('data-keyboard-open', 'true');
+  else wrapper?.removeAttribute('data-keyboard-open');
+  event.currentTarget.setAttribute('aria-expanded', String(open));
+}
+
+function closeMenuOnBlur(event: React.FocusEvent<HTMLDivElement>) {
+  if (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) return;
+  event.currentTarget.removeAttribute('data-keyboard-open');
+  event.currentTarget.querySelector('button')?.setAttribute('aria-expanded', 'false');
+}
+
+function closeMenuOnEscape(event: React.KeyboardEvent<HTMLDivElement>) {
+  if (event.key !== 'Escape') return;
+  const trigger = event.currentTarget.querySelector<HTMLButtonElement>('button');
+  event.currentTarget.removeAttribute('data-keyboard-open');
+  trigger?.setAttribute('aria-expanded', 'false');
+  trigger?.focus();
+}
+
+const MobileNavItem = ({ item, menuId, t, pathname, setMobileOpen }: MobileNavItemProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const isActive = item.href === pathname || item.children?.some((child) => child.href === pathname);
 
@@ -70,12 +103,14 @@ const MobileNavItem = ({ item, t, pathname, setMobileOpen }: MobileNavItemProps)
         <button 
           className={`${styles.mobileNavParent} ${isActive ? styles.activeMobile : ''}`}
           onClick={() => setIsOpen(!isOpen)}
+          aria-expanded={isOpen}
+          aria-controls={menuId}
         >
           {t(item.labelVi, item.labelEn)}
           <ChevronDown size={18} className={`${styles.mobileChevron} ${isOpen ? styles.open : ''}`} />
         </button>
         {isOpen && (
-          <div className={styles.mobileNavChildren}>
+          <div id={menuId} className={styles.mobileNavChildren}>
             {item.children.map((child) => (
               <Link
                 key={child.href}
@@ -110,6 +145,7 @@ export const Header: React.FC = () => {
   const { user, isLoggedIn } = useAuth();
   const [mobileMenuPath, setMobileMenuPath] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
+  const burgerRef = useRef<HTMLButtonElement>(null);
   const mobileOpen = mobileMenuPath === pathname;
   const setMobileOpen = (open: boolean) => setMobileMenuPath(open ? pathname : null);
 
@@ -120,6 +156,17 @@ export const Header: React.FC = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setMobileMenuPath(null);
+      requestAnimationFrame(() => burgerRef.current?.focus());
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [mobileOpen]);
 
   const isItemActive = (item: NavItem) => {
     if (item.href === pathname) return true;
@@ -147,11 +194,11 @@ export const Header: React.FC = () => {
             const active = isItemActive(item);
             if (item.children) {
               return (
-                <div key={idx} className={styles.navDropdownWrapper}>
-                  <div className={`${styles.navLink} ${active ? styles.active : ''}`}>
+                <div key={idx} className={styles.navDropdownWrapper} onBlur={closeMenuOnBlur} onKeyDown={closeMenuOnEscape}>
+                  <button type="button" className={`${styles.navLink} ${styles.navLinkButton} ${active ? styles.active : ''}`} aria-haspopup="true" aria-expanded="false" onClick={toggleKeyboardMenu} onKeyDown={focusFirstMenuItem}>
                     {t(item.labelVi, item.labelEn)}
                     <ChevronDown size={14} className={styles.chevron} />
-                  </div>
+                  </button>
                   <div className={styles.dropdownMenu}>
                     {item.children.map(child => (
                       <Link 
@@ -210,8 +257,8 @@ export const Header: React.FC = () => {
           </button>
 
           {/* ACCOUNT DROPDOWN */}
-          <div className={styles.accountDropdownWrapper}>
-            <button className={styles.accountBtn} title={t('Hội viên', 'Member')}>
+          <div className={styles.accountDropdownWrapper} onBlur={closeMenuOnBlur} onKeyDown={closeMenuOnEscape}>
+            <button className={styles.accountBtn} title={t('Hội viên', 'Member')} aria-haspopup="true" aria-expanded="false" onClick={toggleKeyboardMenu} onKeyDown={focusFirstMenuItem}>
               <User size={18} />
               <span className={styles.accountText}>
                 {isLoggedIn ? user?.tier : t('Hội viên', 'Member')}
@@ -248,9 +295,12 @@ export const Header: React.FC = () => {
 
           {/* MOBILE BURGER */}
           <button
+            ref={burgerRef}
             className={styles.burger}
             onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
+            aria-label={mobileOpen ? t('Đóng menu', 'Close menu') : t('Mở menu', 'Open menu')}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-navigation"
           >
             {mobileOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -260,11 +310,12 @@ export const Header: React.FC = () => {
       {/* MOBILE NAV DRAWER */}
       {mobileOpen && (
         <div className={styles.mobileDrawer}>
-          <nav className={styles.mobileNav}>
+          <nav id="mobile-navigation" className={styles.mobileNav} aria-label={t('Điều hướng di động', 'Mobile navigation')}>
             {navConfig.map((item, idx) => (
               <MobileNavItem 
                 key={idx} 
                 item={item} 
+                menuId={`mobile-submenu-${idx}`}
                 t={t} 
                 pathname={pathname} 
                 setMobileOpen={setMobileOpen} 
@@ -272,7 +323,7 @@ export const Header: React.FC = () => {
             ))}
             <div className={styles.mobileExtraLinks}>
               <Link href={isLoggedIn ? '/account' : '/login'} className={styles.mobileNavLink} onClick={() => setMobileOpen(false)}>
-                👤 {t('Tài khoản hội viên', 'Member Account')} {isLoggedIn ? `(${user?.tier || 'Member'})` : ''}
+                <User size={17} /> {t('Tài khoản hội viên', 'Member Account')} {isLoggedIn ? `(${user?.tier || 'Member'})` : ''}
               </Link>
             </div>
           </nav>

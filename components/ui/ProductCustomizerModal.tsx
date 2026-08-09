@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Product, ProductOption } from '@/data/products';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
+import { useDialogFocus } from '@/lib/ui/use-dialog-focus';
 import { X, Plus, Minus } from 'lucide-react';
 import styles from './ProductCustomizerModal.module.css';
 
@@ -23,6 +25,7 @@ export const ProductCustomizerModal: React.FC<Props> = ({ product, onClose }) =>
     return defaultSize ? [defaultSize] : [];
   });
   const [specialNote, setSpecialNote] = useState('');
+  const dialogRef = useDialogFocus<HTMLDivElement>(true, onClose);
 
   const handleToggleOption = (option: ProductOption) => {
     if (option.group === 'size' || option.group === 'sugar' || option.group === 'ice') {
@@ -58,13 +61,13 @@ export const ProductCustomizerModal: React.FC<Props> = ({ product, onClose }) =>
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div ref={dialogRef} className={styles.modal} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="product-customizer-title" tabIndex={-1}>
         {/* HEADER */}
         <div className={styles.header}>
-          <h3 className={styles.title}>
+          <h3 id="product-customizer-title" className={styles.title}>
             {lang === 'en' ? product.nameEn : product.nameVi}
           </h3>
-          <button className={styles.closeBtn} onClick={onClose}>
+          <button className={styles.closeBtn} onClick={onClose} aria-label={t('Đóng tùy chỉnh sản phẩm', 'Close product customizer')}>
             <X size={20} />
           </button>
         </div>
@@ -73,7 +76,13 @@ export const ProductCustomizerModal: React.FC<Props> = ({ product, onClose }) =>
         <div className={styles.body}>
           {/* PRODUCT BANNER */}
           <div className={styles.productBanner}>
-            <img src={product.image} alt={product.nameVi} className={styles.image} />
+            <Image
+              src={product.image}
+              alt={lang === 'en' ? product.nameEn : product.nameVi}
+              width={90}
+              height={90}
+              className={styles.image}
+            />
             <div className={styles.bannerInfo}>
               <p className={styles.desc}>
                 {lang === 'en' ? product.descriptionEn : product.descriptionVi}
@@ -101,6 +110,7 @@ export const ProductCustomizerModal: React.FC<Props> = ({ product, onClose }) =>
                       key={opt.id}
                       className={`${styles.optCard} ${isSelected ? styles.optSelected : ''}`}
                       onClick={() => handleToggleOption(opt)}
+                      aria-pressed={isSelected}
                     >
                       <span>{lang === 'en' ? opt.nameEn : opt.nameVi}</span>
                       {opt.extraPrice > 0 && (
@@ -126,6 +136,7 @@ export const ProductCustomizerModal: React.FC<Props> = ({ product, onClose }) =>
                       key={opt.id}
                       className={`${styles.optCard} ${isSelected ? styles.optSelected : ''}`}
                       onClick={() => handleToggleOption(opt)}
+                      aria-pressed={isSelected}
                     >
                       <span>{lang === 'en' ? opt.nameEn : opt.nameVi}</span>
                     </button>
@@ -146,6 +157,7 @@ export const ProductCustomizerModal: React.FC<Props> = ({ product, onClose }) =>
                       key={opt.id}
                       className={`${styles.optCard} ${isSelected ? styles.optSelected : ''}`}
                       onClick={() => handleToggleOption(opt)}
+                      aria-pressed={isSelected}
                     >
                       <span>{lang === 'en' ? opt.nameEn : opt.nameVi}</span>
                     </button>
@@ -166,6 +178,7 @@ export const ProductCustomizerModal: React.FC<Props> = ({ product, onClose }) =>
                       key={opt.id}
                       className={`${styles.optCard} ${isSelected ? styles.optSelected : ''}`}
                       onClick={() => handleToggleOption(opt)}
+                      aria-pressed={isSelected}
                     >
                       <span>{lang === 'en' ? opt.nameEn : opt.nameVi}</span>
                       <span className={styles.extraPrice}>
@@ -194,11 +207,11 @@ export const ProductCustomizerModal: React.FC<Props> = ({ product, onClose }) =>
         {/* FOOTER */}
         <div className={styles.footer}>
           <div className={styles.qtyControl}>
-            <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>
+            <button onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label={t('Giảm số lượng', 'Decrease quantity')}>
               <Minus size={16} />
             </button>
             <span>{quantity}</span>
-            <button onClick={() => setQuantity(quantity + 1)}>
+            <button onClick={() => setQuantity(quantity + 1)} aria-label={t('Tăng số lượng', 'Increase quantity')}>
               <Plus size={16} />
             </button>
           </div>

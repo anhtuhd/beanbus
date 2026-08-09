@@ -95,6 +95,11 @@
   transition: color 0.2s ease;
 }
 
+.navLinkButton {
+  border: 0;
+  background: transparent;
+}
+
 .navLink:hover, .active {
   color: var(--orange);
 }
@@ -103,11 +108,15 @@
   transition: transform 0.2s ease;
 }
 
-.navDropdownWrapper:hover .navLink {
+.navDropdownWrapper:hover .navLink,
+.navDropdownWrapper:focus-within .navLink,
+.navDropdownWrapper[data-keyboard-open='true'] .navLink {
   color: var(--orange);
 }
 
-.navDropdownWrapper:hover .chevron {
+.navDropdownWrapper:hover .chevron,
+.navDropdownWrapper:focus-within .chevron,
+.navDropdownWrapper[data-keyboard-open='true'] .chevron {
   transform: rotate(180deg);
 }
 
@@ -131,7 +140,9 @@
   flex-direction: column;
 }
 
-.navDropdownWrapper:hover .dropdownMenu {
+.navDropdownWrapper:hover .dropdownMenu,
+.navDropdownWrapper:focus-within .dropdownMenu,
+.navDropdownWrapper[data-keyboard-open='true'] .dropdownMenu {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(0);
@@ -251,12 +262,16 @@
   transition: all 0.2s ease;
 }
 
-.accountDropdownWrapper:hover .accountBtn {
+.accountDropdownWrapper:hover .accountBtn,
+.accountDropdownWrapper:focus-within .accountBtn,
+.accountDropdownWrapper[data-keyboard-open='true'] .accountBtn {
   background: var(--cream);
   color: var(--orange);
 }
 
-.accountDropdownWrapper:hover .chevron {
+.accountDropdownWrapper:hover .chevron,
+.accountDropdownWrapper:focus-within .chevron,
+.accountDropdownWrapper[data-keyboard-open='true'] .chevron {
   transform: rotate(180deg);
 }
 
@@ -280,7 +295,9 @@
   flex-direction: column;
 }
 
-.accountDropdownWrapper:hover .accountDropdown {
+.accountDropdownWrapper:hover .accountDropdown,
+.accountDropdownWrapper:focus-within .accountDropdown,
+.accountDropdownWrapper[data-keyboard-open='true'] .accountDropdown {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
@@ -380,7 +397,9 @@
 }
 
 .mobileNavLink {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-family: 'Poppins', sans-serif;
   font-size: 16px;
   color: var(--brown-dark);

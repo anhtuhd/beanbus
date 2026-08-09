@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createProductionOrder } from '@/app/order/actions';
+import { withSupportReference } from '@/lib/observability/support-reference';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useOrders, PaymentMethod, OrderType } from '@/context/OrderContext';
@@ -95,7 +97,11 @@ export default function CheckoutPage() {
         });
 
         if (!result.ok) {
-          setSubmitError(getOrderErrorMessage(result.error, t));
+          setSubmitError(withSupportReference(
+            getOrderErrorMessage(result.error, t),
+            result.reference,
+            t('Mã hỗ trợ', 'Support reference')
+          ));
           return;
         }
 
@@ -296,7 +302,12 @@ export default function CheckoutPage() {
             <div className={styles.itemsList}>
               {cart.map((item) => (
                 <div key={item.cartItemId} className={styles.summaryItem}>
-                  <img src={item.product.image} alt={item.product.nameVi} />
+                  <Image
+                    src={item.product.image}
+                    alt={lang === 'en' ? item.product.nameEn : item.product.nameVi}
+                    width={56}
+                    height={56}
+                  />
                   <div className={styles.itemMeta}>
                     <strong>{lang === 'en' ? item.product.nameEn : item.product.nameVi}</strong>
                     <span>x{item.quantity}</span>

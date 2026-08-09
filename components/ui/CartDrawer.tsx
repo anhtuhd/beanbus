@@ -2,8 +2,10 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
+import { useDialogFocus } from '@/lib/ui/use-dialog-focus';
 import { X, ShoppingBag, Plus, Minus, Trash2, Tag, ArrowRight } from 'lucide-react';
 import styles from './CartDrawer.module.css';
 
@@ -24,6 +26,7 @@ export const CartDrawer: React.FC = () => {
   const { t, lang } = useLanguage();
   const [voucherInput, setVoucherInput] = useState('');
   const [voucherMsg, setVoucherMsg] = useState<{ success: boolean; text: string } | null>(null);
+  const dialogRef = useDialogFocus<HTMLDivElement>(isCartOpen, () => setIsCartOpen(false));
 
   if (!isCartOpen) return null;
 
@@ -38,7 +41,9 @@ export const CartDrawer: React.FC = () => {
   return (
     <div className={styles.overlay} onClick={() => setIsCartOpen(false)}>
       <div
+        ref={dialogRef}
         className={styles.drawer}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="cart-drawer-title"
@@ -78,9 +83,11 @@ export const CartDrawer: React.FC = () => {
             <div className={styles.itemsList}>
               {cart.map((item) => (
                 <div key={item.cartItemId} className={styles.cartItem}>
-                  <img
+                  <Image
                     src={item.product.image}
                     alt={lang === 'en' ? item.product.nameEn : item.product.nameVi}
+                    width={72}
+                    height={72}
                     className={styles.itemImg}
                   />
                   <div className={styles.itemDetails}>
@@ -168,6 +175,7 @@ export const CartDrawer: React.FC = () => {
                 <form onSubmit={handleApplyVoucher} className={styles.voucherForm}>
                   <input
                     type="text"
+                    aria-label={t('Mã giảm giá', 'Voucher code')}
                     placeholder={t('Nhập mã voucher (BEANBUS10 / WELCOMEVIP)', 'Voucher code')}
                     value={voucherInput}
                     onChange={(e) => setVoucherInput(e.target.value)}
@@ -179,6 +187,7 @@ export const CartDrawer: React.FC = () => {
               )}
               {voucherMsg && (
                 <p
+                  role="status"
                   className={`${styles.vMsg} ${
                     voucherMsg.success ? styles.vMsgSuccess : styles.vMsgError
                   }`}

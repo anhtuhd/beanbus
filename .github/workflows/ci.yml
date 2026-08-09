@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Use Node.js 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Type check
+        run: npx tsc --noEmit
+      - name: Unit and contract tests
+        run: npm test
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - name: Production build
+        run: npm run build
+
+  e2e:
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Use Node.js 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Demo E2E
+        run: npm run test:e2e
+      - name: Production auth E2E
+        run: npm run test:e2e:auth
+      - name: Production checkout E2E
+        run: npm run test:e2e:checkout-production
+      - name: Sepay checkout contract E2E
+        run: npm run test:e2e:checkout-sepay
+      - name: Customer request E2E
+        run: npm run test:e2e:requests
+      - name: Upload browser artifacts
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-test-results
+          path: test-results
+          if-no-files-found: ignore
+
+  database:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Start Supabase local stack
+        uses: supabase/setup-cli@v2
+        with:
+          version: 2.113.0
+      - name: Start database
+        run: supabase db start
+      - name: Lint database
+        run: supabase db lint --local --level warning
+      - name: Run pgTAP tests
+        run: supabase test db

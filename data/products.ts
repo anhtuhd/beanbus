@@ -158,7 +158,7 @@ export const PRODUCTS: Product[] = [
     descriptionVi: 'Lòng đỏ trứng tươi đánh bông mịn ngậy quyện cùng espresso nóng thơm lừng.',
     descriptionEn: 'Whipped fresh egg yolk cream layered over piping hot rich espresso.',
     price: 45000,
-    image: 'https://images.unsplash.com/photo-1585806450638-aa2377b587a8?q=80&w=800&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1509785307050-d4066910ec1e?q=80&w=800&auto=format&fit=crop',
     isAvailable: true,
     tastingNotes: 'Kem trứng, Mật ong, Ca-cao',
     options: COMMON_OPTIONS,

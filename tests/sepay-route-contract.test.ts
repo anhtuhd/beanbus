@@ -21,7 +21,8 @@ test('webhook route is feature-gated and bounds JSON request size', () => {
   assert.match(route, /NEXT_PUBLIC_ENABLE_SEPAY !== 'true'/);
   assert.match(route, /MAX_BODY_BYTES = 64 \* 1024/);
   assert.match(route, /content-type[\s\S]*application\/json/i);
-  assert.match(route, /Response\.json\(\{ success: true \}\)/);
+  assert.match(route, /\{ success: true \}/);
+  assert.match(route, /\[CORRELATION_HEADER\]: correlationId/);
   assert.doesNotMatch(route, /paid=true|addPoints|updateOrderStatus/);
   assert.match(proxy, /\(\?!api\/webhooks\|/);
 });

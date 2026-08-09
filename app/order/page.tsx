@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import { ArrowRight, ChevronRight, ShoppingBag, SlidersHorizontal } from 'lucide-react';
 import { ProductCustomizerModal } from '@/components/ui/ProductCustomizerModal';
@@ -55,9 +56,16 @@ export default function OrderPage() {
           </div>
 
           <div className={styles.productGrid}>
-            {products.map((product) => (
+            {products.map((product, index) => (
               <article key={product.id} className={styles.productCard}>
-                <img src={product.image} alt={lang === 'en' ? product.nameEn : product.nameVi} className={styles.productImage} />
+                <Image
+                  src={product.image}
+                  alt={lang === 'en' ? product.nameEn : product.nameVi}
+                  width={116}
+                  height={116}
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  className={styles.productImage}
+                />
                 <div className={styles.productBody}>
                   <div className={styles.productHeading}>
                     <h2>{lang === 'en' ? product.nameEn : product.nameVi}</h2>
