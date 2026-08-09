@@ -111,6 +111,35 @@
   background: var(--gray-100);
 }
 
+.googleBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.fullButton {
+  width: 100%;
+  justify-content: center;
+}
+
+.authStatus {
+  padding: 10px 12px;
+  border-left: 3px solid var(--orange);
+  background: var(--orange-light);
+  color: var(--brown-dark);
+  font-size: 13px;
+}
+
+.authHint,
+.authReset {
+  color: var(--brown);
+  font-size: 12px;
+  text-align: center;
+}
+
+.authReset {
+  text-decoration: underline;
+}
+
 /* LOGGED IN USER BANNER */
 .userBanner {
   background: var(--brown-dark);

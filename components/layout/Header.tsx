@@ -233,7 +233,7 @@ export const Header: React.FC = () => {
                   )}
                 </div>
               )}
-              <Link href="/account" className={styles.accountDropItem}>
+              <Link href={isLoggedIn ? '/account' : '/login'} className={styles.accountDropItem}>
                 <User size={16} />
                 {t('Tài khoản', 'Account')}
               </Link>
@@ -271,7 +271,7 @@ export const Header: React.FC = () => {
               />
             ))}
             <div className={styles.mobileExtraLinks}>
-              <Link href="/account" className={styles.mobileNavLink} onClick={() => setMobileOpen(false)}>
+              <Link href={isLoggedIn ? '/account' : '/login'} className={styles.mobileNavLink} onClick={() => setMobileOpen(false)}>
                 👤 {t('Tài khoản hội viên', 'Member Account')} {isLoggedIn ? `(${user?.tier || 'Member'})` : ''}
               </Link>
             </div>

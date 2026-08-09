@@ -1,0 +1,27 @@
+import { NextResponse } from 'next/server';
+import { safeRedirectPath } from '@/lib/auth/input';
+import { resolveAuthOrigin } from '@/lib/auth/origin';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
+
+export async function GET(request: Request) {
+  const requestUrl = new URL(request.url);
+  const code = requestUrl.searchParams.get('code');
+  const next = safeRedirectPath(requestUrl.searchParams.get('next'));
+  const siteUrl = resolveAuthOrigin({
+    configuredUrl: process.env.NEXT_PUBLIC_SITE_URL,
+    fallbackOrigin: requestUrl.origin,
+  });
+
+  if (!siteUrl) {
+    return NextResponse.json({ error: 'Authentication callback is not configured.' }, { status: 500 });
+  }
+
+  if (code) {
+    const supabase = await createServerSupabaseClient();
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (!error) return NextResponse.redirect(new URL(next, siteUrl));
+  }
+
+  return NextResponse.redirect(new URL('/login?error=oauth_callback_failed', siteUrl));
+}

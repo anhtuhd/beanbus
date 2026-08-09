@@ -56,7 +56,7 @@ export default function RootLayout({
     <html lang="vi" data-scroll-behavior="smooth">
       <body>
         <LanguageProvider>
-          <AuthProvider>
+          <AuthProvider mode={appMode}>
             <StoreSettingsProvider>
               <OrderProvider>
                 <CartProvider>

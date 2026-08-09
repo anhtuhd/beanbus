@@ -9,7 +9,8 @@ Website thương hiệu và thương mại cho Beanbus Coffee Roaster, xây dự
 - [x] Test runner cho business rules
 - [x] Playwright E2E smoke cho menu → cart → checkout
 - [x] Supabase SSR clients, session Proxy và local migration workflow
-- [ ] Supabase schema, authentication và RLS theo từng feature
+- [x] Supabase profile schema, authentication shell và role-based RLS
+- [ ] Xác minh auth provider và RLS trên Supabase runtime có credential
 - [ ] Order/payment/loyalty chạy hoàn toàn phía server
 - [ ] Sepay webhook production
 - [ ] Admin production, SEO, accessibility và release gate
@@ -47,6 +48,19 @@ npm run db:test
 ```
 
 Khi đã có Supabase project và đăng nhập CLI, dùng `npx supabase link --project-ref <project-ref>` một lần, sau đó `npm run db:push` để đẩy migration đã review. Không chỉnh schema production trực tiếp trên Dashboard nếu thay đổi đó chưa được lưu thành migration.
+
+## Cấu hình đăng nhập
+
+Hai provider đều được tắt mặc định để production không hiển thị luồng chưa cấu hình:
+
+```dotenv
+NEXT_PUBLIC_ENABLE_PHONE_AUTH=false
+NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=false
+```
+
+Để bật SMS OTP, cấu hình một SMS provider trong Supabase Auth rồi đổi `NEXT_PUBLIC_ENABLE_PHONE_AUTH=true`. Để bật Google, cấu hình Google Client ID/Secret trong Supabase Auth, thêm `<NEXT_PUBLIC_SITE_URL>/auth/callback` vào danh sách redirect URL cho phép, rồi đổi `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=true`.
+
+Credential của SMS provider và Google chỉ nhập trong Supabase Dashboard hoặc secret store của môi trường triển khai; không đưa chúng vào biến `NEXT_PUBLIC_*` hay commit vào repo.
 
 ## Quality gates
 

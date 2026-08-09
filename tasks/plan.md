@@ -38,9 +38,9 @@ Turn the current Beanbus UI prototype into a production-ready website for market
 
 - UI prototype: about 75% complete.
 - Functional demo: about 60% complete.
-- Production backend/security: about 10% complete.
-- Automated quality and launch readiness: about 15% complete.
-- Overall production readiness: about 30%.
+- Production backend/security: about 20% complete.
+- Automated quality and launch readiness: about 25% complete.
+- Overall production readiness: about 35%.
 
 These percentages describe readiness, not lines of code. Existing UI is useful and should be retained; the main remaining work is trusted data flow and verification.
 
@@ -149,13 +149,16 @@ Supabase SSR intentionally keeps auth cookies readable by its browser client so 
 
 **Description:** Replace demo OTP/Google login with Supabase Auth, add profiles and roles, protect account ownership, and protect admin routes on the server.
 
+**Implementation status:** Auth actions, OAuth callback, cookie-backed profile lookup, role guards, provider feature flags, profile migration, and deny-by-default profile RLS are implemented. Hosted provider login and pgTAP execution remain blocked on owner credentials and a Docker-compatible local runtime.
+
 **Acceptance criteria:**
 - [ ] Phone OTP and/or Google login uses the approved provider and persists no auth token in `localStorage`.
-- [ ] Account routes require a session; admin routes require an admin role in both route access and mutation authorization.
+- [x] Account routes require a session; admin routes require an admin role. Production admin mutations remain absent until their server resources ship.
 - [ ] RLS tests prove users cannot read another member's profile/orders/points and non-admins cannot mutate store data.
 
 **Verification:**
-- [ ] Test unauthenticated, member, and admin access paths.
+- [x] Production-mode E2E proves anonymous account/admin requests redirect to the provider-gated login screen.
+- [ ] Execute the written pgTAP member/admin profile tests against a Supabase runtime; add order/points/store cases with those schemas.
 - [ ] Manually verify login, logout, expired session, and forbidden admin navigation.
 
 **Dependencies:** Task 3  

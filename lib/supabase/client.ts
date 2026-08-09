@@ -2,6 +2,7 @@
 
 import { createBrowserClient } from '@supabase/ssr';
 import { getSupabaseCookieOptions } from './cookie-options.ts';
+import type { Database } from './database.types.ts';
 import {
   getSupabasePublicConfig,
   type SupabasePublicConfig,
@@ -18,7 +19,7 @@ function getBrowserConfig(): SupabasePublicConfig {
 export function createBrowserSupabaseClient(
   config: SupabasePublicConfig = getBrowserConfig()
 ) {
-  return createBrowserClient(config.url, config.publishableKey, {
+  return createBrowserClient<Database>(config.url, config.publishableKey, {
     cookieOptions: getSupabaseCookieOptions(process.env.NODE_ENV),
   });
 }

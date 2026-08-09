@@ -1,22 +1,13 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { createBrowserSupabaseClient } from '@/lib/supabase/client';
+import { toSessionProfile, toUserProfile } from '@/lib/auth/types';
+import type { AppMode } from '@/lib/env';
+import type { Tier, UserProfile } from '@/lib/auth/types';
 
-export type Tier = 'Bronze' | 'Silver' | 'Gold' | 'Platinum';
-
-export interface UserProfile {
-  id: string;
-  memberCode: string;
-  name: string;
-  phone: string;
-  email: string;
-  birthday: string;
-  tier: Tier;
-  points: number; // 1 point = 1 VND
-  totalSpent: number;
-  joinedDate: string;
-  avatar?: string;
-}
+export type { Tier, UserProfile } from '@/lib/auth/types';
 
 export interface PointsTransaction {
   id: string;
@@ -57,6 +48,7 @@ const DEFAULT_USER: UserProfile = {
   totalSpent: 2450000,
   joinedDate: '2025-11-10',
   avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
+  role: 'member',
 };
 
 const INITIAL_TRANSACTIONS: PointsTransaction[] = [
@@ -104,12 +96,51 @@ const INITIAL_TRANSACTIONS: PointsTransaction[] = [
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [transactions, setTransactions] = useState<PointsTransaction[]>([]);
+export const AuthProvider: React.FC<{ children: React.ReactNode; mode: AppMode }> = ({
+  children,
+  mode,
+}) => {
+  const router = useRouter();
+  const [user, setUser] = useState<UserProfile | null>(mode === 'demo' ? DEFAULT_USER : null);
+  const [transactions, setTransactions] = useState<PointsTransaction[]>(
+    mode === 'demo' ? INITIAL_TRANSACTIONS : []
+  );
 
-  /* eslint-disable react-hooks/set-state-in-effect -- Prototype state hydrates from browser storage until server auth lands. */
+  /* eslint-disable react-hooks/set-state-in-effect -- Hydrate mode-specific auth state after the client mounts. */
   useEffect(() => {
+    if (mode === 'production') {
+      const supabase = createBrowserSupabaseClient();
+      let active = true;
+
+      const loadProfile = async () => {
+        const { data: claimsData } = await supabase.auth.getClaims();
+        const userId = claimsData?.claims?.sub;
+
+        if (!userId) {
+          if (active) setUser(null);
+          return;
+        }
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, member_number, full_name, phone, email, birthday, avatar_url, role, created_at, updated_at')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (active) setUser(profile ? toUserProfile(toSessionProfile(profile)) : null);
+      };
+
+      void loadProfile();
+      const { data: listener } = supabase.auth.onAuthStateChange(() => {
+        window.setTimeout(() => void loadProfile(), 0);
+      });
+
+      return () => {
+        active = false;
+        listener.subscription.unsubscribe();
+      };
+    }
+
     try {
       const savedUser = localStorage.getItem('beanbus_user');
       if (savedUser) {
@@ -129,11 +160,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (e) {
       console.error(e);
     }
-  }, []);
+  }, [mode]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const saveUser = (newUser: UserProfile | null) => {
     setUser(newUser);
+    if (mode !== 'demo') return;
+
     if (newUser) {
       localStorage.setItem('beanbus_user', JSON.stringify(newUser));
     } else {
@@ -142,6 +175,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const saveTransactions = (txns: PointsTransaction[]) => {
+    if (mode !== 'demo') return;
     setTransactions(txns);
     localStorage.setItem('beanbus_transactions', JSON.stringify(txns));
   };
@@ -165,6 +199,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginWithPhone = async (phone: string, otp: string): Promise<boolean> => {
+    if (mode !== 'demo') return false;
     if (otp.length >= 4) {
       const loggedUser: UserProfile = {
         ...DEFAULT_USER,
@@ -177,6 +212,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginWithGoogle = async (): Promise<boolean> => {
+    if (mode !== 'demo') return false;
     const loggedUser: UserProfile = {
       ...DEFAULT_USER,
       name: 'Nguyễn Tuấn Anh',
@@ -187,6 +223,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    if (mode === 'production') {
+      void createBrowserSupabaseClient().auth.signOut().then(() => {
+        setUser(null);
+        router.replace('/');
+        router.refresh();
+      });
+      return;
+    }
+
     saveUser(null);
   };
 
@@ -199,7 +244,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Legacy: addPoints from spending real money (updates totalSpent + tier)
   const addPoints = (amountSpent: number) => {
-    if (!user) return;
+    if (mode !== 'demo' || !user) return;
     const newTotalSpent = user.totalSpent + amountSpent;
     const newTier = calculateTier(newTotalSpent);
     const updated: UserProfile = {
@@ -212,7 +257,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Top-up: pay VND via Sepay → receive equivalent points (1 VND = 1 point)
   const topUpPoints = (amountVnd: number) => {
-    if (!user) return;
+    if (mode !== 'demo' || !user) return;
     const newPoints = user.points + amountVnd;
     const updated: UserProfile = {
       ...user,
@@ -224,7 +269,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Flash Sale top-up: pay priceVnd → receive bonusPoints (more than priceVnd)
   const topUpFlashSale = (amountVnd: number, bonusPoints: number) => {
-    if (!user) return;
+    if (mode !== 'demo' || !user) return;
     const newPoints = user.points + bonusPoints;
     const updated: UserProfile = {
       ...user,
@@ -241,7 +286,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Spend points on an order (1 point = 1 VND deducted from order total)
   const spendPoints = (pointsToSpend: number): boolean => {
-    if (!user || user.points < pointsToSpend) return false;
+    if (mode !== 'demo' || !user || user.points < pointsToSpend) return false;
     const newPoints = user.points - pointsToSpend;
     const updated: UserProfile = {
       ...user,
@@ -259,7 +304,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Cashback: after paying real money, receive cashback % as points
   const cashbackPoints = (orderTotal: number, cashbackPercent: number) => {
-    if (!user || cashbackPercent <= 0) return;
+    if (mode !== 'demo' || !user || cashbackPercent <= 0) return;
     const cashback = Math.floor(orderTotal * cashbackPercent / 100);
     if (cashback <= 0) return;
     const newPoints = user.points + cashback;
@@ -278,7 +323,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Redeem points for rewards (from reward catalog)
   const redeemPoints = (pointsCost: number): boolean => {
-    if (!user || user.points < pointsCost) return false;
+    if (mode !== 'demo' || !user || user.points < pointsCost) return false;
     const newPoints = user.points - pointsCost;
     const updated: UserProfile = {
       ...user,
@@ -295,7 +340,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateProfile = (updated: Partial<UserProfile>) => {
-    if (!user) return;
+    if (mode !== 'demo' || !user) return;
     saveUser({ ...user, ...updated });
   };
 
