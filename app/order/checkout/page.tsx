@@ -1,29 +1,43 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createProductionOrder } from '@/app/order/actions';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useOrders, PaymentMethod, OrderType } from '@/context/OrderContext';
 import { useAuth } from '@/context/AuthContext';
 import { SepayQRModal } from '@/components/ui/SepayQRModal';
-import { ShoppingBag, Clock, MapPin, QrCode, DollarSign, ShieldCheck, Tag } from 'lucide-react';
+import { Bike, ShoppingBag, Clock, MapPin, QrCode, DollarSign, ShieldCheck, Store, Tag, LoaderCircle } from 'lucide-react';
 import styles from './checkout.module.css';
+
+const isProduction = process.env.NEXT_PUBLIC_APP_MODE === 'production';
+
+function getOrderErrorMessage(error: string, t: (vi: string, en: string) => string) {
+  if (error === 'INVALID_CUSTOMER') return t('Vui lòng kiểm tra họ tên và số điện thoại.', 'Please check your name and phone number.');
+  if (error === 'INVALID_PICKUP') return t('Vui lòng chọn thời gian nhận hàng hợp lệ.', 'Please choose a valid pickup time.');
+  if (error === 'INVALID_DELIVERY') return t('Vui lòng nhập địa chỉ giao hàng đầy đủ.', 'Please enter a complete delivery address.');
+  if (error === 'PAYMENT_METHOD_UNAVAILABLE') return t('Phương thức thanh toán này chưa khả dụng.', 'This payment method is not available.');
+  return t('Chưa thể tạo đơn lúc này. Vui lòng thử lại.', 'We could not place your order. Please try again.');
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, subtotal, discountAmount, finalTotal, appliedVoucher } = useCart();
+  const { cart, subtotal, discountAmount, finalTotal, appliedVoucher, clearCart } = useCart();
   const { t, lang } = useLanguage();
   const { createOrder } = useOrders();
   const { user, addPoints } = useAuth();
 
   const [orderType, setOrderType] = useState<OrderType>('pickup');
-  const [pickupTime, setPickupTime] = useState('2026-08-09T11:30');
+  const [pickupTime, setPickupTime] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('Số 25 Thanh Bình, Phường Lê Thanh Nghị, Hải Phòng');
   const [customerName, setCustomerName] = useState(user?.name || '');
   const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
   const [note, setNote] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('sepay_qr');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(isProduction ? 'cod' : 'sepay_qr');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const idempotencyKey = useRef<string | null>(null);
 
   // Sepay Modal State
   const [sepayModal, setSepayModal] = useState<{
@@ -49,8 +63,49 @@ export default function CheckoutPage() {
     );
   }
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isSubmitting) return;
+    setSubmitError('');
+
+    if (isProduction) {
+      setIsSubmitting(true);
+      idempotencyKey.current ??= crypto.randomUUID();
+
+      try {
+        const result = await createProductionOrder({
+          idempotencyKey: idempotencyKey.current,
+          customerName,
+          customerPhone,
+          fulfillment: orderType,
+          pickupAt: orderType === 'pickup' ? pickupTime : undefined,
+          deliveryAddress: orderType === 'delivery' ? deliveryAddress : undefined,
+          note,
+          paymentMethod,
+          voucherCode: appliedVoucher?.code,
+          items: cart.map((item) => ({
+            productId: item.product.id,
+            quantity: item.quantity,
+            optionIds: item.selectedOptions.map((option) => option.id),
+            specialNote: item.specialNote,
+          })),
+        });
+
+        if (!result.ok) {
+          setSubmitError(getOrderErrorMessage(result.error, t));
+          return;
+        }
+
+        clearCart();
+        router.replace(`/order/confirmation/${result.order.id}?receipt=${encodeURIComponent(result.order.receipt)}`);
+      } catch {
+        setSubmitError(t('Kết nối bị gián đoạn. Vui lòng thử lại.', 'Connection interrupted. Please try again.'));
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
 
     const created = createOrder({
       customerName: customerName || 'Khách Vãng Lai',
@@ -101,34 +156,39 @@ export default function CheckoutPage() {
                 className={`${styles.typeBtn} ${orderType === 'pickup' ? styles.typeBtnActive : ''}`}
                 onClick={() => setOrderType('pickup')}
               >
-                <span>🛍️ {t('Tự đến lấy (Takeaway / Pickup)', 'Self Pickup')}</span>
+                <Store size={17} aria-hidden="true" />
+                <span>{t('Tự đến lấy (Takeaway / Pickup)', 'Self Pickup')}</span>
               </button>
               <button
                 type="button"
                 className={`${styles.typeBtn} ${orderType === 'delivery' ? styles.typeBtnActive : ''}`}
                 onClick={() => setOrderType('delivery')}
               >
-                <span>🛵 {t('Giao hàng tận nơi (Delivery)', 'Home Delivery')}</span>
+                <Bike size={17} aria-hidden="true" />
+                <span>{t('Giao hàng tận nơi (Delivery)', 'Home Delivery')}</span>
               </button>
             </div>
 
             {orderType === 'pickup' ? (
               <div className={styles.inputGroup}>
-                <label>{t('Chọn thời gian nhận đồ', 'Scheduled Pickup Time')}</label>
+                <label htmlFor="pickup-time">{t('Chọn thời gian nhận đồ', 'Scheduled Pickup Time')}</label>
                 <input
+                  id="pickup-time"
                   type="datetime-local"
                   value={pickupTime}
                   onChange={(e) => setPickupTime(e.target.value)}
                   required
                 />
                 <span className={styles.inputHint}>
-                  📍 {t('Nhận tại: Quán Beanbus - Số 25-27 Thanh Bình, Hải Phòng', 'Pickup at: Beanbus - 25-27 Thanh Bình, Hải Phòng')}
+                  <MapPin size={13} aria-hidden="true" />
+                  {t('Nhận tại: Quán Beanbus - Số 25-27 Thanh Bình, Hải Phòng', 'Pickup at: Beanbus - 25-27 Thanh Bình, Hải Phòng')}
                 </span>
               </div>
             ) : (
               <div className={styles.inputGroup}>
-                <label>{t('Địa chỉ giao hàng chi tiết', 'Detailed Delivery Address')} *</label>
+                <label htmlFor="delivery-address">{t('Địa chỉ giao hàng chi tiết', 'Detailed Delivery Address')} *</label>
                 <input
+                  id="delivery-address"
                   type="text"
                   value={deliveryAddress}
                   onChange={(e) => setDeliveryAddress(e.target.value)}
@@ -147,8 +207,9 @@ export default function CheckoutPage() {
             </div>
             <div className={styles.rowTwo}>
               <div className={styles.inputGroup}>
-                <label>{t('Họ và tên', 'Full Name')} *</label>
+                <label htmlFor="customer-name">{t('Họ và tên', 'Full Name')} *</label>
                 <input
+                  id="customer-name"
                   type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
@@ -157,8 +218,9 @@ export default function CheckoutPage() {
                 />
               </div>
               <div className={styles.inputGroup}>
-                <label>{t('Số điện thoại', 'Phone Number')} *</label>
+                <label htmlFor="customer-phone">{t('Số điện thoại', 'Phone Number')} *</label>
                 <input
+                  id="customer-phone"
                   type="tel"
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
@@ -168,8 +230,9 @@ export default function CheckoutPage() {
               </div>
             </div>
             <div className={styles.inputGroup}>
-              <label>{t('Ghi chú cho Barista', 'Order Note')}</label>
+              <label htmlFor="order-note">{t('Ghi chú cho Barista', 'Order Note')}</label>
               <input
+                id="order-note"
                 type="text"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
@@ -185,22 +248,24 @@ export default function CheckoutPage() {
               <h3>{t('3. Phương thức thanh toán', '3. Payment Method')}</h3>
             </div>
             <div className={styles.paymentMethods}>
-              <label
-                className={`${styles.payCard} ${paymentMethod === 'sepay_qr' ? styles.payCardActive : ''}`}
-              >
-                <input
-                  type="radio"
-                  name="payment"
-                  checked={paymentMethod === 'sepay_qr'}
-                  onChange={() => setPaymentMethod('sepay_qr')}
-                />
-                <QrCode size={24} className={styles.payIcon} />
-                <div className={styles.payText}>
-                  <strong>{t('Thanh toán QR Code (Sepay Tự Động)', 'Sepay QR Code Payment')}</strong>
-                  <span>{t('Gen mã VietQR chuẩn ngân hàng MB, kiểm tra giao dịch tức thì.', 'Instant VietQR auto check.')}</span>
-                </div>
-                <span className={styles.payBadge}>⚡ Recommeded</span>
-              </label>
+              {!isProduction && (
+                <label
+                  className={`${styles.payCard} ${paymentMethod === 'sepay_qr' ? styles.payCardActive : ''}`}
+                >
+                  <input
+                    type="radio"
+                    name="payment"
+                    checked={paymentMethod === 'sepay_qr'}
+                    onChange={() => setPaymentMethod('sepay_qr')}
+                  />
+                  <QrCode size={24} className={styles.payIcon} />
+                  <div className={styles.payText}>
+                    <strong>{t('Thanh toán QR Code (Sepay Tự Động)', 'Sepay QR Code Payment')}</strong>
+                    <span>{t('Gen mã VietQR chuẩn ngân hàng MB, kiểm tra giao dịch tức thì.', 'Instant VietQR auto check.')}</span>
+                  </div>
+                  <span className={styles.payBadge}>Recommended</span>
+                </label>
+              )}
 
               <label
                 className={`${styles.payCard} ${paymentMethod === 'cod' ? styles.payCardActive : ''}`}
@@ -267,11 +332,21 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
+            {submitError && <p className={styles.submitError} role="alert">{submitError}</p>}
+
+            <button
+              type="submit"
+              className="btn btn-primary btn-lg"
+              style={{ width: '100%', justifyContent: 'center' }}
+              disabled={isSubmitting}
+            >
+              {isSubmitting && <LoaderCircle className={styles.spinner} size={18} aria-hidden="true" />}
               <span>
-                {paymentMethod === 'sepay_qr'
-                  ? t('Tiếp Tục Quét Mã QR Sepay', 'Proceed to Sepay QR')
-                  : t('Xác Nhận Đặt Hàng (COD)', 'Confirm Order (COD)')}
+                {isSubmitting
+                  ? t('Đang tạo đơn...', 'Placing order...')
+                  : paymentMethod === 'sepay_qr'
+                    ? t('Tiếp Tục Quét Mã QR Sepay', 'Proceed to Sepay QR')
+                    : t('Xác Nhận Đặt Hàng (COD)', 'Confirm Order (COD)')}
               </span>
             </button>
           </div>
@@ -279,7 +354,7 @@ export default function CheckoutPage() {
       </form>
 
       {/* SEPAY MODAL */}
-      {sepayModal.isOpen && (
+      {!isProduction && sepayModal.isOpen && (
         <SepayQRModal
           orderId={sepayModal.orderId}
           sepayCode={sepayModal.sepayCode}

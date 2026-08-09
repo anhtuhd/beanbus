@@ -2,7 +2,7 @@
 
 **Active plan:** `tasks/plan.md`  
 **Updated:** 2026-08-09  
-**Current checkpoint:** Phase 1 — Tasks 4-5 external verification, then Task 6
+**Current checkpoint:** Phase 2 — Task 6 external database verification, then Task 7
 
 ## Baseline Snapshot
 
@@ -10,7 +10,7 @@
 - [x] Menu customization, cart, checkout shell, booking, account, and admin demos implemented.
 - [x] Type check passes.
 - [x] Production build passes.
-- [x] Lint passes; 19 image optimization warnings remain assigned to Task 13.
+- [x] Lint passes; 18 image optimization warnings remain assigned to Task 13.
 - [x] Application unit tests exist and pass.
 - [x] Critical browser E2E smoke test exists and passes in Chromium.
 - [ ] Production backend/auth/payment exists.
@@ -37,7 +37,8 @@
 - [ ] Task 6: Create server-priced, idempotent orders.
 - [x] Task 6 pricing core: private schema, ownership RLS, canonical pricing RPC, and contract tests.
 - [x] Task 6 action contract: narrow payload validation and one-call pricing RPC.
-- [ ] Task 6 UI wiring: production checkout, safe confirmation receipt, and production E2E.
+- [x] Task 6 UI wiring: production checkout, safe confirmation receipt, responsive demo E2E, and production provider gating.
+- [ ] Task 6 external verification: apply migrations and run pgTAP plus production pickup/delivery flows on Supabase.
 - [ ] Task 7: Integrate verified, idempotent Sepay payments.
 - [ ] Task 8: Implement loyalty ledger and member account data.
 - [ ] Task 9: Add safe `/account/topup` and `/flash-sale` flows.

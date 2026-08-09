@@ -11,8 +11,10 @@ Website thương hiệu và thương mại cho Beanbus Coffee Roaster, xây dự
 - [x] Supabase SSR clients, session Proxy và local migration workflow
 - [x] Supabase profile schema, authentication shell và role-based RLS
 - [x] Catalog schema, production read model và route chi tiết sản phẩm
+- [x] Order schema, server-priced transaction, production checkout và receipt xác nhận có capability token
 - [ ] Xác minh auth provider và RLS trên Supabase runtime có credential
-- [ ] Order/payment/loyalty chạy hoàn toàn phía server
+- [ ] Xác minh order migration/pgTAP trên Supabase runtime có credential
+- [ ] Payment/loyalty chạy hoàn toàn phía server
 - [ ] Sepay webhook production
 - [ ] Admin production, SEO, accessibility và release gate
 
@@ -71,6 +73,7 @@ npx tsc --noEmit
 npm run lint
 npm run build
 npm run test:e2e
+npm run test:e2e:checkout-production
 ```
 
 Không commit `.env.local`, Supabase secret key, Sepay API key hoặc webhook secret.

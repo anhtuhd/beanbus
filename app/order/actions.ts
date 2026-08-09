@@ -10,6 +10,7 @@ export type CreateOrderResult =
         discountVnd: number;
         id: string;
         number: number;
+        receipt: string;
         subtotalVnd: number;
         totalVnd: number;
       };
@@ -40,11 +41,18 @@ export async function createProductionOrder(input: unknown): Promise<CreateOrder
 
   if (error || !order) return { ok: false, error: 'ORDER_CREATION_FAILED' };
 
+  const { data: receiptData, error: receiptError } = await supabase.rpc('issue_order_receipt', {
+    p_idempotency_key: parsed.data.idempotencyKey,
+  });
+  const receipt = receiptData?.[0]?.receipt_token;
+  if (receiptError || !receipt) return { ok: false, error: 'ORDER_RECEIPT_FAILED' };
+
   return {
     ok: true,
     order: {
       id: order.order_id,
       number: order.order_number,
+      receipt,
       subtotalVnd: order.subtotal_vnd,
       discountVnd: order.discount_vnd,
       totalVnd: order.total_vnd,

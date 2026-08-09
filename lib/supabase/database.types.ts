@@ -234,6 +234,20 @@ export type Database = {
           total_vnd: number;
         }[];
       };
+      get_order_receipt: {
+        Args: {
+          p_order_id: string;
+          p_receipt_token: string;
+        };
+        Returns: Json;
+      };
+      issue_order_receipt: {
+        Args: { p_idempotency_key: string };
+        Returns: {
+          order_id: string;
+          receipt_token: string;
+        }[];
+      };
       current_user_role: {
         Args: Record<PropertyKey, never>;
         Returns: Database['public']['Enums']['app_role'];

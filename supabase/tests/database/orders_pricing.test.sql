@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(13);
+select plan(15);
 
 select has_table('public', 'vouchers', 'vouchers table exists');
 select has_table('public', 'orders', 'orders table exists');
@@ -39,6 +39,19 @@ select * from public.create_server_priced_order(
   'cod',
   'BEANBUS10',
   '[{"productId":"cd-1","quantity":2,"optionIds":["size-l"]}]'::jsonb
+);
+
+create temporary table issued_receipt as
+select * from public.issue_order_receipt('55555555-5555-4555-8555-555555555555');
+select is(
+  (select (public.get_order_receipt(order_id, receipt_token) ->> 'totalVnd')::integer from issued_receipt),
+  81000,
+  'valid receipt capability returns the canonical order snapshot'
+);
+select is(
+  (select public.get_order_receipt(order_id, '99999999-9999-4999-8999-999999999999') from issued_receipt),
+  null::jsonb,
+  'wrong receipt capability returns no order data'
 );
 
 reset role;

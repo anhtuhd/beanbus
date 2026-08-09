@@ -30,7 +30,7 @@ Turn the current Beanbus UI prototype into a production-ready website for market
 | P1 | Confirmation trusts `?paid=true` and fabricates a fallback order when an ID is unknown. | `app/order/confirmation/[id]/page.tsx` | Load an authorized order from the server and show not-found/forbidden states. |
 | P1 | Booking, contact, event RSVP, and B2B quote forms show success without delivering data. | `app/booking`, `app/contact`, `app/events`, `app/page.tsx` | Persist or deliver submissions, validate server-side, and expose real failure states. |
 | P1 | Header/account links point to missing `/account/topup` and `/flash-sale` routes; planned detail routes are also absent. | `components/layout/Header.tsx` | Remove premature links or implement the routes only when their backing flow exists. |
-| P1 | Lint gate fails with 14 errors and 63 warnings; there are no application tests. | `npm run lint`, repository inventory | Restore a green lint gate and add focused unit/integration plus critical E2E coverage. |
+| P1 | Lint gate originally failed with 14 errors and 63 warnings and had no application tests. | `npm run lint`, repository inventory | The current gate passes with 18 deferred image warnings and focused unit/E2E coverage. |
 | P2 | Every page is a Client Component; page-level metadata, server rendering, and content SEO are limited. | `app/**/page.tsx` | Make static/content shells server-rendered and isolate only interactive islands as clients. |
 | P2 | Remote `<img>` usage is unoptimized and image hosts are not configured. | 20 occurrences across pages/components | Define an image strategy and convert above-the-fold/product content where beneficial. |
 
@@ -93,7 +93,7 @@ Every implementation task must meet all applicable items below before its checkb
 **Description:** Fix current ESLint errors, remove unused code that obscures review, and make route behavior honest while the app is still a demo.
 
 **Acceptance criteria:**
-- [x] `npm run lint` exits successfully; the remaining 19 image optimization warnings are assigned to Task 13.
+- [x] `npm run lint` exits successfully; the remaining 18 image optimization warnings are assigned to Task 13.
 - [x] Missing-route links are hidden or replaced with non-navigating unavailable states until their features ship.
 - [x] Demo-only payment/auth/admin surfaces are visibly identified in development and cannot be mistaken for production behavior.
 
@@ -194,17 +194,18 @@ Supabase SSR intentionally keeps auth cookies readable by its browser client so 
 
 **Description:** Add order/order-item/voucher persistence and a server action or route that validates customer input and recalculates all commercial values from trusted catalog data.
 
-**Implementation status:** The private order/voucher schema, idempotent `create_server_priced_order` transaction, narrow input parser, and provider-gated Next.js Server Action are implemented. Production checkout/confirmation wiring remains in progress.
+**Implementation status:** The private order/voucher schema, idempotent `create_server_priced_order` transaction, narrow input parser, provider-gated Next.js Server Action, production checkout wiring, and capability-protected server receipt are implemented. Demo checkout remains isolated; production exposes only configured payment methods. Database execution remains blocked on a Docker-compatible runtime or hosted Supabase credentials.
 
 **Acceptance criteria:**
-- [ ] Client sends product IDs, option IDs, quantities, fulfillment details, and voucher code; server returns canonical prices/totals.
+- [x] Client sends product IDs, option IDs, quantities, fulfillment details, and voucher code; server returns canonical prices/totals.
 - [x] The database transaction rejects invalid options, unavailable products, expired/exhausted vouchers, excessive quantities, and malformed fulfillment/contact data.
 - [x] Order creation is idempotent and generates a collision-safe UUID plus a readable identity number.
 
 **Verification:**
 - [x] Contract tests cover pricing ownership, voucher bounds, idempotency, and catalog trust boundaries.
 - [ ] Run the written pgTAP pricing, duplicate submission, and unavailable-product cases on Supabase.
-- [ ] E2E test covers menu -> cart -> checkout -> pending order for pickup and delivery.
+- [x] Browser tests cover demo menu -> cart -> checkout -> COD confirmation, responsive checkout, and production payment-method gating.
+- [ ] Run production pickup/delivery creation and receipt retrieval against a configured Supabase runtime.
 
 **Dependencies:** Tasks 4 and 5  
 **Estimated scope:** Split schema/rules, API, and checkout integration into Medium subtasks.

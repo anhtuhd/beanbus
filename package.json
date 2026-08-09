@@ -13,6 +13,7 @@
     "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/*.test.ts",
     "test:e2e": "playwright test",
     "test:e2e:auth": "NEXT_PUBLIC_APP_MODE=production NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3100 NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_test NEXT_PUBLIC_ENABLE_PHONE_AUTH=false NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=false playwright test tests/e2e/auth-production.spec.ts",
+    "test:e2e:checkout-production": "NEXT_PUBLIC_APP_MODE=production NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3100 NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_test NEXT_PUBLIC_ENABLE_PHONE_AUTH=false NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=false NEXT_PUBLIC_ENABLE_SEPAY=false playwright test tests/e2e/checkout-production.spec.ts",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "db:new": "supabase migration new",
