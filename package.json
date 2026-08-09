@@ -17,6 +17,7 @@
     "db:new": "supabase migration new",
     "db:reset": "supabase db reset",
     "db:lint": "supabase db lint --local --level warning",
+    "db:test": "supabase test db",
     "db:push": "supabase db push"
   },
   "dependencies": {

@@ -43,6 +43,7 @@ Workflow schema:
 npm run db:new -- ten_migration
 npm run db:reset
 npm run db:lint
+npm run db:test
 ```
 
 Khi đã có Supabase project và đăng nhập CLI, dùng `npx supabase link --project-ref <project-ref>` một lần, sau đó `npm run db:push` để đẩy migration đã review. Không chỉnh schema production trực tiếp trên Dashboard nếu thay đổi đó chưa được lưu thành migration.
