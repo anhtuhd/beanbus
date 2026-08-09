@@ -1,0 +1,244 @@
+.menuPage {
+  padding-bottom: 80px;
+}
+
+.pageHeader {
+  background: var(--brown-dark);
+  color: #fff;
+  padding: 60px 0 50px;
+  margin-bottom: 40px;
+}
+
+.title {
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.subTitle {
+  font-size: 16.5px;
+  color: var(--green);
+  max-width: 620px;
+  margin: 0;
+}
+
+.controlsBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--cream-light);
+  border: 1px solid rgba(134, 114, 103, 0.2);
+  padding: 10px 16px;
+  border-radius: 50px;
+  flex: 1;
+  max-width: 440px;
+}
+
+.searchIcon {
+  color: var(--brown);
+}
+
+.searchBox input {
+  border: none;
+  background: none;
+  outline: none;
+  width: 100%;
+  font-size: 14px;
+  color: var(--brown-dark);
+}
+
+.sortBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--cream-light);
+  border: 1px solid rgba(134, 114, 103, 0.2);
+  padding: 8px 16px;
+  border-radius: 50px;
+}
+
+.sortIcon {
+  color: var(--brown);
+}
+
+.sortBox select {
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--brown-dark);
+  cursor: pointer;
+}
+
+.categoryTabs {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 36px;
+}
+
+.tabBtn {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 13.5px;
+  background: var(--cream-light);
+  color: var(--brown-dark);
+  padding: 10px 20px;
+  border-radius: 50px;
+  border: 1px solid rgba(134, 114, 103, 0.15);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.tabBtn:hover {
+  background: var(--cream);
+  color: var(--orange);
+}
+
+.tabActive {
+  background: var(--orange) !important;
+  color: #fff !important;
+  border-color: var(--orange) !important;
+  box-shadow: 0 4px 12px rgba(245, 127, 47, 0.3);
+}
+
+.productsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+
+.productCard {
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid rgba(134, 114, 103, 0.12);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.productCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+}
+
+.badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  background: var(--orange);
+  color: #fff;
+  font-size: 10.5px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 50px;
+}
+
+.imgWrapper {
+  height: 220px;
+  overflow: hidden;
+}
+
+.productImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.productCard:hover .productImg {
+  transform: scale(1.05);
+}
+
+.cardBody {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.productName {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--brown-dark);
+  margin-bottom: 6px;
+}
+
+.productDesc {
+  font-size: 13px;
+  color: var(--brown);
+  margin-bottom: 12px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+.tastingNotes {
+  font-size: 11.5px;
+  color: var(--green-deep);
+  background: var(--cream-light);
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+
+.price {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-size: 19px;
+  color: var(--orange);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 60px 0;
+  gap: 12px;
+  color: var(--brown);
+}
+
+.emptyIcon {
+  color: var(--cream);
+}
+
+@media (max-width: 900px) {
+  .productsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .productsGrid {
+    grid-template-columns: 1fr;
+  }
+}

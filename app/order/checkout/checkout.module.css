@@ -1,0 +1,295 @@
+.checkoutPage {
+  padding-top: 40px;
+  padding-bottom: 80px;
+}
+
+.emptyContainer {
+  padding: 80px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  color: var(--brown);
+}
+
+.emptyIcon {
+  color: var(--cream);
+}
+
+.pageHeader {
+  margin-bottom: 36px;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--brown-dark);
+}
+
+.sub {
+  font-size: 15px;
+  color: var(--brown);
+}
+
+.checkoutGrid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 36px;
+  align-items: flex-start;
+}
+
+.formCol {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.cardSection {
+  background: var(--white);
+  border: 1px solid rgba(134, 114, 103, 0.15);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--gray-200);
+  padding-bottom: 14px;
+}
+
+.sectionIcon {
+  color: var(--orange);
+}
+
+.sectionHeader h3 {
+  font-size: 16.5px;
+  font-weight: 800;
+  color: var(--brown-dark);
+}
+
+.typeSelector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.typeBtn {
+  background: var(--cream-light);
+  border: 1.5px solid rgba(134, 114, 103, 0.15);
+  border-radius: 12px;
+  padding: 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--brown-dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.typeBtnActive {
+  border-color: var(--orange);
+  background: var(--orange-light);
+  color: var(--orange-hover);
+}
+
+.rowTwo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inputGroup label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brown-dark);
+}
+
+.inputGroup input {
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--gray-300);
+  font-size: 14px;
+}
+
+.inputHint {
+  font-size: 12px;
+  color: var(--brown);
+}
+
+.paymentMethods {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.payCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--cream-soft);
+  border: 1.5px solid var(--gray-200);
+  padding: 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.payCardActive {
+  border-color: var(--orange);
+  background: var(--orange-light);
+}
+
+.payIcon {
+  color: var(--orange);
+  flex-shrink: 0;
+}
+
+.payText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.payText strong {
+  font-size: 14px;
+  color: var(--brown-dark);
+}
+
+.payText span {
+  font-size: 12px;
+  color: var(--brown);
+}
+
+.payBadge {
+  font-size: 10.5px;
+  font-weight: 800;
+  background: var(--orange);
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 50px;
+}
+
+.summaryCol {
+  position: sticky;
+  top: 100px;
+}
+
+.summaryCard {
+  background: var(--cream-light);
+  border: 1px solid rgba(134, 114, 103, 0.15);
+  border-radius: var(--radius);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: var(--shadow);
+}
+
+.summaryCard h3 {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--brown-dark);
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.summaryItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.summaryItem img {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.itemMeta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.itemMeta strong {
+  font-size: 13px;
+  color: var(--brown-dark);
+}
+
+.itemPrice {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  color: var(--orange);
+}
+
+.voucherBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ecfdf5;
+  color: #065f46;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.totalsBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--gray-300);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: var(--brown);
+}
+
+.discount {
+  color: var(--green-accent);
+  font-weight: 600;
+}
+
+.final {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--brown-dark);
+
+}
+
+.finalPrice {
+  color: var(--orange);
+  font-size: 20px;
+}
+
+@media (max-width: 900px) {
+  .checkoutGrid {
+    grid-template-columns: 1fr;
+  }
+}

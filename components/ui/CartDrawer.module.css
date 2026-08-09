@@ -1,0 +1,306 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(43, 36, 32, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  justify-content: flex-end;
+  animation: fadeIn 0.2s ease;
+}
+
+.drawer {
+  width: 100%;
+  max-width: 440px;
+  height: 100%;
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 30px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--cream-light);
+}
+
+.titleBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon {
+  color: var(--orange);
+}
+
+.titleBox h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--brown-dark);
+}
+
+.countBadge {
+  background: var(--orange);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--brown);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.closeBtn:hover {
+  background: var(--cream);
+  color: var(--brown-dark);
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+
+.empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: var(--brown);
+  text-align: center;
+}
+
+.emptyIcon {
+  color: var(--cream);
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cartItem {
+  display: flex;
+  gap: 14px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.itemImg {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.itemDetails {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.itemName {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--brown-dark);
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  color: var(--gray-400);
+  cursor: pointer;
+  padding: 2px;
+  transition: color 0.2s ease;
+}
+
+.removeBtn:hover {
+  color: var(--red);
+}
+
+.optionsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.optionTag {
+  font-size: 11px;
+  background: var(--cream-light);
+  color: var(--brown);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.noteText {
+  font-size: 11.5px;
+  color: var(--brown);
+  font-style: italic;
+  margin: 0;
+}
+
+.itemFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.qtyControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--gray-100);
+  padding: 3px 8px;
+  border-radius: 50px;
+}
+
+.qtyControl button {
+  background: none;
+  border: none;
+  color: var(--brown-dark);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.qtyControl span {
+  font-weight: 700;
+  font-size: 13px;
+  min-width: 16px;
+  text-align: center;
+}
+
+.itemPrice {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  color: var(--orange);
+  font-size: 15px;
+}
+
+.footer {
+  padding: 20px 24px;
+  border-top: 1px solid var(--gray-200);
+  background: var(--cream-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.voucherBox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.voucherForm {
+  display: flex;
+  gap: 8px;
+}
+
+.voucherForm input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--gray-300);
+  font-size: 12.5px;
+}
+
+.appliedVoucherTag {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ecfdf5;
+  border: 1px solid #10b981;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #065f46;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.vText {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.removeVoucherBtn {
+  background: none;
+  border: none;
+  color: #065f46;
+  cursor: pointer;
+}
+
+.vMsg {
+  font-size: 11.5px;
+  margin: 0;
+}
+.vMsgSuccess { color: var(--green-accent); }
+.vMsgError { color: var(--red); }
+
+.totals {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0;
+  border-top: 1px dashed var(--gray-300);
+  border-bottom: 1px dashed var(--gray-300);
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: var(--brown);
+}
+
+.discountRow {
+  color: var(--green-accent);
+  font-weight: 600;
+}
+
+.finalRow {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--brown-dark);
+  margin-top: 4px;
+}
+
+.finalPrice {
+  color: var(--orange);
+  font-size: 20px;
+}

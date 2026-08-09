@@ -1,0 +1,206 @@
+.container {
+  padding-top: 40px;
+  padding-bottom: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 860px;
+}
+
+.headerBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.successBadge {
+  background: #ecfdf5;
+  padding: 16px;
+  border-radius: 50%;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
+}
+
+.headerBox h1 {
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--brown-dark);
+}
+
+.orderIdText {
+  font-size: 16px;
+  color: var(--brown);
+}
+
+.orderIdText strong {
+  color: var(--orange);
+  font-family: 'Montserrat', sans-serif;
+}
+
+.paidBadge {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #10b981;
+  padding: 6px 16px;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.trackingCard {
+  background: var(--white);
+  border: 1px solid rgba(134, 114, 103, 0.15);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.trackingCard h3 {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--brown-dark);
+  margin-bottom: 20px;
+}
+
+.stepsGrid {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+}
+
+.stepItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  position: relative;
+  color: var(--gray-400);
+}
+
+.stepDot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  z-index: 2;
+}
+
+.stepDone .stepDot {
+  background: #10b981;
+  color: #fff;
+}
+
+.stepCurrent .stepDot {
+  background: var(--orange);
+  color: #fff;
+  box-shadow: 0 0 0 6px rgba(245, 127, 47, 0.2);
+}
+
+.stepLabel {
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.stepDone .stepLabel, .stepCurrent .stepLabel {
+  color: var(--brown-dark);
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.infoCard {
+  background: var(--cream-light);
+  border-radius: var(--radius);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.infoCard h3 {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--brown-dark);
+  border-bottom: 1px solid rgba(134, 114, 103, 0.15);
+  padding-bottom: 10px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: var(--brown);
+}
+
+.row strong {
+  color: var(--brown-dark);
+  text-align: right;
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.itemRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+}
+
+.totalsBox {
+  border-top: 1px dashed var(--gray-300);
+  padding-top: 12px;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: var(--brown);
+}
+
+.discount { color: var(--green-accent); font-weight: 600; }
+
+.final {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--brown-dark);
+}
+
+.finalPrice {
+  color: var(--orange);
+  font-size: 18px;
+}
+
+.actionsRow {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+@media (max-width: 600px) {
+  .detailsGrid {
+    grid-template-columns: 1fr;
+  }
+  .actionsRow {
+    flex-direction: column;
+  }
+}
