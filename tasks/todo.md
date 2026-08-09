@@ -2,7 +2,7 @@
 
 **Active plan:** `tasks/plan.md`  
 **Updated:** 2026-08-09  
-**Current checkpoint:** Phase 1 — Task 4 provider/runtime verification, then Task 5
+**Current checkpoint:** Phase 1 — Tasks 4-5 external verification, then Task 6
 
 ## Baseline Snapshot
 
@@ -28,6 +28,8 @@
 - [x] Task 4 implementation: auth actions/callback, profile RLS, session DAL, and route guards.
 - [ ] Task 4 external verification: configure a provider and run pgTAP/member/admin paths.
 - [ ] Task 5: Migrate catalog and add `/menu/[id]`.
+- [x] Task 5 implementation: catalog schema/read model, product details, responsive UI, and E2E.
+- [ ] Task 5 external verification: run catalog migration/pgTAP and production queries on Supabase.
 - [ ] Checkpoint B: Auth/RLS/catalog pass tests and browser checks.
 
 ## Phase 2: Commerce

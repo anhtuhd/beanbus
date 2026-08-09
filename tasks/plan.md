@@ -168,14 +168,17 @@ Supabase SSR intentionally keeps auth cookies readable by its browser client so 
 
 **Description:** Move categories, products, and product options from TypeScript seed data to PostgreSQL, retain the existing filters/customizer, and add `/menu/[id]` as a server-backed detail route.
 
+**Implementation status:** Catalog schema/seed/RLS, typed production queries, mode-aware menu data, loading/error/empty states, and product detail UI are implemented. The static fixture is used only in demo mode. Supabase runtime verification remains blocked on a Docker-compatible runtime and hosted credentials.
+
 **Acceptance criteria:**
-- [ ] Menu and product detail use server-fetched catalog data with loading, empty, unavailable, and not-found states.
-- [ ] Product options and availability are represented by typed records and seeded from the current catalog.
-- [ ] `/menu/[id]` exposes product metadata and can add a valid configuration to the existing cart draft.
+- [x] In production mode, menu and product detail use server-fetched catalog data with loading, empty, unavailable, and not-found states.
+- [x] Product options and availability are represented by typed records and seeded from the current catalog.
+- [x] `/menu/[id]` exposes product metadata and can add a valid configuration to the existing cart draft.
 
 **Verification:**
-- [ ] Test catalog mapping and option-price display with seeded data.
-- [ ] Browser-check menu filters, detail deep links, customizer, and add-to-cart at all target widths.
+- [x] Contract/unit tests cover catalog RLS structure, seed completeness, mapping, and option prices.
+- [x] Browser-check menu filters, detail deep links, customizer, and add-to-cart at 375 px, 768 px, and 1440 px.
+- [ ] Run catalog pgTAP and production queries against a configured Supabase runtime.
 
 **Dependencies:** Task 3  
 **Estimated scope:** Split migration/read model and UI route into two Medium subtasks.

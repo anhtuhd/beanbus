@@ -231,14 +231,69 @@
   color: var(--cream);
 }
 
+.loadingGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+}
+
+.loadingCard {
+  min-height: 420px;
+  border: 1px solid var(--gray-200);
+  background: var(--cream-light);
+  animation: menuPulse 1.2s ease-in-out infinite alternate;
+}
+
+.errorState {
+  min-height: 55vh;
+  padding-top: 96px;
+  padding-bottom: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.errorState h1 {
+  margin-bottom: 8px;
+}
+
+@keyframes menuPulse {
+  from { opacity: 0.45; }
+  to { opacity: 0.8; }
+}
+
 @media (max-width: 900px) {
-  .productsGrid {
+  .productsGrid,
+  .loadingGrid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 600px) {
-  .productsGrid {
+  .controlsBar {
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .searchBox,
+  .sortBox {
+    width: 100%;
+    max-width: none;
+  }
+
+  .sortBox select {
+    width: 100%;
+  }
+
+  .productsGrid,
+  .loadingGrid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingCard {
+    animation: none;
   }
 }
