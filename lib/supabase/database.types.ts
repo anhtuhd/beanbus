@@ -213,6 +213,21 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      create_sepay_payment: {
+        Args: {
+          p_account_number: string;
+          p_bank_code: string;
+          p_order_id: string;
+          p_receipt_token: string;
+        };
+        Returns: {
+          amount_vnd: number;
+          expires_at: string;
+          payment_code: string;
+          payment_id: string;
+          payment_status: string;
+        }[];
+      };
       create_server_priced_order: {
         Args: {
           p_customer_name: string;
@@ -246,6 +261,23 @@ export type Database = {
         Returns: {
           order_id: string;
           receipt_token: string;
+        }[];
+      };
+      process_sepay_webhook: {
+        Args: {
+          p_account_number: string;
+          p_code: string | null;
+          p_gateway: string;
+          p_payload: Json;
+          p_provider_transaction_id: number;
+          p_reference_code: string;
+          p_transaction_at: string;
+          p_transfer_amount: number;
+          p_transfer_type: string;
+        };
+        Returns: {
+          matched_order_id: string | null;
+          outcome: string;
         }[];
       };
       current_user_role: {

@@ -12,12 +12,14 @@ import { Bike, ShoppingBag, Clock, MapPin, QrCode, DollarSign, ShieldCheck, Stor
 import styles from './checkout.module.css';
 
 const isProduction = process.env.NEXT_PUBLIC_APP_MODE === 'production';
+const isSepayEnabled = process.env.NEXT_PUBLIC_ENABLE_SEPAY === 'true';
 
 function getOrderErrorMessage(error: string, t: (vi: string, en: string) => string) {
   if (error === 'INVALID_CUSTOMER') return t('Vui lòng kiểm tra họ tên và số điện thoại.', 'Please check your name and phone number.');
   if (error === 'INVALID_PICKUP') return t('Vui lòng chọn thời gian nhận hàng hợp lệ.', 'Please choose a valid pickup time.');
   if (error === 'INVALID_DELIVERY') return t('Vui lòng nhập địa chỉ giao hàng đầy đủ.', 'Please enter a complete delivery address.');
   if (error === 'PAYMENT_METHOD_UNAVAILABLE') return t('Phương thức thanh toán này chưa khả dụng.', 'This payment method is not available.');
+  if (error.startsWith('PAYMENT_')) return t('Chưa thể khởi tạo thanh toán QR. Vui lòng chọn COD hoặc thử lại.', 'QR payment could not be started. Please choose COD or try again.');
   return t('Chưa thể tạo đơn lúc này. Vui lòng thử lại.', 'We could not place your order. Please try again.');
 }
 
@@ -34,7 +36,7 @@ export default function CheckoutPage() {
   const [customerName, setCustomerName] = useState(user?.name || '');
   const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
   const [note, setNote] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(isProduction ? 'cod' : 'sepay_qr');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(isProduction && !isSepayEnabled ? 'cod' : 'sepay_qr');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const idempotencyKey = useRef<string | null>(null);
@@ -248,7 +250,7 @@ export default function CheckoutPage() {
               <h3>{t('3. Phương thức thanh toán', '3. Payment Method')}</h3>
             </div>
             <div className={styles.paymentMethods}>
-              {!isProduction && (
+              {(!isProduction || isSepayEnabled) && (
                 <label
                   className={`${styles.payCard} ${paymentMethod === 'sepay_qr' ? styles.payCardActive : ''}`}
                 >
@@ -261,7 +263,7 @@ export default function CheckoutPage() {
                   <QrCode size={24} className={styles.payIcon} />
                   <div className={styles.payText}>
                     <strong>{t('Thanh toán QR Code (Sepay Tự Động)', 'Sepay QR Code Payment')}</strong>
-                    <span>{t('Gen mã VietQR chuẩn ngân hàng MB, kiểm tra giao dịch tức thì.', 'Instant VietQR auto check.')}</span>
+                    <span>{t('Quét bằng ứng dụng ngân hàng, đơn tự cập nhật khi thanh toán thành công.', 'Scan with your banking app; the order updates after payment.')}</span>
                   </div>
                   <span className={styles.payBadge}>Recommended</span>
                 </label>

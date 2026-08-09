@@ -59,6 +59,113 @@
   font-weight: 700;
 }
 
+.paymentCard {
+  background: var(--white);
+  border: 1px solid rgba(134, 114, 103, 0.18);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.paymentHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+  color: var(--orange);
+}
+
+.paymentHeader h2 {
+  font-size: 17px;
+  color: var(--brown-dark);
+}
+
+.paymentHeader p {
+  margin-top: 3px;
+  font-size: 13px;
+  color: var(--brown);
+}
+
+.paymentGrid {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 28px;
+  align-items: center;
+}
+
+.qrImage {
+  width: 220px;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border: 1px solid var(--gray-200);
+  border-radius: 6px;
+}
+
+.paymentDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.paymentRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  font-size: 13.5px;
+  color: var(--brown);
+}
+
+.paymentRow strong {
+  color: var(--brown-dark);
+  text-align: right;
+}
+
+.copyGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.copyGroup button {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  background: var(--white);
+  color: var(--brown-dark);
+  cursor: pointer;
+}
+
+.paymentAmount,
+.paymentCode {
+  color: var(--orange) !important;
+  font-size: 17px;
+}
+
+.expiryText {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--brown);
+  text-align: right;
+}
+
+.paymentNotice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .trackingCard {
   background: var(--white);
   border: 1px solid rgba(134, 114, 103, 0.15);
@@ -236,8 +343,22 @@
   }
 
   .trackingCard,
-  .infoCard {
+  .infoCard,
+  .paymentCard {
     padding: 18px;
+  }
+
+  .paymentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .qrImage {
+    width: min(100%, 260px);
+    justify-self: center;
+  }
+
+  .paymentRow {
+    align-items: flex-start;
   }
 
   .stepsGrid {

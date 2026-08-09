@@ -1,7 +1,9 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { CheckCircle2, CircleAlert, ShoppingBag } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Check, CheckCircle2, CircleAlert, Copy, QrCode, ShoppingBag } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import type { OrderReceipt } from '@/lib/orders/receipt-data';
 import styles from './confirmation.module.css';
@@ -27,10 +29,47 @@ function formatPickupTime(value: string, lang: 'vi' | 'en') {
   }).format(new Date(value));
 }
 
-export function ProductionConfirmation({ order }: { order: OrderReceipt }) {
+type PaymentDisplay = { accountName: string; qrUrl: string } | null;
+
+export function ProductionConfirmation({
+  order,
+  paymentDisplay,
+}: {
+  order: OrderReceipt;
+  paymentDisplay: PaymentDisplay;
+}) {
+  const router = useRouter();
   const { t, lang } = useLanguage();
+  const [copied, setCopied] = useState<'account' | 'code' | null>(null);
+  const [isExpired, setIsExpired] = useState(false);
   const currentStepIndex = steps.findIndex((step) => step.key === order.status);
   const isCancelled = order.status === 'cancelled';
+  const payment = order.payment;
+  const isPaymentPending = order.paymentStatus === 'pending' && payment?.status === 'pending';
+
+  useEffect(() => {
+    if (!payment) return;
+    const updateExpiry = () => setIsExpired(Date.now() >= new Date(payment.expiresAt).getTime());
+    updateExpiry();
+    const timer = window.setInterval(updateExpiry, 30_000);
+    return () => window.clearInterval(timer);
+  }, [payment]);
+
+  useEffect(() => {
+    if (!isPaymentPending || isExpired) return;
+    const timer = window.setInterval(() => router.refresh(), 5_000);
+    return () => window.clearInterval(timer);
+  }, [isExpired, isPaymentPending, router]);
+
+  const copyValue = async (value: string, key: 'account' | 'code') => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(key);
+      window.setTimeout(() => setCopied(null), 1600);
+    } catch {
+      setCopied(null);
+    }
+  };
 
   return (
     <div className={`wrap ${styles.container}`}>
@@ -69,6 +108,66 @@ export function ProductionConfirmation({ order }: { order: OrderReceipt }) {
               );
             })}
           </div>
+        </div>
+      )}
+
+      {payment && paymentDisplay && isPaymentPending && !isExpired && (
+        <section className={styles.paymentCard} aria-labelledby="payment-title">
+          <div className={styles.paymentHeader}>
+            <QrCode size={22} aria-hidden="true" />
+            <div>
+              <h2 id="payment-title">{t('Thanh toán VietQR', 'VietQR payment')}</h2>
+              <p>{t('Chuyển đúng số tiền và nội dung trước thời hạn.', 'Use the exact amount and transfer memo before expiry.')}</p>
+            </div>
+          </div>
+          <div className={styles.paymentGrid}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- Dynamic VietQR URL is the payment artifact. */}
+            <img src={paymentDisplay.qrUrl} alt={t('Mã VietQR thanh toán đơn hàng', 'Order payment VietQR')} className={styles.qrImage} />
+            <div className={styles.paymentDetails}>
+              <div className={styles.paymentRow}>
+                <span>{t('Ngân hàng', 'Bank')}</span>
+                <strong>{payment.bankCode}</strong>
+              </div>
+              {paymentDisplay.accountName && (
+                <div className={styles.paymentRow}>
+                  <span>{t('Chủ tài khoản', 'Account holder')}</span>
+                  <strong>{paymentDisplay.accountName}</strong>
+                </div>
+              )}
+              <div className={styles.paymentRow}>
+                <span>{t('Số tài khoản', 'Account number')}</span>
+                <span className={styles.copyGroup}>
+                  <strong>{payment.accountNumber}</strong>
+                  <button type="button" onClick={() => copyValue(payment.accountNumber, 'account')} aria-label={t('Sao chép số tài khoản', 'Copy account number')}>
+                    {copied === 'account' ? <Check size={16} /> : <Copy size={16} />}
+                  </button>
+                </span>
+              </div>
+              <div className={styles.paymentRow}>
+                <span>{t('Số tiền', 'Amount')}</span>
+                <strong className={styles.paymentAmount}>{order.totalVnd.toLocaleString('vi-VN')}đ</strong>
+              </div>
+              <div className={styles.paymentRow}>
+                <span>{t('Nội dung', 'Transfer memo')}</span>
+                <span className={styles.copyGroup}>
+                  <strong className={styles.paymentCode}>{payment.code}</strong>
+                  <button type="button" onClick={() => copyValue(payment.code, 'code')} aria-label={t('Sao chép nội dung chuyển khoản', 'Copy transfer memo')}>
+                    {copied === 'code' ? <Check size={16} /> : <Copy size={16} />}
+                  </button>
+                </span>
+              </div>
+              <p className={styles.expiryText}>
+                {t('Có hiệu lực đến', 'Valid until')} {formatPickupTime(payment.expiresAt, lang)}
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {payment && (payment.status === 'expired' || isExpired) && order.paymentStatus !== 'paid' && (
+        <div className={styles.paymentNotice} role="status">
+          <CircleAlert size={20} aria-hidden="true" />
+          <span>{t('Mã thanh toán đã hết hạn. Vui lòng đặt lại đơn hoặc liên hệ Beanbus nếu bạn đã chuyển khoản.', 'This payment code has expired. Place a new order or contact Beanbus if you already transferred.')}</span>
         </div>
       )}
 

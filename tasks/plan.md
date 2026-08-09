@@ -214,14 +214,17 @@ Supabase SSR intentionally keeps auth cookies readable by its browser client so 
 
 **Description:** Replace the browser simulation with server-generated payment instructions and a verified webhook that owns payment state transitions.
 
+**Implementation status:** The service-only payment ledger/RPC, HMAC raw-body Route Handler, deduplicated webhook event audit, 30-minute VietQR instructions, production polling UI, and provider gating are implemented. Applying pgTAP and exercising Sepay Test mode/Live remain blocked on external runtime and owner credentials.
+
 **Acceptance criteria:**
-- [ ] QR details originate from a pending server payment linked to one order and expire according to an explicit policy.
-- [ ] Webhook authentication/signature or approved Sepay verification is enforced; amount/reference mismatches are rejected.
-- [ ] Duplicate webhook delivery has no duplicate payment, points, inventory, or notification side effects.
+- [x] QR details originate from a pending server payment linked to one order and expire according to an explicit policy.
+- [x] HMAC-SHA256, timestamp freshness, inbound direction, destination account, payment code, amount, and expiry are enforced.
+- [x] Duplicate webhook delivery has no duplicate payment, points, inventory, or notification side effects.
 
 **Verification:**
-- [ ] Integration tests cover valid, invalid, mismatched, duplicate, and out-of-order webhook events.
-- [ ] E2E test proves the UI cannot mark itself paid and reflects server payment state after a verified event.
+- [x] Unit/contract tests cover valid/invalid HMAC, malformed payloads, route ordering, and trusted matching rules; pgTAP covers valid, mismatched, duplicate, outbound, and expired events.
+- [x] Browser tests prove Sepay UI is absent when disabled and available only after server configuration is enabled.
+- [ ] Run pgTAP and an end-to-end Sepay Test mode transfer to prove the UI reflects a verified server event.
 
 **Dependencies:** Task 6; Sepay credentials and current official integration contract  
 **Estimated scope:** Split ledger/webhook and UI status integration into Medium subtasks.

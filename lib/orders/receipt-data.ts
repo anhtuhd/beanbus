@@ -15,6 +15,13 @@ export type OrderReceipt = {
   }>;
   number: number;
   paymentMethod: 'cod' | 'sepay_qr';
+  payment: {
+    accountNumber: string;
+    bankCode: string;
+    code: string;
+    expiresAt: string;
+    status: 'pending' | 'paid' | 'failed' | 'expired' | 'refunded';
+  } | null;
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
   pickupAt: string | null;
   status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled';
@@ -67,6 +74,23 @@ export function parseOrderReceipt(value: unknown): OrderReceipt | null {
     || !isMoney(value.totalVnd)
     || !isText(value.createdAt)) return null;
 
+  let payment: OrderReceipt['payment'] = null;
+  if (value.payment !== null && value.payment !== undefined) {
+    if (!isRecord(value.payment)
+      || !isText(value.payment.code)
+      || !isText(value.payment.expiresAt)
+      || !isText(value.payment.bankCode)
+      || !isText(value.payment.accountNumber)
+      || !['pending', 'paid', 'failed', 'expired', 'refunded'].includes(String(value.payment.status))) return null;
+    payment = {
+      code: value.payment.code,
+      status: value.payment.status as NonNullable<OrderReceipt['payment']>['status'],
+      expiresAt: value.payment.expiresAt,
+      bankCode: value.payment.bankCode,
+      accountNumber: value.payment.accountNumber,
+    };
+  }
+
   return {
     id: value.id,
     number: Number(value.number),
@@ -79,6 +103,7 @@ export function parseOrderReceipt(value: unknown): OrderReceipt | null {
     discountVnd: value.discountVnd,
     totalVnd: value.totalVnd,
     paymentMethod: value.paymentMethod as OrderReceipt['paymentMethod'],
+    payment,
     paymentStatus: value.paymentStatus as OrderReceipt['paymentStatus'],
     status: value.status as OrderReceipt['status'],
     createdAt: value.createdAt,

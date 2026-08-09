@@ -1,6 +1,8 @@
 'use server';
 
 import { parseCreateOrderInput } from '@/lib/orders/input';
+import { getSepayConfig } from '@/lib/payments/sepay-config';
+import { createAdminSupabaseClient } from '@/lib/supabase/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 export type CreateOrderResult =
@@ -46,6 +48,22 @@ export async function createProductionOrder(input: unknown): Promise<CreateOrder
   });
   const receipt = receiptData?.[0]?.receipt_token;
   if (receiptError || !receipt) return { ok: false, error: 'ORDER_RECEIPT_FAILED' };
+
+  if (parsed.data.paymentMethod === 'sepay_qr') {
+    try {
+      const config = getSepayConfig();
+      const admin = createAdminSupabaseClient();
+      const { data: paymentData, error: paymentError } = await admin.rpc('create_sepay_payment', {
+        p_order_id: order.order_id,
+        p_receipt_token: receipt,
+        p_bank_code: config.bankCode,
+        p_account_number: config.accountNumber,
+      });
+      if (paymentError || !paymentData?.[0]) return { ok: false, error: 'PAYMENT_CREATION_FAILED' };
+    } catch {
+      return { ok: false, error: 'PAYMENT_CONFIGURATION_FAILED' };
+    }
+  }
 
   return {
     ok: true,

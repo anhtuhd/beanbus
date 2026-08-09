@@ -39,7 +39,8 @@
 - [x] Task 6 action contract: narrow payload validation and one-call pricing RPC.
 - [x] Task 6 UI wiring: production checkout, safe confirmation receipt, responsive demo E2E, and production provider gating.
 - [ ] Task 6 external verification: apply migrations and run pgTAP plus production pickup/delivery flows on Supabase.
-- [ ] Task 7: Integrate verified, idempotent Sepay payments.
+- [x] Task 7 implementation: service-only ledger, HMAC webhook, dedupe/audit, expiring VietQR, polling UI, and tests.
+- [ ] Task 7 external verification: run pgTAP and Sepay Test mode/Live transfer with owner credentials.
 - [ ] Task 8: Implement loyalty ledger and member account data.
 - [ ] Task 9: Add safe `/account/topup` and `/flash-sale` flows.
 - [ ] Checkpoint C: No trusted price/payment/points state comes from the browser.

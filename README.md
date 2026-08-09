@@ -15,7 +15,8 @@ Website thương hiệu và thương mại cho Beanbus Coffee Roaster, xây dự
 - [ ] Xác minh auth provider và RLS trên Supabase runtime có credential
 - [ ] Xác minh order migration/pgTAP trên Supabase runtime có credential
 - [ ] Payment/loyalty chạy hoàn toàn phía server
-- [ ] Sepay webhook production
+- [x] Sepay payment ledger, HMAC webhook và VietQR UI được feature-gate
+- [ ] Xác minh Sepay Test mode/production bằng credential của chủ dự án
 - [ ] Admin production, SEO, accessibility và release gate
 
 Theo dõi task chi tiết tại [`tasks/todo.md`](tasks/todo.md) và kiến trúc tại [`tasks/plan.md`](tasks/plan.md).
@@ -65,6 +66,22 @@ NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=false
 
 Credential của SMS provider và Google chỉ nhập trong Supabase Dashboard hoặc secret store của môi trường triển khai; không đưa chúng vào biến `NEXT_PUBLIC_*` hay commit vào repo.
 
+## Cấu hình Sepay
+
+Sepay tắt mặc định. Khi đã có tài khoản ngân hàng liên kết, điền các biến server trong secret store rồi mới bật cờ public:
+
+```dotenv
+NEXT_PUBLIC_ENABLE_SEPAY=true
+SEPAY_WEBHOOK_SECRET=
+SEPAY_BANK_CODE=
+SEPAY_BANK_ACCOUNT=
+SEPAY_ACCOUNT_NAME=
+```
+
+Trên Sepay Dashboard, tạo webhook `Money in` dạng JSON tới `<NEXT_PUBLIC_SITE_URL>/api/webhooks/sepay`, chọn `HMAC-SHA256`, và dùng cùng `SEPAY_WEBHOOK_SECRET`. Cấu hình payment-code prefix `BB` với suffix số để Sepay trích mã như `BB123`; không chọn chế độ không xác thực ở production. Contract HMAC và payload bám theo [tài liệu xác thực webhook](https://developer.sepay.vn/en/sepay-webhooks/xac-thuc) và [tài liệu tích hợp webhook](https://developer.sepay.vn/en/sepay-webhooks/tich-hop-webhook).
+
+`SUPABASE_SECRET_KEY` cũng bắt buộc khi bật Sepay để Route Handler gọi transaction đối soát service-only. `SEPAY_API_KEY` chưa bắt buộc; chỉ cần sau này khi bật reconciliation API.
+
 ## Quality gates
 
 ```bash
@@ -74,6 +91,7 @@ npm run lint
 npm run build
 npm run test:e2e
 npm run test:e2e:checkout-production
+npm run test:e2e:checkout-sepay
 ```
 
 Không commit `.env.local`, Supabase secret key, Sepay API key hoặc webhook secret.

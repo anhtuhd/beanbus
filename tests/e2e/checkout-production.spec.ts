@@ -5,7 +5,10 @@ test.skip(
   'Production checkout contract runs through the dedicated production script.'
 );
 
+const isSepayEnabled = process.env.NEXT_PUBLIC_ENABLE_SEPAY === 'true';
+
 test('production checkout exposes only configured payment methods', async ({ page }) => {
+  test.skip(isSepayEnabled, 'This case verifies the disabled-provider state.');
   await page.addInitScript(() => {
     localStorage.setItem('beanbus_cart', JSON.stringify([{
       cartItemId: 'cd-1-production-check',
@@ -32,4 +35,25 @@ test('production checkout exposes only configured payment methods', async ({ pag
   await expect(page.getByLabel(/Thanh toán khi nhận hàng/)).toBeChecked();
   await expect(page.getByLabel(/Thanh toán QR Code/)).toHaveCount(0);
   await expect(page.getByRole('button', { name: /Xác Nhận Đặt Hàng/ })).toBeVisible();
+});
+
+test('production checkout offers Sepay only after server configuration is enabled', async ({ page }) => {
+  test.skip(!isSepayEnabled, 'This case runs through the Sepay-enabled production script.');
+  await page.addInitScript(() => {
+    localStorage.setItem('beanbus_cart', JSON.stringify([{
+      cartItemId: 'cd-1-sepay-check',
+      product: {
+        id: 'cd-1', categoryId: 'colddrip', nameVi: 'Cold-drip Quế Hoa', nameEn: 'Osmanthus Cold-drip',
+        descriptionVi: '', descriptionEn: '', price: 35000,
+        image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=800&auto=format&fit=crop',
+        isAvailable: true,
+      },
+      quantity: 1, selectedOptions: [], unitPrice: 35000, itemTotal: 35000,
+    }]));
+  });
+
+  await page.goto('/order/checkout');
+  await expect(page.getByLabel(/Thanh toán QR Code/)).toBeChecked();
+  await expect(page.getByRole('button', { name: /Tiếp Tục Quét Mã QR/ })).toBeVisible();
+  await page.screenshot({ path: '/tmp/beanbus-checkout-sepay-production.png', fullPage: true });
 });
