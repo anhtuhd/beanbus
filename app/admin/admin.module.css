@@ -55,6 +55,25 @@
   gap: 8px;
 }
 
+.adminActions :global(.btn-dark) {
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.adminActions :global(.btn-dark:hover) {
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.dashboardNotice {
+  margin: -12px 0 0;
+  color: var(--orange);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .kpiGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

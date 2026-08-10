@@ -4,14 +4,7 @@ import { redirect } from 'next/navigation';
 import { normalizeVietnameseMobile, safeRedirectPath } from '@/lib/auth/input';
 import { resolveAuthOrigin } from '@/lib/auth/origin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-
-export type PhoneAuthState = {
-  status: 'idle' | 'code-sent' | 'error';
-  message?: string;
-  phone?: string;
-};
-
-export const initialPhoneAuthState: PhoneAuthState = { status: 'idle' };
+import type { PhoneAuthState } from './phone-state';
 
 function providerEnabled(name: 'PHONE' | 'GOOGLE'): boolean {
   return process.env[`NEXT_PUBLIC_ENABLE_${name}_AUTH`] === 'true';

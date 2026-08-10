@@ -5,11 +5,11 @@ import { useActionState } from 'react';
 import { Award, LogIn } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import {
-  initialPhoneAuthState,
   requestPhoneOtp,
   signInWithGoogle,
   verifyPhoneOtp,
 } from '@/app/auth/actions';
+import { initialPhoneAuthState } from '@/app/auth/phone-state';
 import styles from '@/app/account/account.module.css';
 
 type LoginFormProps = {

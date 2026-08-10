@@ -6,6 +6,7 @@ import { useOrders, type Order } from '@/context/OrderContext';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
 import type { UserProfile } from '@/lib/auth/types';
+import type { MemberAccountOrder, MemberVoucher } from '@/lib/account/queries';
 import {
   Award,
   ShoppingBag,
@@ -20,15 +21,23 @@ import styles from './account.module.css';
 export default function AccountClient({
   initialUser,
   production = false,
+  initialOrders,
+  availableVouchers,
+  accountError,
 }: {
   initialUser?: UserProfile;
   production?: boolean;
+  initialOrders?: MemberAccountOrder[];
+  availableVouchers?: MemberVoucher[];
+  accountError?: string;
 }) {
   const { user: contextUser, logout, redeemPoints } = useAuth();
   const user = initialUser ?? contextUser;
   const { orders } = useOrders();
   const { addToCart } = useCart();
   const { t, lang } = useLanguage();
+  const productionOrders = initialOrders ?? [];
+  const accountOrderCount = production ? productionOrders.length : orders.length;
 
   const [activeTab, setActiveTab] = useState<'membership' | 'orders' | 'vouchers' | 'rewards'>('membership');
   const [redeemSuccessMsg, setRedeemSuccessMsg] = useState<string | null>(null);
@@ -90,8 +99,10 @@ export default function AccountClient({
         </div>
       </div>
 
+      {accountError && <div className={styles.accountStatus} role="alert">{accountError}</div>}
+
       {/* NAVIGATION TABS */}
-      {!production && <div className={styles.navTabs}>
+      <div className={styles.navTabs}>
         <button
           className={`${styles.tabBtn} ${activeTab === 'membership' ? styles.activeTab : ''}`}
           onClick={() => setActiveTab('membership')}
@@ -103,15 +114,15 @@ export default function AccountClient({
           className={`${styles.tabBtn} ${activeTab === 'orders' ? styles.activeTab : ''}`}
           onClick={() => setActiveTab('orders')}
         >
-          <ShoppingBag size={16} /> <span>{t('Lịch Sử Đơn Hàng', 'Order History')} ({orders.length})</span>
+          <ShoppingBag size={16} /> <span>{t('Lịch Sử Đơn Hàng', 'Order History')} ({accountOrderCount})</span>
         </button>
 
-        <button
+        {!production && <button
           className={`${styles.tabBtn} ${activeTab === 'rewards' ? styles.activeTab : ''}`}
           onClick={() => setActiveTab('rewards')}
         >
           <Gift size={16} /> <span>{t('Đổi Quà Đổi Điểm', 'Redeem Store')}</span>
-        </button>
+        </button>}
 
         <button
           className={`${styles.tabBtn} ${activeTab === 'vouchers' ? styles.activeTab : ''}`}
@@ -119,7 +130,7 @@ export default function AccountClient({
         >
           <Ticket size={16} /> <span>{t('Kho Voucher', 'Vouchers')}</span>
         </button>
-      </div>}
+      </div>
 
       {/* TAB 1: MEMBERSHIP CARD & PROGRESS */}
       {activeTab === 'membership' && (
@@ -163,9 +174,39 @@ export default function AccountClient({
       )}
 
       {/* TAB 2: ORDER HISTORY */}
-      {!production && activeTab === 'orders' && (
+      {activeTab === 'orders' && (
         <div className={styles.tabContent}>
-          {orders.length === 0 ? (
+          {production ? (
+            productionOrders.length === 0 ? (
+              <p className={styles.emptyState}>{t('Bạn chưa có đơn hàng production nào.', 'No production orders yet.')}</p>
+            ) : (
+              <div className={styles.ordersList}>
+                {productionOrders.map((order) => (
+                  <div key={order.id} className={styles.orderCard}>
+                    <div className={styles.orderHead}>
+                      <div>
+                        <strong>Đơn #{order.number}</strong>
+                        <span className={styles.orderDate}>{new Date(order.createdAt).toLocaleDateString('vi-VN')}</span>
+                      </div>
+                      <span className={`${styles.statusBadge} ${styles[`status_${order.status}`]}`}>{order.status}</span>
+                    </div>
+                    <div className={styles.orderItems}>
+                      {order.items.map((item) => (
+                        <div key={item.id} className={styles.itemLine}>
+                          <span>{lang === 'en' ? item.nameEn : item.nameVi} x{item.quantity}</span>
+                          <span>{item.lineTotalVnd.toLocaleString('vi-VN')}đ</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className={styles.orderFoot}>
+                      <span>{order.fulfillment === 'pickup' ? t('Nhận tại quán', 'Pickup') : t('Giao hàng', 'Delivery')}</span>
+                      <strong>{order.totalVnd.toLocaleString('vi-VN')}đ</strong>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          ) : orders.length === 0 ? (
             <p>{t('Bạn chưa có đơn hàng nào.', 'No orders found.')}</p>
           ) : (
             <div className={styles.ordersList}>
@@ -231,9 +272,27 @@ export default function AccountClient({
       )}
 
       {/* TAB 4: VOUCHERS */}
-      {!production && activeTab === 'vouchers' && (
+      {activeTab === 'vouchers' && (
         <div className={styles.tabContent}>
-          <div className={styles.vouchersGrid}>
+          {production ? (
+            (availableVouchers ?? []).length === 0 ? (
+              <p className={styles.emptyState}>{t('Hiện chưa có voucher khả dụng.', 'No active vouchers available.')}</p>
+            ) : (
+              <div className={styles.vouchersGrid}>
+                {(availableVouchers ?? []).map((voucher) => (
+                  <div key={voucher.code} className={styles.vCard}>
+                    <div className={styles.vLeft}>{voucher.code}</div>
+                    <div className={styles.vRight}>
+                      <h4>{voucher.discount_type === 'percent' ? `Giảm ${voucher.discount_value}%` : `Giảm ${voucher.discount_value.toLocaleString('vi-VN')}đ`}</h4>
+                      <p>Đơn tối thiểu {voucher.minimum_subtotal_vnd.toLocaleString('vi-VN')}đ</p>
+                      {voucher.maximum_discount_vnd && <p>Tối đa {voucher.maximum_discount_vnd.toLocaleString('vi-VN')}đ</p>}
+                      {voucher.ends_at && <p>Hạn dùng: {new Date(voucher.ends_at).toLocaleDateString('vi-VN')}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          ) : <div className={styles.vouchersGrid}>
             <div className={styles.vCard}>
               <div className={styles.vLeft}>BEANBUS10</div>
               <div className={styles.vRight}>
@@ -249,7 +308,7 @@ export default function AccountClient({
                 <p>Dành riêng cho thành viên mới đăng ký tài khoản</p>
               </div>
             </div>
-          </div>
+          </div>}
         </div>
       )}
     </div>

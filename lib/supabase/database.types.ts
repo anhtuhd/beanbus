@@ -291,6 +291,40 @@ export type Database = {
         Update: Partial<Database['public']['Tables']['blog_posts']['Insert']>;
         Relationships: [];
       };
+      order_items: {
+        Row: {
+          base_price_vnd: number;
+          created_at: string;
+          id: string;
+          image_url: string;
+          line_total_vnd: number;
+          options_price_vnd: number;
+          order_id: string;
+          product_id: string;
+          product_name_en: string;
+          product_name_vi: string;
+          quantity: number;
+          special_note: string | null;
+          unit_price_vnd: number;
+        };
+        Insert: {
+          base_price_vnd: number;
+          created_at?: string;
+          id?: string;
+          image_url: string;
+          line_total_vnd: number;
+          options_price_vnd?: number;
+          order_id: string;
+          product_id: string;
+          product_name_en: string;
+          product_name_vi: string;
+          quantity: number;
+          special_note?: string | null;
+          unit_price_vnd: number;
+        };
+        Update: Partial<Database['public']['Tables']['order_items']['Insert']>;
+        Relationships: [];
+      };
       orders: {
         Row: {
           created_at: string;
@@ -474,6 +508,38 @@ export type Database = {
           role?: Database['public']['Enums']['app_role'];
           updated_at?: string;
         };
+        Relationships: [];
+      };
+      vouchers: {
+        Row: {
+          code: string;
+          created_at: string;
+          discount_type: Database['public']['Enums']['discount_type'];
+          discount_value: number;
+          ends_at: string | null;
+          is_active: boolean;
+          maximum_discount_vnd: number | null;
+          minimum_subtotal_vnd: number;
+          starts_at: string | null;
+          updated_at: string;
+          usage_count: number;
+          usage_limit: number | null;
+        };
+        Insert: {
+          code: string;
+          created_at?: string;
+          discount_type: Database['public']['Enums']['discount_type'];
+          discount_value: number;
+          ends_at?: string | null;
+          is_active?: boolean;
+          maximum_discount_vnd?: number | null;
+          minimum_subtotal_vnd?: number;
+          starts_at?: string | null;
+          updated_at?: string;
+          usage_count?: number;
+          usage_limit?: number | null;
+        };
+        Update: Partial<Database['public']['Tables']['vouchers']['Insert']>;
         Relationships: [];
       };
     };
