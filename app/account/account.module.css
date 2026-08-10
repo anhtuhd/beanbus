@@ -407,6 +407,56 @@
   padding: 24px;
 }
 
+.profileForm {
+  max-width: 680px;
+  padding: 24px;
+  background: var(--cream-light);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profileForm h3 {
+  color: var(--brown-dark);
+  font-size: 18px;
+}
+
+.profileFields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.profileFields label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--brown-dark);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.profileFields input {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  background: var(--white);
+  font: inherit;
+  font-weight: 400;
+}
+
+.formError,
+.formSuccess {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.formError { color: #b91c1c; }
+.formSuccess { color: #047857; }
+
 .statusBadge {
   font-size: 11px;
   font-weight: 800;
@@ -512,6 +562,9 @@
     gap: 20px;
   }
   .rewardsGrid {
+    grid-template-columns: 1fr;
+  }
+  .profileFields {
     grid-template-columns: 1fr;
   }
 }

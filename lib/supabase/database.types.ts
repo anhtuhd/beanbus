@@ -389,6 +389,19 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      member_role_history: {
+        Row: {
+          actor_user_id: string;
+          created_at: string;
+          from_role: Database['public']['Enums']['app_role'];
+          id: number;
+          to_role: Database['public']['Enums']['app_role'];
+          user_id: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       product_status_history: {
         Row: {
           actor_user_id: string;
@@ -647,6 +660,16 @@ export type Database = {
         Returns: {
           updated_order_id: string;
           updated_order_status: Database['public']['Enums']['order_status'];
+        }[];
+      };
+      update_member_role: {
+        Args: {
+          p_role: Database['public']['Enums']['app_role'];
+          p_user_id: string;
+        };
+        Returns: {
+          updated_role: Database['public']['Enums']['app_role'];
+          updated_user_id: string;
         }[];
       };
       update_product_status: {

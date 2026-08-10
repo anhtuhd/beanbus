@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useActionState } from 'react';
+import { updateMemberProfile } from './actions';
+import { initialProfileUpdateState } from './profile-state';
 import { useAuth } from '@/context/AuthContext';
 import { useOrders, type Order } from '@/context/OrderContext';
 import { useCart } from '@/context/CartContext';
@@ -41,6 +44,7 @@ export default function AccountClient({
 
   const [activeTab, setActiveTab] = useState<'membership' | 'orders' | 'vouchers' | 'rewards'>('membership');
   const [redeemSuccessMsg, setRedeemSuccessMsg] = useState<string | null>(null);
+  const [profileState, profileAction, profilePending] = useActionState(updateMemberProfile, initialProfileUpdateState);
 
   // Rewards catalog — points now equal VND (1 pt = 1 VND)
   const rewardCatalog = [
@@ -170,6 +174,30 @@ export default function AccountClient({
               <span>{t('Hạng tiếp theo: Platinum (5.000.000đ)', 'Next tier: Platinum')}</span>
             </div>
           </div>}
+
+          <form action={profileAction} className={styles.profileForm}>
+            <h3>{t('Thông tin cá nhân', 'Personal details')}</h3>
+            <div className={styles.profileFields}>
+              <label>
+                {t('Họ và tên', 'Full name')}
+                <input name="fullName" defaultValue={user.name} maxLength={100} required disabled={profilePending} />
+              </label>
+              <label>
+                {t('Số điện thoại', 'Phone number')}
+                <input name="phone" type="tel" inputMode="tel" defaultValue={user.phone} placeholder="0987 654 321" disabled={profilePending} />
+              </label>
+              <label>
+                {t('Ngày sinh', 'Birthday')}
+                <input name="birthday" type="date" defaultValue={user.birthday || undefined} disabled={profilePending} />
+              </label>
+            </div>
+            <button type="submit" className="btn btn-primary btn-sm" disabled={profilePending}>
+              {profilePending ? t('Đang lưu...', 'Saving...') : t('Lưu hồ sơ', 'Save profile')}
+            </button>
+            {profileState.status !== 'idle' && (
+              <p className={profileState.status === 'error' ? styles.formError : styles.formSuccess} role="status">{profileState.message}</p>
+            )}
+          </form>
         </div>
       )}
 

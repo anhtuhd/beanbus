@@ -5,10 +5,11 @@ import { normalizeVietnameseMobile } from '@/lib/auth/input';
 import { requireAdmin } from '@/lib/auth/session';
 import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import MemberRoleForm from './MemberRoleForm';
 
 type MemberRow = Pick<
   Database['public']['Tables']['profiles']['Row'],
-  'member_number' | 'full_name' | 'phone' | 'email' | 'birthday' | 'role' | 'created_at'
+  'id' | 'member_number' | 'full_name' | 'phone' | 'email' | 'birthday' | 'role' | 'created_at'
 >;
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 const PAGE_SIZE = 20;
@@ -43,7 +44,7 @@ export default async function AdminMembersPage({ searchParams }: Props) {
   const from = (page - 1) * PAGE_SIZE;
   const supabase = await createServerSupabaseClient();
   let query = supabase.from('profiles')
-    .select('member_number, full_name, phone, email, birthday, role, created_at', { count: 'exact' })
+    .select('id, member_number, full_name, phone, email, birthday, role, created_at', { count: 'exact' })
     .order('created_at', { ascending: false });
   if (role !== 'all') query = query.eq('role', role as MemberRow['role']);
   if (search) {
@@ -93,7 +94,7 @@ export default async function AdminMembersPage({ searchParams }: Props) {
               <div><span className={styles.label}>Hội viên</span><strong>BB-{String(member.member_number).padStart(8, '0')}</strong><small>{member.full_name || 'Chưa cập nhật tên'}</small></div>
               <div><span className={styles.label}>Liên hệ</span><strong>{member.phone ?? 'Chưa có số điện thoại'}</strong><small>{member.email ?? 'Chưa có email'}</small></div>
               <div><span className={styles.label}>Ngày sinh</span><strong>{member.birthday ? formatDate(member.birthday) : 'Chưa cập nhật'}</strong></div>
-              <div><span className={styles.label}>Quyền / Ngày tham gia</span><strong className={`${styles.statusBadge} ${styles[`role_${member.role}`]}`}>{member.role}</strong><small>{formatDate(member.created_at)}</small></div>
+              <div><span className={styles.label}>Quyền / Ngày tham gia</span><MemberRoleForm userId={member.id} role={member.role} /><small>{formatDate(member.created_at)}</small></div>
             </article>
           ))}
         </div>
