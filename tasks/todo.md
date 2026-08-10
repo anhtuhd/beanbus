@@ -14,6 +14,8 @@
 - [x] Application unit tests exist and pass.
 - [x] Critical browser E2E smoke test exists and passes in Chromium.
 - [x] Production backend/auth/payment implementation exists behind environment/provider gates.
+- [x] Zalo OTP implementation exists behind a disabled feature flag, including hook signature validation, Vault token rotation, phone-change verification, resend UI, and rollback runbook.
+- [ ] Zalo OTP external verification: apply migration `20260810120000`, configure OA/ZBS/template/Vault/Turnstile/Auth Hook, run pgTAP, and pass two-number staging checks before enabling the flag.
 - [ ] Production backend/auth/payment has been exercised against hosted Supabase and real providers.
 - [x] Reconcile and apply the current local migration set to hosted Supabase; remote now matches local through `20260810073000` (14 migrations applied, including member booking and customer-request cancellation).
 
@@ -109,14 +111,14 @@
 - [x] Task 13 action feedback slice: member/admin form errors use alert semantics and successful actions use polite status announcements.
 - [ ] Task 13 external audit: screen reader/WCAG scan, Core Web Vitals, and authenticated account/admin keyboard workflows.
 - [x] Task 14 local implementation: bounded correlation logging, support references, health endpoint, security headers, CI quality/E2E/database jobs, and release runbook.
-- [x] Task 14 local verification: 193 unit/contract tests, production build, lint, type check, 30/36 full demo E2E tests, 6/6 focused member/admin demo E2E tests, and 2/4 order/checkout E2E tests pass locally; protected admin-route redirects, bounded member/admin pagination, account deep-link, public no-JavaScript navigation, and dynamic external-image strategy checks pass; 6 provider-gated E2E tests remain skipped without hosted credentials.
+- [x] Task 14 local verification: 205 unit/contract tests, production build, lint, type check, 30/36 full demo E2E tests, 6/6 focused member/admin demo E2E tests, and 2/4 order/checkout E2E tests pass locally; protected admin-route redirects, bounded member/admin pagination, account deep-link, public no-JavaScript navigation, and dynamic external-image strategy checks pass; provider-gated Zalo/Sepay E2E remains blocked without hosted credentials.
 - [ ] Task 14 hosted verification: run CI database job/pgTAP, provider callbacks, and staging smoke test with owner credentials; hosted migrations are applied through `20260810073000`.
 - [ ] Final checkpoint: Staging sign-off with no open P0/P1 findings.
 
 ## Owner Decisions
 
 - [x] Approve Supabase architecture and access method; hosted credentials pending.
-- [ ] Confirm phone OTP, Google login, or both.
+- [x] Confirm Zalo-delivered phone OTP with Google login as fallback.
 - [ ] Provide/approve Sepay production contract and credentials.
 - [ ] Approve loyalty, COD, refund, and stored-value rules.
 - [ ] Confirm booking capacity and lead notification owners.

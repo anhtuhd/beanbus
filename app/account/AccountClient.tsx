@@ -10,6 +10,7 @@ import { initialProfileUpdateState } from './profile-state';
 import { loadReorderItems } from './reorder-actions';
 import { initialReorderState } from './reorder-state';
 import RewardRedeemForm from './RewardRedeemForm';
+import PhoneVerificationPanel from './PhoneVerificationPanel';
 import CancelBookingForm from './requests/CancelBookingForm';
 import { useAuth } from '@/context/AuthContext';
 import { useOrders, type Order } from '@/context/OrderContext';
@@ -70,6 +71,7 @@ function loyaltySourceLabel(sourceType: MemberLoyaltyEntry['source_type'], t: (v
 export default function AccountClient({
   initialUser,
   production = false,
+  phoneAuthEnabled = false,
   initialTab = 'membership',
   storedValueConfigured = false,
   initialOrders,
@@ -92,6 +94,7 @@ export default function AccountClient({
 }: {
   initialUser?: UserProfile;
   production?: boolean;
+  phoneAuthEnabled?: boolean;
   initialTab?: AccountTab;
   storedValueConfigured?: boolean;
   initialOrders?: MemberAccountOrder[];
@@ -417,10 +420,10 @@ export default function AccountClient({
                 {t('Họ và tên', 'Full name')}
                 <input name="fullName" defaultValue={user.name} maxLength={100} required disabled={profilePending} />
               </label>
-              <label>
+              {!production && <label>
                 {t('Số điện thoại', 'Phone number')}
                 <input name="phone" type="tel" inputMode="tel" defaultValue={user.phone} placeholder="0987 654 321" disabled={profilePending} />
-              </label>
+              </label>}
               <label>
                 {t('Ngày sinh', 'Birthday')}
                 <input name="birthday" type="date" defaultValue={user.birthday || undefined} disabled={profilePending} />
@@ -434,6 +437,10 @@ export default function AccountClient({
               <p className={profileState.status === 'error' ? styles.formError : styles.formSuccess} role={profileState.status === 'error' ? 'alert' : 'status'} aria-live={profileState.status === 'error' ? 'assertive' : 'polite'}>{profileState.message}</p>
             )}
           </form>
+
+          {production && (
+            <PhoneVerificationPanel currentPhone={user.phone} enabled={phoneAuthEnabled} />
+          )}
 
           {canUseStoredValue && (
             <div className={styles.featureLinks} aria-label={t('Chương trình thanh toán điểm', 'Stored-value programs')}>

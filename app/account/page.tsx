@@ -32,6 +32,10 @@ export default async function AccountPage({
     <AccountClient
       initialUser={toUserProfile(profile)}
       production
+      phoneAuthEnabled={
+        process.env.NEXT_PUBLIC_ENABLE_PHONE_AUTH === 'true'
+        && Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY)
+      }
       initialTab={initialTab}
       storedValueConfigured={isStoredValueConfigured()}
       initialOrders={accountData.orders}

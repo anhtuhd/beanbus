@@ -19,20 +19,33 @@ export async function requestPhoneOtp(
   formData: FormData
 ): Promise<PhoneAuthState> {
   if (!providerEnabled('PHONE')) {
-    return { status: 'error', message: 'Đăng nhập SMS chưa được cấu hình.' };
+    return { status: 'error', message: 'Đăng nhập bằng Zalo chưa được cấu hình.' };
+  }
+  if (!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) {
+    return { status: 'error', message: 'Xác minh bảo mật cho đăng nhập Zalo chưa được cấu hình.' };
   }
 
   const phone = normalizeVietnameseMobile(String(formData.get('phone') ?? ''));
+  const captchaToken = String(formData.get('cf-turnstile-response') ?? '').trim();
   if (!phone) {
     return { status: 'error', message: 'Số điện thoại Việt Nam không hợp lệ.' };
   }
+  if (!captchaToken) {
+    return { status: 'error', message: 'Vui lòng hoàn tất bước xác minh bảo mật.', phone };
+  }
 
   const supabase = await createServerSupabaseClient();
-  const { error } = await supabase.auth.signInWithOtp({ phone });
+  const { error } = await supabase.auth.signInWithOtp({
+    phone,
+    options: {
+      shouldCreateUser: true,
+      captchaToken: captchaToken || undefined,
+    },
+  });
 
   if (error) return { status: 'error', message: authFailureMessage(), phone };
 
-  return { status: 'code-sent', phone };
+  return { status: 'code-sent', phone, requestId: crypto.randomUUID() };
 }
 
 export async function verifyPhoneOtp(
@@ -40,7 +53,7 @@ export async function verifyPhoneOtp(
   formData: FormData
 ): Promise<PhoneAuthState> {
   if (!providerEnabled('PHONE')) {
-    return { status: 'error', message: 'Đăng nhập SMS chưa được cấu hình.' };
+    return { status: 'error', message: 'Đăng nhập bằng Zalo chưa được cấu hình.' };
   }
 
   const phone = normalizeVietnameseMobile(String(formData.get('phone') ?? ''));

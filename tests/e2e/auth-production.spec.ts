@@ -14,7 +14,7 @@ test('protected routes redirect to a provider-gated login screen', async ({ page
   await page.goto('/account');
   await expect(page).toHaveURL(/\/login\?next=%2Faccount$/);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Hội Viên Beanbus Coffee');
-  await expect(page.getByRole('button', { name: 'Gửi mã OTP' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Nhận mã qua Zalo' })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Tiếp tục với Google' })).toBeDisabled();
 
   await page.goto('/admin');

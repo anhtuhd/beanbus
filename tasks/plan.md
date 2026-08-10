@@ -152,7 +152,7 @@ Supabase SSR intentionally keeps auth cookies readable by its browser client so 
 
 **Description:** Replace demo OTP/Google login with Supabase Auth, add profiles and roles, protect account ownership, and protect admin routes on the server.
 
-**Implementation status:** Auth actions, OAuth callback, cookie-backed profile lookup, role guards, provider feature flags, profile migration, and deny-by-default profile RLS are implemented. Hosted provider login and pgTAP execution remain blocked on owner credentials and a Docker-compatible local runtime.
+**Implementation status:** Auth actions, OAuth callback, cookie-backed profile lookup, role guards, provider feature flags, profile migration, and deny-by-default profile RLS are implemented. Zalo OTP delivery, Standard Webhooks verification, Vault-backed rotating OA tokens, refresh lease/cron, Turnstile-ready login, 60-second resend, and verified Google-member phone changes are implemented behind `NEXT_PUBLIC_ENABLE_PHONE_AUTH=false`. Hosted hook/token/CAPTCHA setup, pgTAP, and real-number staging verification remain external.
 
 **Acceptance criteria:**
 - [ ] Phone OTP and/or Google login uses the approved provider and persists no auth token in `localStorage`.

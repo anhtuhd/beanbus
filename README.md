@@ -10,6 +10,7 @@ Website thương hiệu và thương mại cho Beanbus Coffee Roaster, xây dự
 - [x] Playwright E2E smoke cho menu → cart → checkout
 - [x] Supabase SSR clients, session Proxy và local migration workflow
 - [x] Supabase profile schema, authentication shell và role-based RLS
+- [x] Zalo OTP hook, rotating OA token Vault/cron, CAPTCHA-ready login và verified-phone profile flow được feature-gate
 - [x] Catalog schema, production read model và route chi tiết sản phẩm
 - [x] Order schema, server-priced transaction, production checkout và receipt xác nhận có capability token
 - [ ] Xác minh auth provider và RLS trên Supabase runtime có credential
@@ -62,9 +63,11 @@ NEXT_PUBLIC_ENABLE_PHONE_AUTH=false
 NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=false
 ```
 
-Để bật SMS OTP, cấu hình một SMS provider trong Supabase Auth rồi đổi `NEXT_PUBLIC_ENABLE_PHONE_AUTH=true`. Để bật Google, cấu hình Google Client ID/Secret trong Supabase Auth, thêm `<NEXT_PUBLIC_SITE_URL>/auth/callback` vào danh sách redirect URL cho phép, rồi đổi `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=true`.
+Phone OTP của Beanbus được gửi bằng ZBS Template Message trong ứng dụng Zalo, không phải SMS nhà mạng. Giữ cờ `false` trong lúc deploy migration, Edge Function, Vault, Auth Hook và Turnstile; chỉ bật sau khi staging vượt qua smoke test. Xem checklist và runbook tại [`docs/zalo-otp-runbook.md`](docs/zalo-otp-runbook.md).
 
-Credential của SMS provider và Google chỉ nhập trong Supabase Dashboard hoặc secret store của môi trường triển khai; không đưa chúng vào biến `NEXT_PUBLIC_*` hay commit vào repo.
+Để bật Google, cấu hình Google Client ID/Secret trong Supabase Auth, thêm `<NEXT_PUBLIC_SITE_URL>/auth/callback` vào danh sách redirect URL cho phép, rồi đổi `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=true`.
+
+Credential Zalo, Turnstile secret và Google chỉ nhập trong Supabase Dashboard hoặc secret store của môi trường triển khai; không đưa chúng vào `.env.local`, biến `NEXT_PUBLIC_*`, chat hay commit. `NEXT_PUBLIC_TURNSTILE_SITE_KEY` là ngoại lệ vì site key được thiết kế để công khai.
 
 ## Cấu hình Sepay
 

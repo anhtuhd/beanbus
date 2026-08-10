@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { Award, LogIn } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import {
@@ -10,6 +10,8 @@ import {
   verifyPhoneOtp,
 } from '@/app/auth/actions';
 import { initialPhoneAuthState } from '@/app/auth/phone-state';
+import OtpResendButton from '@/app/auth/OtpResendButton';
+import TurnstileWidget from './TurnstileWidget';
 import styles from '@/app/account/account.module.css';
 
 type LoginFormProps = {
@@ -17,6 +19,7 @@ type LoginFormProps = {
   googleEnabled: boolean;
   next: string;
   phoneEnabled: boolean;
+  turnstileSiteKey?: string;
 };
 
 export default function LoginForm({
@@ -24,6 +27,7 @@ export default function LoginForm({
   googleEnabled,
   next,
   phoneEnabled,
+  turnstileSiteKey,
 }: LoginFormProps) {
   const { t } = useLanguage();
   const [requestState, requestAction, requestPending] = useActionState(
@@ -34,8 +38,9 @@ export default function LoginForm({
     verifyPhoneOtp,
     initialPhoneAuthState
   );
+  const [activeAction, setActiveAction] = useState<'request' | 'verify'>('request');
   const codeSent = requestState.status === 'code-sent' && requestState.phone;
-  const currentError = verifyState.message ?? requestState.message ?? errorMessage;
+  const currentError = (activeAction === 'verify' ? verifyState.message : requestState.message) ?? errorMessage;
 
   return (
     <div className={`wrap ${styles.loginPage}`}>
@@ -71,15 +76,16 @@ export default function LoginForm({
                 placeholder="0987 654 321"
               />
             </div>
+            {phoneEnabled && turnstileSiteKey && <TurnstileWidget siteKey={turnstileSiteKey} />}
             <button
               type="submit"
               className={`btn btn-primary btn-lg ${styles.fullButton}`}
               disabled={!phoneEnabled || requestPending}
             >
-              {requestPending ? t('Đang gửi...', 'Sending...') : t('Gửi mã OTP', 'Send OTP')}
+              {requestPending ? t('Đang gửi...', 'Sending...') : t('Nhận mã qua Zalo', 'Get code via Zalo')}
             </button>
             {!phoneEnabled && (
-              <p className={styles.authHint}>{t('Đăng nhập SMS chưa khả dụng.', 'SMS sign-in is unavailable.')}</p>
+              <p className={styles.authHint}>{t('Đăng nhập qua Zalo chưa khả dụng.', 'Zalo sign-in is unavailable.')}</p>
             )}
           </form>
         ) : (
@@ -104,9 +110,19 @@ export default function LoginForm({
               type="submit"
               className={`btn btn-primary btn-lg ${styles.fullButton}`}
               disabled={verifyPending}
+              onClick={() => setActiveAction('verify')}
             >
               {verifyPending ? t('Đang xác thực...', 'Verifying...') : t('Xác nhận OTP', 'Verify OTP')}
             </button>
+            {turnstileSiteKey && (
+              <TurnstileWidget key={requestState.requestId} siteKey={turnstileSiteKey} />
+            )}
+            <OtpResendButton
+              key={requestState.requestId}
+              action={requestAction}
+              onResend={() => setActiveAction('request')}
+              pending={requestPending}
+            />
             <Link href={`/login?next=${encodeURIComponent(next)}`} className={styles.authReset}>
               {t('Dùng số điện thoại khác', 'Use another phone number')}
             </Link>

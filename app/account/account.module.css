@@ -344,6 +344,24 @@
   text-decoration: underline;
 }
 
+.resendButton {
+  align-self: center;
+  padding: 6px 8px;
+  border: 0;
+  background: transparent;
+  color: var(--brown);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.resendButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 /* LOGGED IN USER BANNER */
 .userBanner {
   background: var(--brown-dark);
@@ -618,6 +636,76 @@
   font-size: 18px;
 }
 
+.phoneVerification {
+  width: 100%;
+  max-width: 680px;
+  padding: 20px 0;
+  border-top: 1px solid var(--gray-300);
+  border-bottom: 1px solid var(--gray-300);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.phoneVerificationHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.phoneVerificationHeader h3 {
+  color: var(--brown-dark);
+  font-size: 18px;
+}
+
+.phoneVerificationHeader p {
+  margin-top: 4px;
+  color: var(--brown);
+  font-size: 13px;
+}
+
+.verifiedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  color: #166534;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.phoneVerificationForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.phoneVerificationForm label {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--brown-dark);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.phoneVerificationForm input {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  background: var(--white);
+  font: inherit;
+  font-weight: 400;
+}
+
+.phoneVerificationForm .resendButton {
+  grid-column: 1 / -1;
+}
+
 .profileFields {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -828,6 +916,13 @@
   }
   .profileFields {
     grid-template-columns: 1fr;
+  }
+  .phoneVerificationHeader {
+    flex-direction: column;
+  }
+  .phoneVerificationForm {
+    grid-template-columns: 1fr;
+    align-items: stretch;
   }
   .loyaltyEntry {
     grid-template-columns: minmax(0, 1fr) auto;

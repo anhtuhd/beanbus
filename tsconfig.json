@@ -40,6 +40,8 @@
     ".next-e2e/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "supabase/functions/send-zalo-otp/index.ts",
+    "supabase/functions/refresh-zalo-token/index.ts"
   ]
 }

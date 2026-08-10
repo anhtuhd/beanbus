@@ -11,6 +11,7 @@ Set these values in the deployment platform. Never commit them to the repository
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_SECRET_KEY` for server-only admin operations and webhooks
 - `NEXT_PUBLIC_ENABLE_PHONE_AUTH` and `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH`
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` when Zalo phone auth is enabled; the Turnstile secret stays in Supabase Auth
 - `NEXT_PUBLIC_ENABLE_SEPAY`, `SEPAY_WEBHOOK_SECRET`, `SEPAY_BANK_CODE`, `SEPAY_BANK_ACCOUNT`, and `SEPAY_ACCOUNT_NAME` when Sepay is enabled
 - `NEXT_PUBLIC_ENABLE_STORED_VALUE=false` by default; set it to `true` only after the stored-value migration, policy approval, package/campaign review, and Sepay verification
 - Approved provider, notification, logo, image, privacy, terms, booking-capacity, loyalty, COD, refund, and stored-value settings
@@ -44,6 +45,7 @@ The database checks require Docker and the Supabase CLI. Hosted database verific
 4. Deploy the application with the production environment variables above.
 5. Verify `GET /api/health` returns `200` with `{"status":"ok"}` and a usable `x-request-id`.
 6. Configure the Sepay webhook URL and secret only after the deployed endpoint is reachable over HTTPS.
+7. Complete the feature-gated Zalo rollout in [`zalo-otp-runbook.md`](zalo-otp-runbook.md); never enable phone auth before its hook, Vault rotation, CAPTCHA, and two-number staging checks pass.
 
 `/api/health` validates application configuration. It is not a substitute for a database readiness probe or provider transaction test.
 
@@ -51,6 +53,7 @@ The database checks require Docker and the Supabase CLI. Hosted database verific
 
 - Public home, menu, product detail, events, blog, booking, contact, and B2B quote pages render with canonical metadata.
 - A member can sign in and only access their own account and order history.
+- Zalo OTP signup/sign-in and Google-member phone verification work without exposing duplicate-account details; Google remains available when Zalo delivery fails.
 - COD checkout creates a server-priced order and shows a support reference on failure.
 - Sepay checkout accepts one valid signed callback, rejects invalid signatures, and remains idempotent on replay.
 - Stored-value remains disabled until both the deployment flag and admin policy are enabled; after approval, verify one top-up and one flash-sale payment, including duplicate callback, expiry, sold-out, and amount-mismatch cases.

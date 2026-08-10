@@ -25,12 +25,14 @@ export default async function LoginPage({
   if (profile) redirect(next);
 
   const errorCode = typeof query.error === 'string' ? query.error : '';
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
   return (
     <LoginForm
       next={next}
-      phoneEnabled={process.env.NEXT_PUBLIC_ENABLE_PHONE_AUTH === 'true'}
+      phoneEnabled={process.env.NEXT_PUBLIC_ENABLE_PHONE_AUTH === 'true' && Boolean(turnstileSiteKey)}
       googleEnabled={process.env.NEXT_PUBLIC_ENABLE_GOOGLE_AUTH === 'true'}
+      turnstileSiteKey={turnstileSiteKey}
       errorMessage={AUTH_ERRORS[errorCode]}
     />
   );

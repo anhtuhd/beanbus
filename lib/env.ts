@@ -14,6 +14,8 @@ const SEPAY_KEYS = [
   'SEPAY_ACCOUNT_NAME',
 ] as const;
 
+const PHONE_AUTH_KEYS = ['NEXT_PUBLIC_TURNSTILE_SITE_KEY'] as const;
+
 export type AppMode = 'demo' | 'production';
 
 export function getAppMode(env: Environment = process.env): AppMode {
@@ -30,9 +32,11 @@ export function getSiteUrl(env: Environment = process.env): string {
 export function assertProductionEnv(env: Environment = process.env): void {
   if (getAppMode(env) !== 'production') return;
 
-  const requiredKeys = env.NEXT_PUBLIC_ENABLE_SEPAY === 'true'
-    ? [...CORE_PRODUCTION_KEYS, ...SEPAY_KEYS]
-    : CORE_PRODUCTION_KEYS;
+  const requiredKeys = [
+    ...CORE_PRODUCTION_KEYS,
+    ...(env.NEXT_PUBLIC_ENABLE_SEPAY === 'true' ? SEPAY_KEYS : []),
+    ...(env.NEXT_PUBLIC_ENABLE_PHONE_AUTH === 'true' ? PHONE_AUTH_KEYS : []),
+  ];
   const missing = requiredKeys.filter((key) => !env[key]?.trim());
 
   if (missing.length > 0) {
