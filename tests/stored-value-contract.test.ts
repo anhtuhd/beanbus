@@ -1,0 +1,80 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import test from 'node:test';
+import { isStoredValueConfigured } from '../lib/stored-value/config.ts';
+import { parseStoredValueIntentInput } from '../lib/stored-value/input.ts';
+
+const migration = readFileSync('supabase/migrations/20260810060000_stored_value.sql', 'utf8');
+const databaseTest = readFileSync('supabase/tests/database/stored_value.test.sql', 'utf8');
+const action = readFileSync('app/account/stored-value-actions.ts', 'utf8');
+const client = readFileSync('app/account/StoredValueClient.tsx', 'utf8');
+const webhook = readFileSync('app/api/webhooks/sepay/route.ts', 'utf8');
+const adminPage = readFileSync('app/admin/stored-value/page.tsx', 'utf8');
+const adminActions = readFileSync('app/admin/stored-value/actions.ts', 'utf8');
+const accountClient = readFileSync('app/account/AccountClient.tsx', 'utf8');
+
+test('stored value is fail-closed behind production, Sepay, and explicit feature gates', () => {
+  assert.equal(isStoredValueConfigured({ NEXT_PUBLIC_APP_MODE: 'demo', NEXT_PUBLIC_ENABLE_SEPAY: 'true', NEXT_PUBLIC_ENABLE_STORED_VALUE: 'true' }), false);
+  assert.equal(isStoredValueConfigured({ NEXT_PUBLIC_APP_MODE: 'production', NEXT_PUBLIC_ENABLE_SEPAY: 'false', NEXT_PUBLIC_ENABLE_STORED_VALUE: 'true' }), false);
+  assert.equal(isStoredValueConfigured({ NEXT_PUBLIC_APP_MODE: 'production', NEXT_PUBLIC_ENABLE_SEPAY: 'true', NEXT_PUBLIC_ENABLE_STORED_VALUE: 'false' }), false);
+  assert.equal(isStoredValueConfigured({ NEXT_PUBLIC_APP_MODE: 'production', NEXT_PUBLIC_ENABLE_SEPAY: 'true', NEXT_PUBLIC_ENABLE_STORED_VALUE: 'true' }), true);
+});
+
+test('stored value intent input accepts only UUID identifiers and idempotency keys', () => {
+  const valid = parseStoredValueIntentInput({
+    itemId: '00000000-0000-4000-8000-000000000101',
+    idempotencyKey: '00000000-0000-4000-8000-000000000201',
+  });
+  assert.equal(valid.ok, true);
+  assert.equal(parseStoredValueIntentInput({ itemId: 'package', idempotencyKey: 'key' }).ok, false);
+  assert.equal(parseStoredValueIntentInput(null).ok, false);
+});
+
+test('stored value migration isolates payments, locks quota, and credits only from verified webhooks', () => {
+  assert.match(migration, /create table public\.stored_value_payments/i);
+  assert.match(migration, /check \(\(topup_id is not null\) <> \(flash_sale_purchase_id is not null\)\)/i);
+  assert.match(migration, /alter table public\.loyalty_ledger add constraint[\s\S]*topup_credited[\s\S]*flash_sale_credited/i);
+  assert.match(migration, /select \* into v_campaign[\s\S]*for update/i);
+  assert.match(migration, /v_campaign\.quota_reserved \+ v_campaign\.quota_sold >= v_campaign\.quota_total/i);
+  assert.match(migration, /wallet_topups[\s\S]*set status = 'expired'[\s\S]*expires_at <= now\(\)/i);
+  assert.match(migration, /stored_value_payments where topup_id = v_topup\.id/i);
+  assert.match(migration, /create function public\.process_stored_value_webhook/i);
+  assert.match(migration, /insert into public\.loyalty_ledger[\s\S]*topup_credited/i);
+  assert.match(migration, /insert into public\.loyalty_ledger[\s\S]*flash_sale_credited/i);
+  assert.match(migration, /on conflict \(source_key\) do nothing/i);
+});
+
+test('stored value has a database replay, quota, and authorization test plan', () => {
+  assert.match(databaseTest, /select plan\(35\)/);
+  assert.match(databaseTest, /TOPUP_DISABLED/);
+  assert.match(databaseTest, /stored-value payment creation retry is idempotent/);
+  assert.match(databaseTest, /duplicate top-up webhook does not duplicate points/);
+  assert.match(databaseTest, /paid flash-sale consumes one sold quota/);
+  assert.match(databaseTest, /FLASH_SALE_USER_LIMIT/);
+  assert.match(databaseTest, /has_table_privilege\('authenticated', 'public\.wallet_topups', 'SELECT'\)/);
+});
+
+test('server action owns payment configuration and client has no payment-success mutation', () => {
+  assert.match(action, /createAdminSupabaseClient/);
+  assert.match(action, /create_stored_value_payment/);
+  assert.match(action, /buildSepayQrUrl/);
+  assert.match(client, /getStoredValuePaymentStatus/);
+  assert.doesNotMatch(client, /updateOrderStatus/);
+  assert.doesNotMatch(client, /addPoints/);
+  assert.match(webhook, /process_stored_value_webhook/);
+  assert.match(webhook, /\^B\[TF\]\[0-9\]\+\$/i);
+});
+
+test('admin stored-value controls are guarded and audited through RPC boundaries', () => {
+  assert.match(adminPage, /requireAdmin/);
+  assert.match(adminPage, /get_admin_stored_value_catalog/);
+  assert.match(adminPage, /StoredValuePolicyForm/);
+  assert.match(adminPage, /FlashSaleCampaignForm/);
+  assert.match(adminActions, /await requireAdmin\(\)/g);
+  assert.match(adminActions, /update_stored_value_policy/);
+  assert.match(adminActions, /admin_upsert_topup_package/);
+  assert.match(adminActions, /admin_upsert_flash_sale_campaign/);
+  assert.match(adminPage, /policyHistory/);
+  assert.match(accountClient, /topup_credited/);
+  assert.match(accountClient, /flash_sale_credited/);
+});

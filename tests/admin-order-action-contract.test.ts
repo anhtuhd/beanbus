@@ -20,5 +20,13 @@ test('admin order page has narrow queries, search, filters, and pagination', () 
   assert.match(pageSource, /normalizeVietnameseMobile\(search\)/);
   assert.match(pageSource, /\.range\(from, from \+ PAGE_SIZE - 1\)/);
   assert.match(pageSource, /OrderStatusForm/);
+  assert.match(pageSource, /STATUS_LABEL/);
+  assert.match(pageSource, /PAYMENT_STATUS_LABEL/);
+  assert.match(pageSource, /Chờ xác nhận/);
+  assert.match(pageSource, /Đã thanh toán/);
   assert.doesNotMatch(pageSource, /\.select\('\*'/);
+});
+
+test('order status action revalidates the order detail route', () => {
+  assert.match(actionSource, /revalidatePath\(`\/admin\/orders\/\$\{orderId\}`\)/);
 });

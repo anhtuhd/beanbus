@@ -88,6 +88,7 @@ export const CartDrawer: React.FC = () => {
                     alt={lang === 'en' ? item.product.nameEn : item.product.nameVi}
                     width={72}
                     height={72}
+                    unoptimized
                     className={styles.itemImg}
                   />
                   <div className={styles.itemDetails}>

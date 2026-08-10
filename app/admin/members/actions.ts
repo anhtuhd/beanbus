@@ -34,5 +34,6 @@ export async function updateMemberRole(
   }
 
   revalidatePath('/admin/members');
+  revalidatePath(`/admin/members/${userId}`);
   return { status: 'success', message: 'Đã cập nhật quyền.' };
 }

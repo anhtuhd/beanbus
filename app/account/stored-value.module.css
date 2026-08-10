@@ -1,0 +1,113 @@
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 32px 0 24px;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--brown);
+  font-size: 0.88rem;
+  margin-bottom: 20px;
+}
+
+.lede {
+  max-width: 680px;
+  color: var(--brown);
+  margin: 8px 0 0;
+}
+
+.headerIcon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--gray-200);
+  color: var(--orange-hover);
+}
+
+.statusPanel,
+.errorStatus,
+.waitingStatus,
+.successStatus {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--gray-200);
+  background: var(--cream-soft);
+}
+
+.statusPanel p,
+.sectionHeading p {
+  margin: 4px 0 0;
+  color: var(--brown);
+}
+
+.itemGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--gray-200);
+  background: var(--cream-soft);
+}
+
+.itemTop,
+.paymentDetails > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.itemTop span,
+.item p,
+.item small,
+.paymentDetails span {
+  color: var(--brown);
+}
+
+.item h2 {
+  margin: 4px 0 0;
+  font-size: 1.1rem;
+}
+
+.item p { margin: 0; font-size: 0.9rem; }
+.points { font-weight: 700; color: var(--orange-hover); }
+.item small { min-height: 18px; }
+.item button { margin-top: auto; justify-content: center; }
+
+.paymentLayout { max-width: 760px; }
+.paymentPanel { border: 1px solid var(--gray-200); background: var(--cream-soft); padding: 24px; }
+.sectionHeading { display: flex; gap: 12px; align-items: flex-start; }
+.sectionHeading h2 { margin: 0; font-size: 1.25rem; }
+.qrWrap { display: grid; place-items: center; padding: 20px 0; }
+.qrWrap img { max-width: 100%; height: auto; }
+.paymentDetails { display: grid; gap: 10px; border-top: 1px solid var(--gray-200); border-bottom: 1px solid var(--gray-200); padding: 16px 0; }
+.paymentDetails span { color: var(--brown); font-size: 0.9rem; }
+.codeValue { display: inline-flex; align-items: center; gap: 6px; }
+.codeValue button { display: inline-grid; place-items: center; border: 0; background: transparent; color: inherit; cursor: pointer; padding: 2px; }
+.waitingStatus, .successStatus { margin-top: 16px; }
+.successStatus { color: #166534; background: #f0fdf4; border-color: #bbf7d0; }
+.waitingStatus { color: #854d0e; background: #fefce8; border-color: #fde68a; }
+.waitingStatus span, .successStatus span { display: block; margin-top: 4px; color: var(--brown); font-size: 0.88rem; }
+.errorStatus { margin-bottom: 16px; color: #991b1b; background: #fef2f2; border-color: #fecaca; }
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 760px) {
+  .header { margin-top: 20px; }
+  .itemGrid { grid-template-columns: 1fr; }
+  .paymentPanel { padding: 18px; }
+}

@@ -4,6 +4,7 @@ import OrderStatusForm from './OrderStatusForm';
 import styles from '../requests/requests.module.css';
 import { normalizeVietnameseMobile } from '@/lib/auth/input';
 import { requireAdmin } from '@/lib/auth/session';
+import { boundedPage } from '@/lib/pagination';
 import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
@@ -23,6 +24,25 @@ type PageProps = {
 
 const PAGE_SIZE = 20;
 const ORDER_STATUSES = ['all', 'pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled'];
+const STATUS_LABEL: Record<string, string> = {
+  all: 'Tất cả',
+  pending: 'Chờ xác nhận',
+  confirmed: 'Đã xác nhận',
+  preparing: 'Đang chuẩn bị',
+  ready: 'Sẵn sàng',
+  completed: 'Hoàn tất',
+  cancelled: 'Đã hủy',
+};
+const PAYMENT_METHOD_LABEL: Record<string, string> = {
+  cod: 'COD',
+  sepay_qr: 'Sepay QR',
+};
+const PAYMENT_STATUS_LABEL: Record<string, string> = {
+  pending: 'Chờ thanh toán',
+  paid: 'Đã thanh toán',
+  failed: 'Thanh toán lỗi',
+  expired: 'Hết hạn',
+};
 
 function first(value: string | string[] | undefined): string {
   return Array.isArray(value) ? value[0] ?? '' : value ?? '';
@@ -57,7 +77,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
   const status = ORDER_STATUSES.includes(requestedStatus) ? requestedStatus : 'all';
   const search = first(params.q).trim().slice(0, 50);
   const requestedPage = Number.parseInt(first(params.page), 10);
-  const page = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const page = boundedPage(requestedPage);
   const from = (page - 1) * PAGE_SIZE;
   const supabase = await createServerSupabaseClient();
 
@@ -101,7 +121,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
       <div className={styles.filters} aria-label="Lọc trạng thái đơn">
         {ORDER_STATUSES.map((item) => (
           <Link key={item} href={orderLink(item, 1, search)} className={status === item ? styles.activeFilter : ''}>
-            {item === 'all' ? 'Tất cả' : item}
+            {STATUS_LABEL[item] ?? item}
           </Link>
         ))}
       </div>
@@ -114,10 +134,10 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
         <div className={styles.requestList}>
           {orders.map((order) => (
             <article key={order.id} className={styles.requestRow}>
-              <div><span className={styles.label}>Mã / Thời gian</span><strong>BB-{String(order.order_number).padStart(6, '0')}</strong><small>{formatDate(order.created_at)}</small></div>
+              <div><span className={styles.label}>Mã / Thời gian</span><Link href={`/admin/orders/${order.id}`} className={styles.detailLink}><strong>BB-{String(order.order_number).padStart(6, '0')}</strong></Link><small>{formatDate(order.created_at)}</small></div>
               <div><span className={styles.label}>Khách hàng</span><strong>{order.customer_name}</strong><small>{order.customer_phone}</small></div>
               <div><span className={styles.label}>Nhận hàng</span><strong>{order.fulfillment === 'pickup' ? 'Nhận tại quán' : 'Giao hàng'}</strong><small>{order.pickup_at ? formatDate(order.pickup_at) : order.delivery_address}</small></div>
-              <div><span className={styles.label}>Thanh toán</span><strong>{formatMoney(order.total_vnd)}</strong><small>{order.payment_method} · {order.payment_status}</small></div>
+              <div><span className={styles.label}>Thanh toán</span><strong>{formatMoney(order.total_vnd)}</strong><small>{PAYMENT_METHOD_LABEL[order.payment_method] ?? order.payment_method} · {PAYMENT_STATUS_LABEL[order.payment_status] ?? order.payment_status}</small></div>
               <div><span className={styles.label}>Trạng thái</span><OrderStatusForm orderId={order.id} currentStatus={order.status} paymentMethod={order.payment_method} paymentStatus={order.payment_status} /></div>
             </article>
           ))}

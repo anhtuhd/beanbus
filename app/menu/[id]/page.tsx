@@ -1,13 +1,32 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import ProductDetailClient from './ProductDetailClient';
-import { CATEGORIES, PRODUCTS, type Product } from '@/data/products';
+import { CATEGORIES, PRODUCTS, type Category, type Product } from '@/data/products';
 import { getCatalog, getCatalogProduct } from '@/lib/catalog/queries';
 import { getAppMode, getSiteUrl } from '@/lib/env';
 
 type ProductPageProps = {
   params: Promise<{ id: string }>;
 };
+
+function ProductDetailNoScript({ product, category }: { product: Product; category?: Category }) {
+  return (
+    <main className="wrap noScriptContent">
+      <p className="eyebrow eyebrow-green">Thực đơn Beanbus</p>
+      <Link href="/menu">Quay lại thực đơn</Link>
+      <article>
+        <h1>{product.nameVi}</h1>
+        {category && <p>{category.nameVi}</p>}
+        <p>{product.descriptionVi}</p>
+        {product.tastingNotes && <p>Hương vị: {product.tastingNotes}</p>}
+        <p><strong>{product.price.toLocaleString('vi-VN')}đ</strong></p>
+        <p>{product.isAvailable ? 'Đang phục vụ' : 'Tạm hết'}</p>
+        <p><Link href="/order">Mở trang đặt đồ</Link></p>
+      </article>
+    </main>
+  );
+}
 
 async function loadProduct(id: string): Promise<Product | null> {
   return getAppMode() === 'demo'
@@ -64,6 +83,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }} />
       <ProductDetailClient product={product} category={category} />
+      <ProductDetailNoScript product={product} category={category} />
     </>
   );
 }

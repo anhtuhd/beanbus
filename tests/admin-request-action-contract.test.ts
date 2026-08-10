@@ -16,11 +16,23 @@ test('admin request actions authorize before calling audited RPCs', () => {
   assert.match(actionSource, /revalidatePath\('\/admin\/requests'\)/);
 });
 
+test('request status actions revalidate the detail route as well as the list', () => {
+  assert.match(actionSource, /revalidatePath\(`\/admin\/requests\/\$\{requestId\}`\)/);
+});
+
 test('admin requests page is guarded, filtered, and paginated', () => {
   assert.match(pageSource, /await requireAdmin\(\)/);
   assert.match(pageSource, /PAGE_SIZE = 20/);
   assert.match(pageSource, /normalizeVietnameseMobile\(search\)/);
-  assert.match(pageSource, /\.range\(from, to\)/);
+  assert.match(pageSource, /\.range\(queryFrom, to\)/);
   assert.match(pageSource, /RequestStatusForm/);
+  assert.match(pageSource, /notification_status', 'failed'/);
+  assert.match(pageSource, /Thông báo lỗi/);
+  assert.match(pageSource, /requestedView === 'all'/);
+  assert.match(pageSource, /ALL_STATUSES/);
+  assert.match(pageSource, /view === 'bookings' \? BOOKING_STATUSES : view === 'leads' \? CUSTOMER_STATUSES : ALL_STATUSES/);
+  assert.match(pageSource, /pageLink\('all', 'all'/);
+  assert.match(pageSource, /combined\.slice\(from, to \+ 1\)/);
+  assert.match(pageSource, /pageLink\(view, status, 1, '', notification\)/);
   assert.doesNotMatch(pageSource, /\.select\('\*'/);
 });

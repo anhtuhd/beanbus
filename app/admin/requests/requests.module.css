@@ -281,6 +281,27 @@
   opacity: 0.7;
 }
 
+.archiveButton {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid #d6c7bd;
+  border-radius: 6px;
+  background: #fff;
+  color: #6b5549;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.archiveButton:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
 .actionError,
 .actionSuccess {
   grid-column: 1 / -1;
@@ -290,6 +311,37 @@
 
 .actionError { color: #991b1b; }
 .actionSuccess { color: #166534; }
+
+.sectionHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 28px 0 12px;
+}
+
+.sectionHeader h2 {
+  margin: 0;
+  color: var(--brown-dark);
+  font-size: 20px;
+}
+
+.sectionHeader span {
+  color: var(--brown);
+  font-size: 12px;
+}
+
+.detailLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--orange-hover);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.positiveValue { color: #166534; }
+.negativeValue { color: #991b1b; }
 
 .statusBadge {
   width: fit-content;
@@ -332,6 +384,131 @@
 
 .spinner {
   animation: spin 0.8s linear infinite;
+}
+
+.editorDetails,
+.inlineEditor {
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  background: var(--white);
+}
+
+.editorDetails {
+  padding: 14px 16px;
+}
+
+.editorList {
+  display: grid;
+  gap: 20px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--gray-200);
+}
+
+.auditList {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--gray-200);
+}
+
+.auditList h3 {
+  font-size: 13px;
+}
+
+.auditRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--brown);
+  font-size: 12px;
+}
+
+.auditRow time {
+  white-space: nowrap;
+}
+
+.editorDetails > summary,
+.inlineEditor > summary {
+  cursor: pointer;
+  color: var(--brown-dark);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.productEditor {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.editorGrid,
+.editorTextareas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.editorTextareas {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.productEditor label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: var(--brown-dark);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.productEditor input:not([type='checkbox']),
+.productEditor select,
+.productEditor textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  padding: 8px 9px;
+  background: #fff;
+  color: var(--brown-dark);
+  font: inherit;
+  font-weight: 500;
+}
+
+.editorChecks {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.editorChecks label {
+  flex-direction: row;
+  align-items: center;
+}
+
+.editorChecks input[type='checkbox'] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--orange);
+}
+
+.helperText {
+  margin: 0;
+  color: var(--brown);
+  font-size: 12px;
+}
+
+.inlineEditor {
+  grid-column: 1 / -1;
+  padding: 10px 12px;
+}
+
+.inlineEditor .productEditor {
+  margin-top: 10px;
 }
 
 @keyframes spin {
@@ -390,6 +567,11 @@
 
   .statusForm {
     grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .editorGrid,
+  .editorTextareas {
+    grid-template-columns: 1fr;
   }
 
   .searchForm > div {

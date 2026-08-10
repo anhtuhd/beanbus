@@ -32,11 +32,17 @@ export default function EventsClient({ events }: { events: EventItem[] }) {
       </div>
 
       <div className="wrap">
-        <div className={styles.eventsGrid}>
+        {events.length === 0 ? (
+          <div className={styles.emptyState} role="status">
+            <Calendar size={32} aria-hidden="true" />
+            <h2>{t('Hiện chưa có sự kiện sắp tới', 'No upcoming events')}</h2>
+            <p>{t('Beanbus sẽ cập nhật workshop và hoạt động cộng đồng tại đây.', 'Beanbus will publish upcoming workshops and community events here.')}</p>
+          </div>
+        ) : <div className={styles.eventsGrid}>
           {events.map((item, index) => (
             <article key={item.id} className={styles.eventCard}>
               <div className={styles.imgBox}>
-                <Image src={item.image} alt={item.titleVi} fill loading={index === 0 ? 'eager' : 'lazy'} sizes="(max-width: 900px) 100vw, 50vw" className={styles.cardImg} />
+                <Image src={item.image} alt={item.titleVi} fill unoptimized loading={index === 0 ? 'eager' : 'lazy'} sizes="(max-width: 900px) 100vw, 50vw" className={styles.cardImg} />
                 {item.isFeatured && (
                   <span className={styles.featuredBadge}><Star size={13} /> Featured Event</span>
                 )}
@@ -74,12 +80,13 @@ export default function EventsClient({ events }: { events: EventItem[] }) {
                       {t('Chi tiết', 'Details')} <ArrowRight size={15} />
                     </Link>
                     <RsvpButton event={item} />
+                    <a href="/contact" className={`${styles.detailLink} noScriptInline`}>{t('Liên hệ đăng ký', 'Contact to RSVP')}</a>
                   </div>
                 </div>
               </div>
             </article>
           ))}
-        </div>
+        </div>}
       </div>
 
     </div>

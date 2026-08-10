@@ -52,5 +52,6 @@ export async function updateAdminOrderStatus(
   }
 
   revalidatePath('/admin/orders');
+  revalidatePath(`/admin/orders/${orderId}`);
   return { status: 'success', message: 'Đã cập nhật trạng thái.' };
 }

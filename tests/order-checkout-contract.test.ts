@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const checkout = readFileSync(new URL('../app/order/checkout/page.tsx', import.meta.url), 'utf8');
+const checkout = readFileSync(new URL('../app/order/checkout/CheckoutClient.tsx', import.meta.url), 'utf8');
 const confirmation = readFileSync(
   new URL('../app/order/confirmation/[id]/page.tsx', import.meta.url),
   'utf8'

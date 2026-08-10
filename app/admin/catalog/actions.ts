@@ -25,6 +25,19 @@ export async function updateAdminProductStatus(
 
   const correlationId = await getRequestCorrelationId();
   const supabase = await createServerSupabaseClient();
+  const intent = String(formData.get('intent') ?? 'status');
+  if (intent === 'archive') {
+    const { data, error } = await supabase.rpc('admin_archive_product', { p_product_id: productId });
+    if (error || !data?.[0]) {
+      logOperationalFailure({ correlationId, event: 'admin_operation_failed', operation: 'archive_catalog_product', reason: error ? 'database_error' : 'missing_result' });
+      return { status: 'error', message: `Không thể lưu trữ sản phẩm. Mã hỗ trợ: ${correlationId}` };
+    }
+    revalidatePath('/admin/catalog');
+    revalidatePath('/menu');
+    revalidatePath(`/menu/${productId}`);
+    return { status: 'success', message: 'Đã lưu trữ sản phẩm; dữ liệu đơn cũ vẫn được giữ nguyên.' };
+  }
+
   const { data, error } = await supabase.rpc('update_product_status', {
     p_product_id: productId,
     p_is_available: formData.get('isAvailable') === 'on',

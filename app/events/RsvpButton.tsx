@@ -59,11 +59,14 @@ export default function RsvpButton({ event }: { event: EventItem }) {
         consentToContact: consent,
       });
       if (result.ok) setReference(result.request.reference);
-      else setError(withSupportReference(
-        t('Thông tin chưa hợp lệ hoặc chưa thể gửi. Vui lòng kiểm tra và thử lại.', 'Please check your details and try again.'),
-        result.reference,
-        t('Mã hỗ trợ', 'Support reference')
-      ));
+      else {
+        const message = result.error === 'EVENT_FULL'
+          ? t('Sự kiện đã đủ chỗ. Vui lòng chọn sự kiện khác.', 'This event is full. Please choose another event.')
+          : result.error === 'EVENT_CLOSED'
+            ? t('Sự kiện đã đóng đăng ký.', 'Registration for this event is closed.')
+            : t('Thông tin chưa hợp lệ hoặc chưa thể gửi. Vui lòng kiểm tra và thử lại.', 'Please check your details and try again.');
+        setError(withSupportReference(message, result.reference, t('Mã hỗ trợ', 'Support reference')));
+      }
     } catch {
       setError(t('Kết nối bị gián đoạn. Vui lòng thử lại.', 'Connection interrupted. Please try again.'));
     } finally {
@@ -112,7 +115,7 @@ export default function RsvpButton({ event }: { event: EventItem }) {
                   <span>{t('Tôi đồng ý để Beanbus liên hệ về sự kiện này.', 'I agree that Beanbus may contact me about this event.')}</span>
                 </label>
                 {error && <p className={styles.submitError} role="alert">{error}</p>}
-                <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }} disabled={isSubmitting}>
+                <button type="submit" className={`btn btn-primary btn-lg ${styles.submitButton}`} style={{ width: '100%', justifyContent: 'center' }} disabled={isSubmitting}>
                   {isSubmitting ? <LoaderCircle size={18} className={styles.spinner} /> : <Sparkles size={18} />}
                   <span>{isSubmitting ? t('Đang gửi...', 'Sending...') : t('Gửi Yêu Cầu Tham Gia', 'Send RSVP Request')}</span>
                 </button>

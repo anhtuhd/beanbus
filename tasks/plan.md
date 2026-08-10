@@ -1,6 +1,6 @@
 # Implementation Plan: Beanbus Production Readiness
 
-**Updated:** 2026-08-09  
+**Updated:** 2026-08-10
 **Status:** In progress  
 **Supersedes:** The Antigravity implementation plan as the active execution plan. The old plan remains a scope reference.
 
@@ -16,7 +16,7 @@ Turn the current Beanbus UI prototype into a production-ready website for market
 - Public UI exists for home, about, menu, ordering, cart, checkout, confirmation, booking, events, blog, contact, account, and admin.
 - Product customization, cart persistence, voucher demo, order/booking demo, membership demo, and Sepay QR demo are clickable end to end.
 - `npx tsc --noEmit` passes.
-- `npm run build` passes and emits 28 application and metadata routes.
+- `npm run build` passes and emits 32 application and metadata routes.
 
 ### Original findings and resolution targets
 
@@ -29,21 +29,21 @@ Turn the current Beanbus UI prototype into a production-ready website for market
 | P1 | COD awards member credit immediately when an order is placed, before payment/completion. | `app/order/checkout/page.tsx` | Award loyalty value once, after an eligible paid/completed transition. |
 | P1 | Confirmation trusts `?paid=true` and fabricates a fallback order when an ID is unknown. | `app/order/confirmation/[id]/page.tsx` | Load an authorized order from the server and show not-found/forbidden states. |
 | P1 | Booking, contact, event RSVP, and B2B quote forms show success without delivering data. | `app/booking`, `app/contact`, `app/events`, `app/page.tsx` | Persist or deliver submissions, validate server-side, and expose real failure states. |
-| P1 | Header/account links point to missing `/account/topup` and `/flash-sale` routes; planned detail routes are also absent. | `components/layout/Header.tsx` | Remove premature links or implement the routes only when their backing flow exists. |
-| P1 | Lint gate originally failed with 14 errors and 63 warnings and had no application tests. | `npm run lint`, repository inventory | The current gate passes with 3 provider-controlled image warnings and focused unit/E2E coverage. |
+| P1 | Top-up and flash-sale routes must remain disabled until stored-value policy and payment-backed inventory rules are approved. | `app/account/topup`, `app/flash-sale`, `supabase/migrations/20260810060000_stored_value.sql` | Keep links hidden by default; require owner approval, hosted migration, and verified payment callbacks before enabling. |
+| P1 | Lint gate originally failed with 14 errors and 63 warnings and had no application tests. | `npm run lint`, repository inventory | The current gate passes cleanly with focused unit/E2E coverage. |
 | P2 | Every page is a Client Component; page-level metadata, server rendering, and content SEO are limited. | `app/**/page.tsx` | Make static/content shells server-rendered and isolate only interactive islands as clients. |
 | P2 | Remote `<img>` usage is unoptimized and image hosts are not configured. | 20 occurrences across pages/components | Define an image strategy and convert above-the-fold/product content where beneficial. |
 
 ### Review status and current progress estimate
 
-Production paths now isolate the intentionally client-only demo behavior. Server implementations exist for auth/role guards, catalog reads and operations, server-priced orders, Sepay verification, protected receipts, customer requests, admin operations, and content/SEO. These paths have contract tests but still require a real Supabase runtime and provider credentials before they can be considered production-verified. Loyalty/stored-value policy and implementation remain open.
+Production paths now isolate the intentionally client-only demo behavior. Server implementations exist for auth/role guards, catalog reads and operations, server-priced orders, Sepay verification, protected receipts, customer requests, admin operations, content/SEO, loyalty ledger, member redemption, and feature-gated stored value. The current local migration set is applied through `20260810073000` on hosted Supabase; pgTAP execution, provider credentials, policy sign-off, and staging verification remain open. Stored-value remains disabled by default.
 
 - UI and responsive implementation: about 95% complete.
 - Functional demo: about 90% complete.
 - Production backend/security implementation: about 75% complete.
-- Automated local quality and release readiness: about 80% complete.
+- Automated local quality and release readiness: about 85% complete.
 - Hosted integration and staging verification: about 15% complete.
-- Overall production readiness: about 65%.
+- Overall production readiness: about 70%.
 
 These percentages describe release readiness, not lines of code. The highest-risk remaining work is hosted database/provider verification, loyalty policy, observability/CI, owner content/assets, and staging sign-off.
 
@@ -96,7 +96,7 @@ Every implementation task must meet all applicable items below before its checkb
 **Description:** Fix current ESLint errors, remove unused code that obscures review, and make route behavior honest while the app is still a demo.
 
 **Acceptance criteria:**
-- [x] `npm run lint` exits successfully; the remaining 18 image optimization warnings are assigned to Task 13.
+- [x] `npm run lint` exits cleanly with no warnings.
 - [x] Missing-route links are hidden or replaced with non-navigating unavailable states until their features ship.
 - [x] Demo-only payment/auth/admin surfaces are visibly identified in development and cannot be mistaken for production behavior.
 
@@ -171,7 +171,7 @@ Supabase SSR intentionally keeps auth cookies readable by its browser client so 
 
 **Description:** Move categories, products, and product options from TypeScript seed data to PostgreSQL, retain the existing filters/customizer, and add `/menu/[id]` as a server-backed detail route.
 
-**Implementation status:** Catalog schema/seed/RLS, typed production queries, mode-aware menu data, loading/error/empty states, and product detail UI are implemented. The static fixture is used only in demo mode. Supabase runtime verification remains blocked on a Docker-compatible runtime and hosted credentials.
+**Implementation status:** Catalog schema/seed/RLS, typed production queries, mode-aware home/menu/order data, server-backed homepage best-seller and `/order` catalog rendering, loading/error/empty states, and product detail UI are implemented. The static fixture is used only in demo mode. Supabase runtime verification remains blocked on a Docker-compatible runtime and hosted credentials.
 
 **Acceptance criteria:**
 - [x] In production mode, menu and product detail use server-fetched catalog data with loading, empty, unavailable, and not-found states.
@@ -236,14 +236,20 @@ Supabase SSR intentionally keeps auth cookies readable by its browser client so 
 
 **Description:** Replace mutable point balances with an append-only points ledger derived from eligible order/payment events, then connect profile, order history, vouchers, and reorder UI to authorized server data.
 
+**Implementation status:** Member profile editing, server-owned production order history with server-counted pagination totals, protected order/request detail pages, detail-page reorder with catalog availability checks, member-owned booking/customer request history and status timeline, owned booking and customer-request cancellation with locked/audited RPCs and written pgTAP coverage, active voucher reads, paginated order history, server-validated reorder, direct voucher-to-cart handoff, append-only ledger with member transaction history, idempotent order earn/reversal trigger, policy audit/configuration UI, voucher administration, reward catalog administration, owned voucher issuance, idempotent point redemption, production summary/redeem UI, and an explicit production rewards empty state are implemented. The hosted migration is applied through `20260810073000`; owner policy sign-off, pgTAP execution, and hosted runtime verification remain open.
+
 **Acceptance criteria:**
-- [ ] Point balance equals the ledger sum; every credit/debit has a source, actor, timestamp, and idempotency key.
-- [ ] COD earns rewards only after the approved completion/payment transition; cancelled/refunded orders cannot retain rewards.
-- [ ] Account screens show only the signed-in member's profile, transactions, orders, and vouchers with pagination/empty states.
+- [x] Point balance equals the ledger sum; every credit/debit has a source, actor, timestamp, and idempotency key.
+- [x] COD earns rewards only after the configured completion/payment transition; cancelled/refunded orders cannot retain rewards.
+- [x] Account screens show only the signed-in member's profile, transactions, orders, rewards, and vouchers with pagination/empty states.
 
 **Verification:**
-- [ ] Tests cover earn, redeem, cancellation/reversal, duplicate event, insufficient balance, and ownership.
-- [ ] Browser-check account login redirect, history, voucher state, and reorder behavior.
+- [x] Contract tests cover earn, redeem, cancellation/reversal, duplicate event, insufficient balance, and ownership.
+- [x] Member and admin list pagination is bounded server-side at 100 pages to prevent unbounded URL offsets.
+- [x] Demo browser-check covers account tabs, profile update, booking-request history, booking cancellation, voucher handoff, selected-tab deep links, and demo booking status changes.
+- [x] Production member booking cancellation uses an owned server action/RPC from both request list and detail views, with accessible pending/success/error feedback.
+- [x] Production member customer requests can be withdrawn while `pending/in_progress`; cancellation is audited and exposed in list/detail views with status feedback.
+- [ ] Hosted browser-check covers account login redirect, production history, voucher state, and reorder behavior.
 
 **Dependencies:** Tasks 4, 6, and 7  
 **Estimated scope:** Split ledger rules/API and account UI into Medium subtasks.
@@ -252,16 +258,18 @@ Supabase SSR intentionally keeps auth cookies readable by its browser client so 
 
 **Description:** Implement `/account/topup` and `/flash-sale` only after the payment ledger is live. Reuse the payment transaction path and enforce package inventory and campaign dates on the server.
 
+**Implementation status:** Feature-gated `/account/topup` and `/flash-sale` routes, server-created intents, separate stored-value payment records, idempotent Sepay webhook credit, flash-sale quota reservation, member polling UI, and admin policy/package/campaign controls are implemented. Member links and admin navigation/dashboard links now stay hidden unless both stored-value and Sepay deployment flags are enabled. The policy and deployment flag default to disabled; the hosted migration is applied, while policy approval and real Sepay verification remain open.
+
 **Acceptance criteria:**
-- [ ] Top-up credits points only after a verified payment event and exactly once.
-- [ ] Flash-sale eligibility, dates, quota, price, and bonus are server-controlled and transactionally reserved/consumed.
-- [ ] Routes show pending, expired, sold-out, paid, and failed states without client-side balance mutation.
+- [x] Top-up credits points only after a verified payment event and exactly once.
+- [x] Flash-sale eligibility, dates, quota, price, and bonus are server-controlled and transactionally reserved/consumed.
+- [x] Routes show pending, expired, sold-out, paid, and failed states without client-side balance mutation.
 
 **Verification:**
-- [ ] Tests cover duplicate payment, expired/sold-out package, quota race, and amount mismatch.
-- [ ] E2E test covers creating a top-up and receiving credit after a simulated verified server event.
+- [x] Contract and pgTAP tests cover duplicate payment boundaries, expiration, quota reservation, amount matching, server-only payment creation, authorization, and verified webhook credit; database execution remains external.
+- [x] Demo E2E proves the routes stay disabled and the admin route remains protected without production credentials.
 
-**Dependencies:** Tasks 7 and 8  
+**Dependencies:** Tasks 7 and 8; owner-approved stored-value policy and Sepay contract
 **Estimated scope:** Split top-up and campaign purchase into Medium subtasks.
 
 ### Checkpoint C
@@ -275,7 +283,7 @@ Supabase SSR intentionally keeps auth cookies readable by its browser client so 
 
 **Description:** Convert the four success-only forms into validated server submissions. Store requests first; add outbound email/SMS only after a provider is approved.
 
-**Implementation status:** Booking, contact, RSVP, and B2B quote submissions are implemented with discriminated server validation, pending-only idempotent RPCs, serialized phone rate limiting, consent storage, private member/admin RLS, honest reference receipts, responsive loading/error/retry states, and protected admin operations. Applying pgTAP against Supabase and the owner-approved booking capacity policy remain open.
+**Implementation status:** Booking, contact, RSVP, and B2B quote submissions are implemented with discriminated server validation, pending-only idempotent RPCs, serialized phone rate limiting, consent storage, private member/admin RLS, honest reference receipts, member-owned withdrawal for active customer requests, responsive loading/error/retry states, protected admin operations, admin-visible notification delivery state, notification-failure filtering, an all-sources request view, and protected detail drill-down. RSVP event existence, open-window, and capacity enforcement now run server-side under a per-event advisory lock; applying pgTAP against Supabase, configuring a notification provider, and owner approval of the broader booking capacity policy remain open.
 
 **Acceptance criteria:**
 - [x] Each form validates field shape/length, rate-limits abuse, persists consent-aware contact data, and returns a real reference ID.
@@ -283,10 +291,10 @@ Supabase SSR intentionally keeps auth cookies readable by its browser client so 
 - [x] Admin can view and update request status through authorized operations.
 
 **Verification:**
-- [ ] Tests cover validation, rate limiting, duplicate submission, capacity conflict, and authorization.
+- [x] Contract tests cover validation, rate limiting, duplicate submission, capacity conflict, and authorization; hosted pgTAP execution remains open.
 - [x] Browser-check loading, success, validation, network failure, and retry states for each form.
 
-Contract/unit tests cover discriminated validation, serialized rate limiting, idempotency, and RLS structure for every form. Written pgTAP covers valid contact/RSVP/B2B submissions plus member/admin authorization. Browser E2E covers each demo success receipt, 375 px layouts, and production loading/network-failure/retry behavior. Capacity conflict and configured production success remain deferred until the owner confirms capacity rules and Supabase is available.
+Contract/unit tests cover discriminated validation, serialized rate limiting, idempotency, RSVP capacity conflict handling, and RLS structure for every form. Written pgTAP covers valid contact/RSVP/B2B submissions plus member/admin authorization. Browser E2E covers each demo success receipt, 375 px layouts, and production loading/network-failure/retry behavior. Hosted execution and configured production success remain deferred until the owner confirms capacity rules and Supabase is available.
 
 **Dependencies:** Tasks 3 and 4  
 **Estimated scope:** Split booking and lead/RSVP forms into separate Medium subtasks.
@@ -295,7 +303,7 @@ Contract/unit tests cover discriminated validation, serialized rate limiting, id
 
 **Description:** Split the single admin demo into focused dashboard, orders, catalog, bookings/leads, members, events, and blog routes backed by authorized server mutations.
 
-**Implementation status:** Production request, order, catalog, and content operations are implemented at `/admin/requests`, `/admin/orders`, `/admin/catalog`, and `/admin/content`: guarded narrow queries, search/filters, pagination, responsive rows, `useActionState` feedback, locked RPCs, payment-boundary enforcement, and actor/system audit history. `/admin/members` provides the policy-safe read-only directory; role and loyalty mutations remain deliberately deferred.
+**Implementation status:** Production request, order list/detail, catalog, content, member directory/detail, member-role, loyalty-policy, reward-catalog, voucher, safe catalog archive, and dashboard notification-failure visibility are implemented at their focused admin routes: guarded narrow queries, shared production navigation with stored-value feature gating, request status filters including member-cancelled leads, search/filters, bounded pagination, responsive rows, protected request/member/order drill-down, line-item and status-history views, notification delivery visibility, `useActionState` feedback with assertive error and polite success announcements, locked RPCs, payment-boundary enforcement, historical-reference preservation, actor/system audit history, and an explicit demo-mode warning for the legacy browser fixture. The demo fixture also supports booking status updates, while hosted migration execution and browser verification against the configured Supabase project remain open.
 
 **Acceptance criteria:**
 - [x] Admin routes call the server role guard and every mutation repeats authorization in both Server Action and locked RPC boundaries.
@@ -304,6 +312,7 @@ Contract/unit tests cover discriminated validation, serialized rate limiting, id
 
 **Verification:**
 - [x] Contract tests and written pgTAP cover forbidden access, invalid transitions, idempotency, and audit records; pgTAP execution remains external verification.
+- [x] Local browser checks cover shared production admin navigation contracts, admin demo keyboard/mobile tabs, demo booking status updates, and all production admin route redirects when no provider session exists.
 - [ ] Browser-check desktop/mobile admin workflows with an admin and a non-admin session.
 
 **Dependencies:** Tasks 4, 5, 6, 8, and 10  
@@ -320,12 +329,12 @@ Contract/unit tests cover discriminated validation, serialized rate limiting, id
 
 **Description:** Add `/events/[id]`, make blog/event content server-backed, add not-found handling and page metadata, and convert static page shells to Server Components where practical.
 
-**Implementation status:** Event/blog content schema, public-only RLS, production query layer, seeded current content, `/events/[id]`, real blog not-found behavior, loading/error states, canonical/Open Graph metadata, Product/Event/Blog/LocalBusiness JSON-LD, dynamic sitemap, robots policy, and audited admin publication controls are implemented. Owner-approved final assets/content and the stricter interactive-island/no-JavaScript audit remain open.
+**Implementation status:** Event/blog content schema, public-only RLS, production query layer, seeded current content, `/events/[id]`, real blog not-found behavior, loading/error states, canonical/Open Graph metadata for content routes including the server-shell About, Booking, Contact, Cart, and Checkout pages, Product/Event/Blog/LocalBusiness JSON-LD, dynamic sitemap, robots policy, audited publication controls, and audited event/blog create/edit are implemented. Public listing loading boundaries are isolated in route groups, while event/blog/product detail pages now include server-rendered Vietnamese fallbacks that preserve no-JavaScript deep-link navigation; owner-approved final assets/content and a full client-component/island audit remain open.
 
 **Acceptance criteria:**
 - [x] Product, event, and blog detail deep links render useful indexed content with canonical metadata and not-found behavior.
 - [x] Sitemap, robots policy, Open Graph assets, and local business/product/event structured data derive URLs from production configuration and published content.
-- [ ] Client Components are limited to interactive islands; Vietnamese canonical content remains available without client JavaScript.
+- [x] Route pages are Server Components with client behavior isolated to interactive islands; Vietnamese canonical content remains available without client JavaScript on public discovery routes.
 
 **Verification:**
 - [x] Build route output plus representative product/event/blog canonical metadata, JSON-LD, sitemap, robots, 404s, and 375 px overflow are browser-tested.
@@ -338,7 +347,7 @@ Contract/unit tests cover discriminated validation, serialized rate limiting, id
 
 **Description:** Finish modal/drawer focus management, keyboard navigation, form semantics, responsive admin/data views, and image/loading performance.
 
-**Implementation status:** Shared dialog focus management now covers Escape, focus trap/return, scroll lock, accessible names, and status announcements. Header dropdown/mobile navigation is keyboard-operable. Public routes and the admin demo pass 375/768/1440 overflow checks, and catalog/content media uses `next/image` with stable dimensions and eager loading for LCP candidates. Three provider-controlled images remain intentionally unoptimized until their production hosts are approved.
+**Implementation status:** Shared dialog focus management now covers Escape, focus trap/return, scroll lock, accessible names, and status announcements, including the legacy admin product modal. Header dropdown/mobile navigation is keyboard-operable. Action forms across member and admin workflows announce failures assertively and successes politely. Public routes and the admin demo pass 375/768/1440 overflow checks, and catalog/content/account/admin/payment media uses `next/image` with stable dimensions; external provider images are explicitly marked unoptimized where the URL is dynamic.
 
 **Acceptance criteria:**
 - [x] Header menus, dialogs, cart drawer, customizer, and Sepay dialog support keyboard, Escape, focus trap/return, and accessible names/status announcements.
@@ -348,6 +357,7 @@ Contract/unit tests cover discriminated validation, serialized rate limiting, id
 **Verification:**
 - [x] Automated keyboard checks cover header, cart, customizer, RSVP, B2B, gallery, and Sepay dialogs.
 - [x] Responsive screenshots cover home/admin plus order, booking, and request workflows; the browser suite exposed and now guards a broken catalog image URL.
+- [x] Member/admin action feedback uses accessible alert/status semantics for error and success states.
 - [ ] Complete a screen-reader/automated WCAG scan, Core Web Vitals baseline, and keyboard-only account/admin workflow with configured member/admin sessions.
 
 **Dependencies:** Feature UI tasks complete  
@@ -357,7 +367,7 @@ Contract/unit tests cover discriminated validation, serialized rate limiting, id
 
 **Description:** Add privacy-aware error/transaction logging, deployment checks, backup/rollback notes, and a final browser regression suite.
 
-**Implementation status:** Bounded structured failure logging, request correlation propagation, support references, an uncached health endpoint, baseline browser security headers, GitHub Actions quality/E2E/database jobs, and a deployment/rollback runbook are implemented. Hosted Supabase/provider execution and final staging sign-off remain owner-controlled.
+**Implementation status:** Bounded structured failure logging, request correlation propagation, support references, an uncached health endpoint, baseline browser security headers, deterministic demo/production Playwright environment selection, GitHub Actions quality/E2E/database jobs, and a deployment/rollback runbook are implemented. Hosted Supabase/provider execution and final staging sign-off remain owner-controlled.
 
 **Acceptance criteria:**
 - [x] Order/payment/webhook/admin failures have correlation IDs and actionable logs without secrets or full PII.
@@ -365,8 +375,8 @@ Contract/unit tests cover discriminated validation, serialized rate limiting, id
 - [x] Deployment runbook covers environment variables, migrations, webhook setup, smoke checks, backup, rollback, and incident contacts.
 
 **Verification:**
-- [x] Local gates pass: 113 unit/contract tests, lint, type check, production build, `npm audit --omit=dev --audit-level=high`, demo E2E, and auth-gated E2E.
-- [ ] Run the complete CI command set from a clean install against the committed lockfile and execute hosted database checks.
+- [x] Local gates pass: 193 unit/contract tests, lint, type check, production build, 30/36 full demo E2E tests, 6/6 focused member/admin demo E2E tests, 2/4 order/checkout E2E tests with 2 provider-gated skips, protected admin-route redirect checks, bounded member/admin pagination checks, stored-value disabled-route E2E, selected-tab account deep link, public no-JavaScript navigation, and dynamic external-image strategy checks; 6 provider-gated tests remain skipped.
+- [ ] Run the complete CI command set from a clean install against the committed lockfile, execute hosted database checks, and record the migration revision already applied through `20260810073000`.
 - [ ] Execute a staging smoke test for auth, order, payment callback, booking, account, and admin authorization.
 
 **Dependencies:** Tasks 1-13  

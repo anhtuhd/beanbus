@@ -6,6 +6,10 @@ const migration = readFileSync(
   new URL('../supabase/migrations/20260809160500_order_status_operations.sql', import.meta.url),
   'utf8'
 );
+const memberHistoryMigration = readFileSync(
+  new URL('../supabase/migrations/20260810050317_member_read_order_status_history.sql', import.meta.url),
+  'utf8'
+);
 
 test('order status history audits both admin and system transitions', () => {
   assert.match(migration, /create table public\.order_status_history/i);
@@ -28,4 +32,10 @@ test('order status RPC enforces transitions and payment boundaries', () => {
   assert.match(migration, /payment_method = 'sepay_qr'[\s\S]*payment_status <> 'paid'[\s\S]*PAYMENT_REQUIRED/i);
   assert.match(migration, /payment_status = 'paid'[\s\S]*p_status = 'cancelled'[\s\S]*REFUND_REQUIRED/i);
   assert.match(migration, /INVALID_ORDER_TRANSITION/);
+});
+
+test('members can read only their own order status history', () => {
+  assert.match(memberHistoryMigration, /Members read their order status history/i);
+  assert.match(memberHistoryMigration, /orders\.user_id = \(select auth\.uid\(\)\)/i);
+  assert.match(memberHistoryMigration, /current_user_role\(\)\) = 'admin'/i);
 });

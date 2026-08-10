@@ -19,3 +19,9 @@ test('customer request action issues typed server references', () => {
   assert.match(actionSource, /b2b_quote: 'BQ'/);
   assert.match(actionSource, /status: 'pending'/);
 });
+
+test('customer request action preserves server-owned RSVP capacity errors', () => {
+  assert.match(actionSource, /EVENT_FULL/);
+  assert.match(actionSource, /EVENT_CLOSED/);
+  assert.match(actionSource, /INVALID_EVENT/);
+});

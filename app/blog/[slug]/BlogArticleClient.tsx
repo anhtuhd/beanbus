@@ -64,7 +64,7 @@ export default function BlogArticleClient({ post }: { post: BlogPost }) {
         </div>
 
         <div className={styles.coverBox}>
-          <Image src={post.coverImage} alt={post.titleVi} fill loading="eager" sizes="(max-width: 800px) 100vw, 760px" className={styles.coverImg} />
+          <Image src={post.coverImage} alt={post.titleVi} fill unoptimized loading="eager" sizes="(max-width: 800px) 100vw, 760px" className={styles.coverImg} />
         </div>
 
         <div className={styles.articleBody}><ArticleContent content={lang === 'en' ? post.contentEn : post.contentVi} /></div>

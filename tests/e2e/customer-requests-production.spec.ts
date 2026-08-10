@@ -7,6 +7,8 @@ test.skip(
 
 type Scenario = {
   name: string;
+  requiresPublishedEvents?: boolean;
+  requiresPublishedCatalog?: boolean;
   openAndFill(page: Page): Promise<Locator>;
 };
 
@@ -24,6 +26,7 @@ const scenarios: Scenario[] = [
   },
   {
     name: 'RSVP',
+    requiresPublishedEvents: true,
     async openAndFill(page) {
       await page.goto('/events');
       await page.getByRole('button', { name: 'Yêu Cầu Tham Gia' }).first().click();
@@ -36,6 +39,7 @@ const scenarios: Scenario[] = [
   },
   {
     name: 'B2B',
+    requiresPublishedCatalog: true,
     async openAndFill(page) {
       await page.goto('/#beans');
       await page.getByRole('button', { name: 'Nhận giá sỉ' }).first().click();
@@ -50,6 +54,17 @@ const scenarios: Scenario[] = [
 
 for (const scenario of scenarios) {
   test(`${scenario.name} exposes loading, network failure, and retry states`, async ({ page }) => {
+    test.skip(
+      Boolean(scenario.requiresPublishedEvents && process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://example.supabase.co'),
+      'RSVP production state requires a configured Supabase content runtime.'
+    );
+    if (scenario.requiresPublishedCatalog) {
+      await page.goto('/');
+      test.skip(
+        await page.getByRole('alert').filter({ hasText: 'Chưa thể tải dữ liệu cửa hàng' }).count() > 0,
+        'B2B production state requires a configured published catalog.'
+      );
+    }
     let postCount = 0;
     await page.route('**/*', async (route) => {
       if (route.request().method() !== 'POST') {

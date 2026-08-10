@@ -57,7 +57,7 @@ export default function OrderStatusForm({ currentStatus, orderId, paymentMethod,
         <span>{pending ? 'Đang lưu' : 'Lưu'}</span>
       </button>
       {state.status !== 'idle' && (
-        <span className={state.status === 'error' ? styles.actionError : styles.actionSuccess} aria-live="polite">
+        <span className={state.status === 'error' ? styles.actionError : styles.actionSuccess} role={state.status === 'error' ? 'alert' : 'status'} aria-live={state.status === 'error' ? 'assertive' : 'polite'}>
           {state.message}
         </span>
       )}

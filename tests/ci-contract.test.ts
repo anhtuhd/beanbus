@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const workflow = fs.readFileSync('.github/workflows/ci.yml', 'utf8');
+const playwrightConfig = fs.readFileSync('playwright.config.ts', 'utf8');
+const packageJson = fs.readFileSync('package.json', 'utf8');
+const productionRequestsE2e = fs.readFileSync('tests/e2e/customer-requests-production.spec.ts', 'utf8');
 
 test('CI quality job runs the committed quality gates', () => {
   assert.match(workflow, /actions\/checkout@v6/);
@@ -24,6 +27,18 @@ test('CI E2E job covers demo and production-gated flows', () => {
   assert.match(workflow, /npm run test:e2e:checkout-sepay/);
   assert.match(workflow, /npm run test:e2e:requests/);
   assert.match(workflow, /actions\/upload-artifact@v7/);
+});
+
+test('Playwright does not silently reuse a differently configured local server', () => {
+  assert.match(playwrightConfig, /PLAYWRIGHT_PORT \?\? '3101'/);
+  assert.match(playwrightConfig, /PLAYWRIGHT_REUSE_SERVER === 'true'/);
+  assert.match(playwrightConfig, /NEXT_DIST_DIR: '\.next-e2e'/);
+  assert.match(packageJson, /PLAYWRIGHT_PORT=3101 NEXT_PUBLIC_APP_MODE=production/);
+  assert.doesNotMatch(packageJson, /NEXT_PUBLIC_SITE_URL=http:\/\/127\.0\.0\.1:3100/);
+  assert.match(productionRequestsE2e, /requiresPublishedEvents/);
+  assert.match(productionRequestsE2e, /configured Supabase content runtime/);
+  assert.match(productionRequestsE2e, /requiresPublishedCatalog/);
+  assert.match(productionRequestsE2e, /configured published catalog/);
 });
 
 test('CI database job starts Supabase and executes SQL checks', () => {

@@ -12,6 +12,7 @@ Set these values in the deployment platform. Never commit them to the repository
 - `SUPABASE_SECRET_KEY` for server-only admin operations and webhooks
 - `NEXT_PUBLIC_ENABLE_PHONE_AUTH` and `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH`
 - `NEXT_PUBLIC_ENABLE_SEPAY`, `SEPAY_WEBHOOK_SECRET`, `SEPAY_BANK_CODE`, `SEPAY_BANK_ACCOUNT`, and `SEPAY_ACCOUNT_NAME` when Sepay is enabled
+- `NEXT_PUBLIC_ENABLE_STORED_VALUE=false` by default; set it to `true` only after the stored-value migration, policy approval, package/campaign review, and Sepay verification
 - Approved provider, notification, logo, image, privacy, terms, booking-capacity, loyalty, COD, refund, and stored-value settings
 
 ## Pre-deploy Gate
@@ -52,6 +53,7 @@ The database checks require Docker and the Supabase CLI. Hosted database verific
 - A member can sign in and only access their own account and order history.
 - COD checkout creates a server-priced order and shows a support reference on failure.
 - Sepay checkout accepts one valid signed callback, rejects invalid signatures, and remains idempotent on replay.
+- Stored-value remains disabled until both the deployment flag and admin policy are enabled; after approval, verify one top-up and one flash-sale payment, including duplicate callback, expiry, sold-out, and amount-mismatch cases.
 - Booking, contact, RSVP, and B2B submissions return a reference that staff can locate.
 - An authorized admin can search and transition permitted records; a non-admin receives a forbidden response.
 

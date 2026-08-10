@@ -52,7 +52,14 @@ export async function createCustomerRequest(input: unknown): Promise<CreateCusto
       operation: 'create_customer_request',
       reason: error ? 'database_error' : 'missing_result',
     });
-    return { ok: false, error: 'REQUEST_CREATION_FAILED', reference: correlationId };
+    const errorCode = error?.message.includes('EVENT_FULL')
+      ? 'EVENT_FULL'
+      : error?.message.includes('EVENT_CLOSED')
+        ? 'EVENT_CLOSED'
+        : error?.message.includes('INVALID_EVENT')
+          ? 'INVALID_EVENT'
+          : 'REQUEST_CREATION_FAILED';
+    return { ok: false, error: errorCode, reference: correlationId };
   }
   if (!['contact', 'rsvp', 'b2b_quote'].includes(request.created_request_type)) {
     logOperationalFailure({

@@ -5,6 +5,7 @@ test('event and blog deep links expose indexed content and honest not-found stat
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Sự Kiện');
   await page.getByRole('link', { name: 'Chi tiết' }).first().click();
   await expect(page).toHaveURL(/\/events\/event-1$/);
+  await expect(page.getByRole('heading', { level: 1 }).first()).toContainText('Workshop Cupping');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Workshop Cupping');
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/events\/event-1$/);
   const jsonLd = await page.locator('script[type="application/ld+json"]').allTextContents();
@@ -16,6 +17,7 @@ test('event and blog deep links expose indexed content and honest not-found stat
   await page.goto('/blog');
   await page.getByRole('link', { name: 'Đọc bài viết chi tiết' }).first().click();
   await expect(page).toHaveURL(/\/blog\/phan-biet-arabica-va-robusta$/);
+  await expect(page.getByRole('heading', { level: 1 }).first()).toContainText('Arabica Và Robusta');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Arabica Và Robusta');
   await expect(page.getByRole('heading', { level: 2 }).first()).toContainText('Hàm lượng Caffeine');
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/blog\/phan-biet-arabica-va-robusta$/);
@@ -25,8 +27,10 @@ test('event and blog deep links expose indexed content and honest not-found stat
 
   await page.goto('/menu/cd-1');
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/menu\/cd-1$/);
-  const productJsonLd = await page.locator('script[type="application/ld+json"]').allTextContents();
-  expect(productJsonLd.some((value) => value.includes('"@type":"Product"'))).toBeTruthy();
+  await expect.poll(async () => {
+    const productJsonLd = await page.locator('script[type="application/ld+json"]').allTextContents();
+    return productJsonLd.some((value) => value.includes('"@type":"Product"'));
+  }).toBe(true);
 });
 
 test('content remains usable without horizontal overflow on mobile', async ({ page }) => {
@@ -36,6 +40,37 @@ test('content remains usable without horizontal overflow on mobile', async ({ pa
     const sizes = await page.evaluate(() => ({ body: document.body.scrollWidth, viewport: window.innerWidth }));
     expect(sizes.body).toBeLessThanOrEqual(sizes.viewport);
   }
+});
+
+test('public content keeps canonical navigation without JavaScript', async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ baseURL, javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto('/');
+  await expect(page.getByRole('link', { name: 'Xem menu', exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Xem menu', exact: true }).click();
+  await expect(page).toHaveURL(/\/menu$/);
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Menu');
+
+  await page.goto('/events');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Sự Kiện');
+  await page.getByRole('link', { name: 'Chi tiết' }).first().click();
+  await expect(page).toHaveURL(/\/events\/event-1$/);
+  await expect(page.getByRole('heading', { level: 1 }).first()).toContainText('Workshop Cupping');
+
+  await page.goto('/blog');
+  await expect(page.getByRole('link', { name: 'Đọc bài viết chi tiết' }).first()).toBeVisible();
+  await page.getByRole('link', { name: 'Đọc bài viết chi tiết' }).first().click();
+  await expect(page).toHaveURL(/\/blog\/phan-biet-arabica-va-robusta$/);
+  await expect(page.getByRole('heading', { level: 1 }).first()).toContainText('Arabica Và Robusta');
+
+  await page.goto('/menu');
+  await page.getByRole('link', { name: /Cold-drip Quế Hoa/ }).first().click();
+  await expect(page).toHaveURL(/\/menu\/cd-1$/);
+  await expect(page.getByRole('heading', { level: 1 }).first()).toContainText('Cold-drip Quế Hoa');
+
+  await page.goto('/order');
+  await expect(page.getByText('JavaScript đang tắt hoặc', { exact: false })).toBeVisible();
+  await context.close();
 });
 
 test('sitemap and robots expose only public discovery routes', async ({ request }) => {

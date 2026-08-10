@@ -3,6 +3,7 @@ import { ArrowLeft, Search } from 'lucide-react';
 import styles from '../requests/requests.module.css';
 import { normalizeVietnameseMobile } from '@/lib/auth/input';
 import { requireAdmin } from '@/lib/auth/session';
+import { boundedPage } from '@/lib/pagination';
 import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import MemberRoleForm from './MemberRoleForm';
@@ -40,7 +41,7 @@ export default async function AdminMembersPage({ searchParams }: Props) {
   const role = ROLES.includes(requestedRole) ? requestedRole : 'all';
   const search = first(params.q).trim().slice(0, 80);
   const requestedPage = Number.parseInt(first(params.page), 10);
-  const page = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const page = boundedPage(requestedPage);
   const from = (page - 1) * PAGE_SIZE;
   const supabase = await createServerSupabaseClient();
   let query = supabase.from('profiles')
@@ -91,7 +92,7 @@ export default async function AdminMembersPage({ searchParams }: Props) {
         <div className={styles.requestList}>
           {members.map((member) => (
             <article key={member.member_number} className={`${styles.requestRow} ${styles.memberRow}`}>
-              <div><span className={styles.label}>Hội viên</span><strong>BB-{String(member.member_number).padStart(8, '0')}</strong><small>{member.full_name || 'Chưa cập nhật tên'}</small></div>
+              <div><span className={styles.label}>Hội viên</span><Link href={`/admin/members/${member.id}`} className={styles.detailLink}><strong>BB-{String(member.member_number).padStart(8, '0')}</strong></Link><small>{member.full_name || 'Chưa cập nhật tên'}</small></div>
               <div><span className={styles.label}>Liên hệ</span><strong>{member.phone ?? 'Chưa có số điện thoại'}</strong><small>{member.email ?? 'Chưa có email'}</small></div>
               <div><span className={styles.label}>Ngày sinh</span><strong>{member.birthday ? formatDate(member.birthday) : 'Chưa cập nhật'}</strong></div>
               <div><span className={styles.label}>Quyền / Ngày tham gia</span><MemberRoleForm userId={member.id} role={member.role} /><small>{formatDate(member.created_at)}</small></div>

@@ -36,6 +36,7 @@ interface CartContextType {
   finalTotal: number;
   appliedVoucher: AppliedVoucher | null;
   applyVoucher: (code: string) => { success: boolean; message: string };
+  applyVoucherDetails: (voucher: AppliedVoucher) => void;
   removeVoucher: () => void;
 }
 
@@ -182,6 +183,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: false, message: 'Mã giảm giá không hợp lệ hoặc đã hết hạn.' };
   };
 
+  const applyVoucherDetails = (voucher: AppliedVoucher) => {
+    setAppliedVoucher(voucher);
+  };
+
   const removeVoucher = () => {
     setAppliedVoucher(null);
   };
@@ -202,6 +207,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         finalTotal,
         appliedVoucher,
         applyVoucher,
+        applyVoucherDetails,
         removeVoucher,
       }}
     >

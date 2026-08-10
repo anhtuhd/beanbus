@@ -115,6 +115,7 @@ export default function MenuClient({ categories, products }: MenuClientProps) {
                     alt={lang === 'en' ? product.nameEn : product.nameVi}
                     width={640}
                     height={440}
+                    unoptimized
                     loading={index === 0 ? 'eager' : 'lazy'}
                     sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw"
                     className={styles.productImg}

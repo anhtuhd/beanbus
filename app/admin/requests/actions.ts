@@ -42,6 +42,7 @@ export async function updateBookingRequestStatus(
   }
 
   revalidatePath('/admin/requests');
+  revalidatePath(`/admin/requests/${requestId}`);
   return { status: 'success', message: 'Đã cập nhật trạng thái.' };
 }
 
@@ -66,5 +67,6 @@ export async function updateCustomerRequestStatus(
   }
 
   revalidatePath('/admin/requests');
+  revalidatePath(`/admin/requests/${requestId}`);
   return { status: 'success', message: 'Đã cập nhật trạng thái.' };
 }

@@ -48,6 +48,7 @@ interface OrderContextType {
   createOrder: (orderData: Omit<Order, 'id' | 'createdAt' | 'status' | 'paymentStatus' | 'sepayCode'>) => Order;
   updateOrderStatus: (orderId: string, status: OrderStatus, paymentStatus?: PaymentStatus) => void;
   createBooking: (bookingData: Omit<Booking, 'id' | 'createdAt' | 'status'>) => Booking;
+  updateBookingStatus: (bookingId: string, status: Booking['status']) => void;
   cancelBooking: (bookingId: string) => void;
 }
 
@@ -239,6 +240,12 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     saveBookings(updated);
   };
 
+  const updateBookingStatus = (bookingId: string, status: Booking['status']) => {
+    saveBookings(bookings.map((booking) => (
+      booking.id === bookingId ? { ...booking, status } : booking
+    )));
+  };
+
   return (
     <OrderContext.Provider
       value={{
@@ -247,6 +254,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         createOrder,
         updateOrderStatus,
         createBooking,
+        updateBookingStatus,
         cancelBooking,
       }}
     >

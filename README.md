@@ -82,6 +82,10 @@ Trên Sepay Dashboard, tạo webhook `Money in` dạng JSON tới `<NEXT_PUBLIC_
 
 `SUPABASE_SECRET_KEY` cũng bắt buộc khi bật Sepay để Route Handler gọi transaction đối soát service-only. `SEPAY_API_KEY` chưa bắt buộc; chỉ cần sau này khi bật reconciliation API.
 
+## Cấu hình nạp điểm và flash-sale
+
+Stored-value tắt mặc định và cần cả hai lớp bật: `NEXT_PUBLIC_ENABLE_STORED_VALUE=true` trong deployment cùng policy tương ứng tại `/admin/stored-value`. Chỉ bật sau khi đã review chính sách điểm, quota, hoàn tiền và chạy thử Sepay; client không có nút xác nhận thanh toán, credit chỉ phát sinh từ webhook đã xác minh.
+
 ## Quality gates
 
 ```bash

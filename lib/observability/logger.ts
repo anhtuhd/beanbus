@@ -18,6 +18,9 @@ export type OperationalOperation =
   | 'create_customer_request'
   | 'create_order'
   | 'create_payment'
+  | 'archive_catalog_product'
+  | 'cancel_booking'
+  | 'cancel_customer_request'
   | 'exchange_oauth_code'
   | 'health_check'
   | 'issue_order_receipt'
@@ -29,6 +32,13 @@ export type OperationalOperation =
   | 'update_content_publication'
   | 'update_customer_request_status'
   | 'update_order_status'
+  | 'update_loyalty_policy'
+  | 'update_stored_value_policy'
+  | 'upsert_content'
+  | 'upsert_catalog_product'
+  | 'upsert_stored_value'
+  | 'upsert_voucher'
+  | 'upsert_loyalty_reward'
   | 'verify_phone_otp';
 
 export type OperationalReason =

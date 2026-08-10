@@ -34,6 +34,7 @@ export default function ProductDetailClient({ category, product }: ProductDetail
               src={product.image}
               alt={product.nameVi}
               fill
+              unoptimized
               loading="eager"
               sizes="(max-width: 800px) 100vw, 52vw"
               className={styles.image}

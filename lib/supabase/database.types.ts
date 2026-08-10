@@ -173,7 +173,7 @@ export type Database = {
           organization: string | null;
           reference_number: number;
           request_type: 'contact' | 'rsvp' | 'b2b_quote';
-          status: 'pending' | 'in_progress' | 'resolved' | 'rejected';
+          status: 'pending' | 'in_progress' | 'resolved' | 'rejected' | 'cancelled';
           subject_reference: string | null;
           updated_at: string;
           user_id: string | null;
@@ -192,7 +192,7 @@ export type Database = {
           organization?: string | null;
           reference_number?: never;
           request_type: 'contact' | 'rsvp' | 'b2b_quote';
-          status?: 'pending' | 'in_progress' | 'resolved' | 'rejected';
+          status?: 'pending' | 'in_progress' | 'resolved' | 'rejected' | 'cancelled';
           subject_reference?: string | null;
           updated_at?: string;
           user_id?: string | null;
@@ -200,7 +200,7 @@ export type Database = {
         };
         Update: {
           notification_status?: 'not_configured' | 'pending' | 'sent' | 'failed';
-          status?: 'pending' | 'in_progress' | 'resolved' | 'rejected';
+          status?: 'pending' | 'in_progress' | 'resolved' | 'rejected' | 'cancelled';
           updated_at?: string;
         };
         Relationships: [];
@@ -227,6 +227,234 @@ export type Database = {
           from_is_published: boolean;
           id: number;
           to_is_published: boolean;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      content_change_history: {
+        Row: {
+          actor_user_id: string;
+          after_data: Json;
+          before_data: Json | null;
+          content_id: string;
+          content_type: 'event' | 'blog_post';
+          created_at: string;
+          id: number;
+          operation: 'created' | 'updated';
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      loyalty_ledger: {
+        Row: {
+          actor_user_id: string | null;
+          amount_vnd: number;
+          created_at: string;
+          id: string;
+          note: string | null;
+          order_id: string | null;
+          points: number;
+          source_key: string;
+          source_type: 'order_earned' | 'order_reversal' | 'redemption' | 'manual_adjustment' | 'topup_credited' | 'flash_sale_credited';
+          voucher_code: string | null;
+          user_id: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      loyalty_policy: {
+        Row: {
+          cod_eligible: boolean;
+          earn_bps: number;
+          enabled: boolean;
+          id: boolean;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      stored_value_policy: {
+        Row: {
+          enabled: boolean;
+          flash_sale_enabled: boolean;
+          id: boolean;
+          topup_enabled: boolean;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      topup_packages: {
+        Row: {
+          amount_vnd: number;
+          created_at: string;
+          id: string;
+          is_active: boolean;
+          name_en: string;
+          name_vi: string;
+          points: number;
+          sort_order: number;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      flash_sale_campaigns: {
+        Row: {
+          created_at: string;
+          ends_at: string;
+          id: string;
+          is_active: boolean;
+          max_per_user: number | null;
+          name_en: string;
+          name_vi: string;
+          points: number;
+          price_vnd: number;
+          quota_reserved: number;
+          quota_sold: number;
+          quota_total: number | null;
+          slug: string;
+          starts_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      wallet_topups: {
+        Row: {
+          amount_vnd: number;
+          created_at: string;
+          expires_at: string;
+          id: string;
+          idempotency_key: string;
+          package_id: string;
+          paid_at: string | null;
+          points: number;
+          status: 'pending' | 'paid' | 'failed' | 'expired';
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      flash_sale_purchases: {
+        Row: {
+          amount_vnd: number;
+          campaign_id: string;
+          created_at: string;
+          expires_at: string;
+          id: string;
+          idempotency_key: string;
+          paid_at: string | null;
+          points: number;
+          reservation_released: boolean;
+          status: 'pending' | 'paid' | 'failed' | 'expired';
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      stored_value_payments: {
+        Row: {
+          account_number: string;
+          amount_vnd: number;
+          bank_code: string;
+          created_at: string;
+          expires_at: string;
+          flash_sale_purchase_id: string | null;
+          id: string;
+          paid_at: string | null;
+          payment_code: string;
+          provider: 'sepay';
+          provider_reference: string | null;
+          provider_transaction_id: number | null;
+          status: 'pending' | 'paid' | 'failed' | 'expired' | 'refunded';
+          topup_id: string | null;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      stored_value_policy_history: {
+        Row: {
+          actor_user_id: string;
+          created_at: string;
+          enabled: boolean;
+          flash_sale_enabled: boolean;
+          id: number;
+          topup_enabled: boolean;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      loyalty_policy_history: {
+        Row: {
+          actor_user_id: string;
+          cod_eligible: boolean;
+          created_at: string;
+          earn_bps: number;
+          enabled: boolean;
+          id: number;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      loyalty_rewards: {
+        Row: {
+          created_at: string;
+          discount_type: Database['public']['Enums']['discount_type'];
+          discount_value: number;
+          id: string;
+          is_active: boolean;
+          maximum_discount_vnd: number | null;
+          minimum_subtotal_vnd: number;
+          name_en: string;
+          name_vi: string;
+          points_cost: number;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      loyalty_reward_change_history: {
+        Row: {
+          actor_user_id: string;
+          after_data: Json;
+          before_data: Json | null;
+          created_at: string;
+          id: number;
+          operation: 'created' | 'updated';
+          reward_id: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      voucher_change_history: {
+        Row: {
+          actor_user_id: string;
+          after_data: Json;
+          before_data: Json | null;
+          created_at: string;
+          id: number;
+          operation: 'created' | 'updated';
+          voucher_code: string;
         };
         Insert: never;
         Update: never;
@@ -323,6 +551,38 @@ export type Database = {
           unit_price_vnd: number;
         };
         Update: Partial<Database['public']['Tables']['order_items']['Insert']>;
+        Relationships: [];
+      };
+      order_item_options: {
+        Row: {
+          extra_price_vnd: number;
+          option_id: string;
+          option_name_en: string;
+          option_name_vi: string;
+          order_item_id: string;
+        };
+        Insert: {
+          extra_price_vnd: number;
+          option_id: string;
+          option_name_en: string;
+          option_name_vi: string;
+          order_item_id: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      product_change_history: {
+        Row: {
+          actor_user_id: string;
+          after_data: Json;
+          before_data: Json | null;
+          created_at: string;
+          id: number;
+          operation: 'created' | 'updated';
+          product_id: string;
+        };
+        Insert: never;
+        Update: never;
         Relationships: [];
       };
       orders: {
@@ -535,11 +795,13 @@ export type Database = {
           minimum_subtotal_vnd: number;
           starts_at: string | null;
           updated_at: string;
+          assigned_user_id: string | null;
           usage_count: number;
           usage_limit: number | null;
         };
         Insert: {
           code: string;
+          assigned_user_id?: string | null;
           created_at?: string;
           discount_type: Database['public']['Enums']['discount_type'];
           discount_value: number;
@@ -558,6 +820,15 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      cancel_owned_booking_request: {
+        Args: {
+          p_request_id: string;
+        };
+        Returns: {
+          booking_id: string;
+          booking_status: string;
+        }[];
+      };
       create_customer_request: {
         Args: {
           p_consent_to_contact: boolean;
@@ -642,6 +913,15 @@ export type Database = {
           booking_status: string;
         }[];
       };
+      cancel_owned_customer_request: {
+        Args: {
+          p_request_id: string;
+        };
+        Returns: {
+          request_id: string;
+          request_status: string;
+        }[];
+      };
       update_customer_request_status: {
         Args: {
           p_request_id: string;
@@ -684,6 +964,29 @@ export type Database = {
           updated_product_id: string;
         }[];
       };
+      admin_upsert_product: {
+        Args: {
+          p_badge: string | null;
+          p_category_id: string;
+          p_description_en: string;
+          p_description_vi: string;
+          p_image_url: string;
+          p_is_available: boolean;
+          p_is_published: boolean;
+          p_name_en: string;
+          p_name_vi: string;
+          p_option_set_id: string | null;
+          p_price_vnd: number;
+          p_product_id: string | null;
+          p_sort_order: number;
+          p_tasting_notes: string | null;
+        };
+        Returns: { operation: 'created' | 'updated'; updated_product_id: string }[];
+      };
+      admin_archive_product: {
+        Args: { p_product_id: string };
+        Returns: { archived: boolean; archived_product_id: string }[];
+      };
       update_event_publication: {
         Args: { p_event_id: string; p_is_published: boolean };
         Returns: { updated_event_id: string; updated_is_published: boolean }[];
@@ -706,6 +1009,99 @@ export type Database = {
           receipt_token: string;
         }[];
       };
+      admin_upsert_event: {
+        Args: {
+          p_description_en: string;
+          p_description_vi: string;
+          p_ends_at: string | null;
+          p_event_id: string | null;
+          p_image_url: string;
+          p_is_featured: boolean;
+          p_is_published: boolean;
+          p_location: string;
+          p_max_seats: number | null;
+          p_slug: string;
+          p_sort_order: number;
+          p_starts_at: string;
+          p_summary_en: string;
+          p_summary_vi: string;
+          p_time_label: string;
+          p_title_en: string;
+          p_title_vi: string;
+        };
+        Returns: { operation: 'created' | 'updated'; updated_event_id: string }[];
+      };
+      admin_upsert_blog_post: {
+        Args: {
+          p_author: string;
+          p_category_en: string;
+          p_category_vi: string;
+          p_content_en: string;
+          p_content_vi: string;
+          p_cover_image_url: string;
+          p_excerpt_en: string;
+          p_excerpt_vi: string;
+          p_is_published: boolean;
+          p_post_id: string | null;
+          p_read_time_en: string;
+          p_read_time_vi: string;
+          p_slug: string;
+          p_sort_order: number;
+          p_title_en: string;
+          p_title_vi: string;
+        };
+        Returns: { operation: 'created' | 'updated'; updated_post_id: string }[];
+      };
+      get_member_loyalty_summary: {
+        Args: { p_user_id: string };
+        Returns: {
+          balance_points: number;
+          earned_points: number;
+          policy_enabled: boolean;
+          redeemed_points: number;
+          total_spent_vnd: number;
+        }[];
+      };
+      update_loyalty_policy: {
+        Args: { p_cod_eligible: boolean; p_earn_bps: number; p_enabled: boolean };
+        Returns: { updated_cod_eligible: boolean; updated_earn_bps: number; updated_enabled: boolean }[];
+      };
+      get_loyalty_policy: {
+        Args: Record<string, never>;
+        Returns: { cod_eligible: boolean; earn_bps: number; enabled: boolean; updated_at: string }[];
+      };
+      admin_upsert_voucher: {
+        Args: {
+          p_code: string;
+          p_discount_type: Database['public']['Enums']['discount_type'];
+          p_discount_value: number;
+          p_ends_at: string | null;
+          p_is_active: boolean;
+          p_maximum_discount_vnd: number | null;
+          p_minimum_subtotal_vnd: number;
+          p_starts_at: string | null;
+          p_usage_limit: number | null;
+        };
+        Returns: { operation: 'created' | 'updated'; updated_voucher_code: string }[];
+      };
+      admin_upsert_loyalty_reward: {
+        Args: {
+          p_discount_type: Database['public']['Enums']['discount_type'];
+          p_discount_value: number;
+          p_is_active: boolean;
+          p_maximum_discount_vnd: number | null;
+          p_minimum_subtotal_vnd: number;
+          p_name_en: string;
+          p_name_vi: string;
+          p_points_cost: number;
+          p_reward_id: string;
+        };
+        Returns: { operation: 'created' | 'updated'; updated_reward_id: string }[];
+      };
+      redeem_loyalty_reward: {
+        Args: { p_idempotency_key: string; p_reward_id: string };
+        Returns: { points_spent: number; voucher_code: string }[];
+      };
       process_sepay_webhook: {
         Args: {
           p_account_number: string;
@@ -722,6 +1118,124 @@ export type Database = {
           matched_order_id: string | null;
           outcome: string;
         }[];
+      };
+      get_stored_value_catalog: {
+        Args: Record<string, never>;
+        Returns: {
+          amount_vnd: number;
+          ends_at: string | null;
+          item_id: string;
+          kind: 'topup' | 'flash_sale';
+          max_per_user: number | null;
+          name_en: string;
+          name_vi: string;
+          points: number;
+          remaining_quantity: number | null;
+          starts_at: string | null;
+        }[];
+      };
+      create_topup_intent: {
+        Args: { p_idempotency_key: string; p_package_id: string };
+        Returns: {
+          amount_vnd: number;
+          expires_at: string;
+          points: number;
+          purchase_id: string;
+          purchase_status: string;
+        }[];
+      };
+      create_flash_sale_intent: {
+        Args: { p_campaign_id: string; p_idempotency_key: string };
+        Returns: {
+          amount_vnd: number;
+          expires_at: string;
+          points: number;
+          purchase_id: string;
+          purchase_status: string;
+        }[];
+      };
+      create_stored_value_payment: {
+        Args: {
+          p_account_number: string;
+          p_bank_code: string;
+          p_purchase_id: string;
+          p_purchase_type: 'topup' | 'flash_sale';
+        };
+        Returns: {
+          amount_vnd: number;
+          expires_at: string;
+          payment_code: string;
+          payment_id: string;
+          payment_status: string;
+        }[];
+      };
+      get_stored_value_purchase: {
+        Args: { p_purchase_id: string };
+        Returns: {
+          amount_vnd: number;
+          expires_at: string;
+          paid_at: string | null;
+          payment_code: string | null;
+          payment_status: string | null;
+          points: number;
+          purchase_id: string;
+          purchase_status: string;
+          purchase_type: 'topup' | 'flash_sale';
+        }[];
+      };
+      process_stored_value_webhook: {
+        Args: {
+          p_account_number: string;
+          p_code: string | null;
+          p_gateway: string;
+          p_payload: Json;
+          p_provider_transaction_id: number;
+          p_reference_code: string;
+          p_transaction_at: string;
+          p_transfer_amount: number;
+          p_transfer_type: string;
+        };
+        Returns: { matched_purchase_id: string | null; outcome: string }[];
+      };
+      get_stored_value_policy: {
+        Args: Record<string, never>;
+        Returns: { enabled: boolean; flash_sale_enabled: boolean; topup_enabled: boolean; updated_at: string }[];
+      };
+      get_admin_stored_value_catalog: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      update_stored_value_policy: {
+        Args: { p_enabled: boolean; p_flash_sale_enabled: boolean; p_topup_enabled: boolean };
+        Returns: { updated_enabled: boolean; updated_flash_sale_enabled: boolean; updated_topup_enabled: boolean }[];
+      };
+      admin_upsert_topup_package: {
+        Args: {
+          p_amount_vnd: number;
+          p_is_active: boolean;
+          p_name_en: string;
+          p_name_vi: string;
+          p_package_id: string | null;
+          p_points: number;
+          p_sort_order: number;
+        };
+        Returns: { operation: 'created' | 'updated'; updated_package_id: string }[];
+      };
+      admin_upsert_flash_sale_campaign: {
+        Args: {
+          p_campaign_id: string | null;
+          p_ends_at: string;
+          p_is_active: boolean;
+          p_max_per_user: number | null;
+          p_name_en: string;
+          p_name_vi: string;
+          p_points: number;
+          p_price_vnd: number;
+          p_quota_total: number | null;
+          p_slug: string;
+          p_starts_at: string;
+        };
+        Returns: { operation: 'created' | 'updated'; updated_campaign_id: string }[];
       };
       current_user_role: {
         Args: Record<PropertyKey, never>;

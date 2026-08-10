@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useOrders, OrderStatus } from '@/context/OrderContext';
+import React, { useRef, useState } from 'react';
+import Image from 'next/image';
+import { useOrders, type Booking, type OrderStatus } from '@/context/OrderContext';
 import { PRODUCTS, Product } from '@/data/products';
 import { useLanguage } from '@/context/LanguageContext';
 import {
@@ -12,20 +13,27 @@ import {
   DollarSign,
   Plus,
   X,
+  TriangleAlert,
 } from 'lucide-react';
+import { useDialogFocus } from '@/lib/ui/use-dialog-focus';
 import styles from './admin.module.css';
 
+type AdminTab = 'orders' | 'menu' | 'bookings';
+
 export default function AdminClient() {
-  const { orders, updateOrderStatus, bookings } = useOrders();
+  const { orders, updateOrderStatus, bookings, updateBookingStatus } = useOrders();
   const { t } = useLanguage();
 
-  const [activeTab, setActiveTab] = useState<'orders' | 'menu' | 'members' | 'bookings'>('orders');
+  const [activeTab, setActiveTab] = useState<AdminTab>('orders');
+  const tabRefs = useRef<Partial<Record<AdminTab, HTMLButtonElement | null>>>({});
   const [orderFilter, setOrderFilter] = useState<string>('all');
   // Menu state simulation
   const [menuList, setMenuList] = useState<Product[]>(PRODUCTS);
   const [newProductModal, setNewProductModal] = useState(false);
+  const newProductDialogRef = useDialogFocus<HTMLDivElement>(newProductModal, () => setNewProductModal(false));
   const [prodNameVi, setProdNameVi] = useState('');
   const [prodPrice, setProdPrice] = useState('40000');
+  const [demoActionMessage, setDemoActionMessage] = useState('');
 
   // Stats calculation
   const totalRevenue = orders
@@ -61,6 +69,26 @@ export default function AdminClient() {
     setProdNameVi('');
   };
 
+  const handleBookingStatusChange = (booking: Booking, status: Booking['status']) => {
+    updateBookingStatus(booking.id, status);
+    setDemoActionMessage(`Đã cập nhật trạng thái đặt bàn ${booking.id}.`);
+  };
+
+  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const tabs: AdminTab[] = ['orders', 'menu', 'bookings'];
+    const currentIndex = tabs.indexOf(activeTab);
+    const nextIndex = event.key === 'Home'
+      ? 0
+      : event.key === 'End'
+        ? tabs.length - 1
+        : (currentIndex + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+    const nextTab = tabs[nextIndex];
+    setActiveTab(nextTab);
+    tabRefs.current[nextTab]?.focus();
+  };
+
   return (
     <div className={`wrap ${styles.adminPage}`}>
       {/* ADMIN HEADER */}
@@ -72,7 +100,10 @@ export default function AdminClient() {
             <p>{t('Hệ thống quản lý đơn hàng, thực đơn & hội viên tập trung', 'Centralized order, menu & member management system')}</p>
           </div>
         </div>
-        <span className={styles.domainTag}>🌐 beanbus.vn Portal</span>
+        <span className={styles.demoNotice} role="status">
+          <TriangleAlert size={14} />
+          <span>{t('Chế độ demo · Dữ liệu chỉ lưu trong trình duyệt', 'Demo mode · Browser-only data')}</span>
+        </span>
       </div>
 
       {/* METRIC KPI CARDS */}
@@ -111,8 +142,16 @@ export default function AdminClient() {
       </div>
 
       {/* TABS NAVIGATION */}
-      <div className={styles.tabNav}>
+      <div className={styles.tabNav} role="tablist" aria-label={t('Khu vực quản trị', 'Admin sections')}>
         <button
+          type="button"
+          role="tab"
+          id="admin-orders-tab"
+          aria-selected={activeTab === 'orders'}
+          aria-controls="admin-orders-panel"
+          tabIndex={activeTab === 'orders' ? 0 : -1}
+          ref={(element) => { tabRefs.current.orders = element; }}
+          onKeyDown={handleTabKeyDown}
           className={`${styles.tabBtn} ${activeTab === 'orders' ? styles.tabActive : ''}`}
           onClick={() => setActiveTab('orders')}
         >
@@ -120,6 +159,14 @@ export default function AdminClient() {
         </button>
 
         <button
+          type="button"
+          role="tab"
+          id="admin-menu-tab"
+          aria-selected={activeTab === 'menu'}
+          aria-controls="admin-menu-panel"
+          tabIndex={activeTab === 'menu' ? 0 : -1}
+          ref={(element) => { tabRefs.current.menu = element; }}
+          onKeyDown={handleTabKeyDown}
           className={`${styles.tabBtn} ${activeTab === 'menu' ? styles.tabActive : ''}`}
           onClick={() => setActiveTab('menu')}
         >
@@ -127,6 +174,14 @@ export default function AdminClient() {
         </button>
 
         <button
+          type="button"
+          role="tab"
+          id="admin-bookings-tab"
+          aria-selected={activeTab === 'bookings'}
+          aria-controls="admin-bookings-panel"
+          tabIndex={activeTab === 'bookings' ? 0 : -1}
+          ref={(element) => { tabRefs.current.bookings = element; }}
+          onKeyDown={handleTabKeyDown}
           className={`${styles.tabBtn} ${activeTab === 'bookings' ? styles.tabActive : ''}`}
           onClick={() => setActiveTab('bookings')}
         >
@@ -136,7 +191,7 @@ export default function AdminClient() {
 
       {/* TAB 1: ORDER MANAGEMENT */}
       {activeTab === 'orders' && (
-        <div className={styles.tabSection}>
+        <div id="admin-orders-panel" role="tabpanel" aria-labelledby="admin-orders-tab" className={styles.tabSection}>
           <div className={styles.filterBar}>
             <span>{t('Lọc theo trạng thái:', 'Filter status:')}</span>
             <select
@@ -215,7 +270,7 @@ export default function AdminClient() {
 
       {/* TAB 2: MENU MANAGEMENT */}
       {activeTab === 'menu' && (
-        <div className={styles.tabSection}>
+        <div id="admin-menu-panel" role="tabpanel" aria-labelledby="admin-menu-tab" className={styles.tabSection}>
           <div className={styles.menuTopActions}>
             <button className="btn btn-primary" onClick={() => setNewProductModal(true)}>
               <Plus size={16} />
@@ -238,7 +293,7 @@ export default function AdminClient() {
               <tbody>
                 {menuList.map((item) => (
                   <tr key={item.id}>
-                    <td><img src={item.image} alt="" className={styles.tableImg} /></td>
+                    <td><Image src={item.image} alt="" width={56} height={56} unoptimized className={styles.tableImg} /></td>
                     <td><strong>{item.nameVi}</strong></td>
                     <td>{item.categoryId}</td>
                     <td className={styles.priceTd}>{item.price.toLocaleString('vi-VN')}đ</td>
@@ -265,7 +320,8 @@ export default function AdminClient() {
 
       {/* TAB 3: BOOKINGS MANAGEMENT */}
       {activeTab === 'bookings' && (
-        <div className={styles.tabSection}>
+        <div id="admin-bookings-panel" role="tabpanel" aria-labelledby="admin-bookings-tab" className={styles.tabSection}>
+          {demoActionMessage && <p className={styles.dashboardNotice} role="status" aria-live="polite">{demoActionMessage}</p>}
           <div className={styles.tableWrap}>
             <table className={styles.adminTable}>
               <thead>
@@ -289,9 +345,16 @@ export default function AdminClient() {
                     <td>{b.guestCount} người</td>
                     <td>{b.seatingArea}</td>
                     <td>
-                      <span className={`${styles.badge} ${styles.bgPaid}`}>
-                        {b.status.toUpperCase()}
-                      </span>
+                      <select
+                        className={styles.statusSelect}
+                        value={b.status}
+                        aria-label={`Trạng thái đặt bàn ${b.id}`}
+                        onChange={(event) => handleBookingStatusChange(b, event.target.value as Booking['status'])}
+                      >
+                        <option value="confirmed">Đã xác nhận</option>
+                        <option value="completed">Hoàn tất</option>
+                        <option value="cancelled">Đã hủy</option>
+                      </select>
                     </td>
                   </tr>
                 ))}
@@ -304,10 +367,18 @@ export default function AdminClient() {
       {/* CREATE PRODUCT MODAL */}
       {newProductModal && (
         <div className={styles.overlay} onClick={() => setNewProductModal(false)}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+          <div
+            ref={newProductDialogRef}
+            className={styles.modal}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="new-product-title"
+            tabIndex={-1}
+          >
             <div className={styles.modalHeader}>
-              <h3>{t('Thêm Sản Phẩm Mới', 'Add New Product')}</h3>
-              <button onClick={() => setNewProductModal(false)}><X size={20} /></button>
+              <h3 id="new-product-title">{t('Thêm Sản Phẩm Mới', 'Add New Product')}</h3>
+              <button type="button" aria-label={t('Đóng thêm sản phẩm', 'Close add product')} onClick={() => setNewProductModal(false)}><X size={20} /></button>
             </div>
             <form onSubmit={handleCreateProduct} className={styles.form}>
               <div className={styles.inputGroup}>

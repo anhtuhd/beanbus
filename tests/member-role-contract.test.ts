@@ -13,6 +13,7 @@ test('member role changes are admin-only, audited, and prevent self-demotion', (
   assert.match(migration, /member_role_history/i);
   assert.match(action, /await requireAdmin\(\)/);
   assert.match(action, /rpc\('update_member_role'/);
+  assert.match(action, /revalidatePath\(`\/admin\/members\/\$\{userId\}`\)/);
 });
 
 test('member directory renders a role operation control for each member', () => {

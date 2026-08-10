@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import { useOrders } from '@/context/OrderContext';
@@ -87,7 +88,7 @@ export const SepayQRModal: React.FC<Props> = ({ orderId, sepayCode, finalTotal, 
           <div className={styles.contentGrid}>
             {/* QR CODE BOX */}
             <div className={styles.qrBox}>
-              <img src={qrUrl} alt="VietQR Sepay Payment" className={styles.qrImage} />
+              <Image src={qrUrl} alt="VietQR Sepay Payment" width={320} height={320} unoptimized className={styles.qrImage} />
               <span className={styles.scanHint}>{t('Quét mã để tự điền thông tin', 'Scan to auto-fill payment')}</span>
             </div>
 

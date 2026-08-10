@@ -2,15 +2,17 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, Search } from 'lucide-react';
 import ProductStatusForm from './ProductStatusForm';
+import ProductEditorForm from './ProductEditorForm';
 import styles from '../requests/requests.module.css';
 import { requireAdmin } from '@/lib/auth/session';
+import { boundedPage } from '@/lib/pagination';
 import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 type ProductRow = Pick<
   Database['public']['Tables']['products']['Row'],
-  'id' | 'category_id' | 'name_vi' | 'name_en' | 'price_vnd' | 'image_url' |
-  'is_available' | 'is_published' | 'sort_order' | 'updated_at'
+  'id' | 'category_id' | 'option_set_id' | 'name_vi' | 'name_en' | 'description_vi' | 'description_en' |
+  'price_vnd' | 'image_url' | 'badge' | 'tasting_notes' | 'is_available' | 'is_published' | 'sort_order' | 'updated_at'
 >;
 
 type PageProps = {
@@ -43,11 +45,12 @@ export default async function AdminCatalogPage({ searchParams }: PageProps) {
   await requireAdmin();
   const params = await searchParams;
   const supabase = await createServerSupabaseClient();
-  const categoriesResult = await supabase
-    .from('catalog_categories')
-    .select('id, name_vi')
-    .order('sort_order');
+  const [categoriesResult, optionSetsResult] = await Promise.all([
+    supabase.from('catalog_categories').select('id, name_vi').order('sort_order'),
+    supabase.from('catalog_option_sets').select('id, name').order('created_at'),
+  ]);
   const categories = categoriesResult.data ?? [];
+  const optionSets = optionSetsResult.data ?? [];
   const categoryIds = new Set(categories.map((item) => item.id));
   const requestedCategory = first(params.category);
   const category = categoryIds.has(requestedCategory) ? requestedCategory : 'all';
@@ -55,12 +58,12 @@ export default async function AdminCatalogPage({ searchParams }: PageProps) {
   const state = PRODUCT_STATES.includes(requestedState) ? requestedState : 'all';
   const search = first(params.q).trim().slice(0, 80);
   const requestedPage = Number.parseInt(first(params.page), 10);
-  const page = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const page = boundedPage(requestedPage);
   const from = (page - 1) * PAGE_SIZE;
 
   let query = supabase
     .from('products')
-    .select('id, category_id, name_vi, name_en, price_vnd, image_url, is_available, is_published, sort_order, updated_at', { count: 'exact' })
+    .select('id, category_id, option_set_id, name_vi, name_en, description_vi, description_en, price_vnd, image_url, badge, tasting_notes, is_available, is_published, sort_order, updated_at', { count: 'exact' })
     .order('sort_order');
   if (category !== 'all') query = query.eq('category_id', category);
   if (state === 'published') query = query.eq('is_published', true);
@@ -80,10 +83,15 @@ export default async function AdminCatalogPage({ searchParams }: PageProps) {
         <div>
           <Link href="/admin" className={styles.backLink}><ArrowLeft size={16} /> Tổng quan</Link>
           <h1>Catalog Operations</h1>
-          <p>Giá và nội dung lấy từ catalog production; thay đổi trạng thái được ghi audit.</p>
+          <p>Giá và nội dung lấy từ catalog production; mọi thay đổi được ghi audit.</p>
         </div>
         <span className={styles.total}>{count} sản phẩm</span>
       </header>
+
+      <details className={styles.editorDetails}>
+        <summary>Thêm sản phẩm</summary>
+        <ProductEditorForm categories={categories} optionSets={optionSets} />
+      </details>
 
       <form className={styles.searchForm} action="/admin/catalog" method="get">
         <input type="hidden" name="state" value={state} />
@@ -112,7 +120,7 @@ export default async function AdminCatalogPage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      {result.error || categoriesResult.error ? (
+      {result.error || categoriesResult.error || optionSetsResult.error ? (
         <div className={styles.stateBox} role="alert">Không thể tải catalog.</div>
       ) : products.length === 0 ? (
         <div className={styles.stateBox}>Không có sản phẩm phù hợp.</div>
@@ -121,12 +129,16 @@ export default async function AdminCatalogPage({ searchParams }: PageProps) {
           {products.map((product) => (
             <article key={product.id} className={`${styles.requestRow} ${styles.catalogRow}`}>
               <div className={styles.productIdentity}>
-                <Image src={product.image_url} alt="" width={56} height={56} className={styles.productImage} />
+                <Image src={product.image_url} alt="" width={56} height={56} unoptimized className={styles.productImage} />
                 <span><strong>{product.name_vi}</strong><small>{product.name_en}</small></span>
               </div>
               <div><span className={styles.label}>Mã / Danh mục</span><strong>{product.id}</strong><small>{categoryNames.get(product.category_id) ?? product.category_id}</small></div>
               <div><span className={styles.label}>Giá canonical</span><strong>{product.price_vnd.toLocaleString('vi-VN')}đ</strong></div>
               <div><span className={styles.label}>Trạng thái</span><ProductStatusForm productId={product.id} isAvailable={product.is_available} isPublished={product.is_published} /></div>
+              <details className={styles.inlineEditor}>
+                <summary>Chỉnh sửa</summary>
+                <ProductEditorForm product={product} categories={categories} optionSets={optionSets} />
+              </details>
             </article>
           ))}
         </div>

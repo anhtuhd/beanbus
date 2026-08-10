@@ -81,6 +81,7 @@ export const ProductCustomizerModal: React.FC<Props> = ({ product, onClose }) =>
               alt={lang === 'en' ? product.nameEn : product.nameVi}
               width={90}
               height={90}
+              unoptimized
               className={styles.image}
             />
             <div className={styles.bannerInfo}>

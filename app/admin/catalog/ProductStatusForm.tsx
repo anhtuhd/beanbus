@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
-import { Check, LoaderCircle } from 'lucide-react';
+import { Archive, Check, LoaderCircle } from 'lucide-react';
 import { initialProductStatusState, updateAdminProductStatus } from './actions';
 import styles from '../requests/requests.module.css';
 
@@ -23,8 +23,12 @@ export default function ProductStatusForm({ isAvailable, isPublished, productId 
         {pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}
         <span>{pending ? 'Đang lưu' : 'Lưu'}</span>
       </button>
+      <button type="submit" name="intent" value="archive" className={styles.archiveButton} disabled={pending || (!isAvailable && !isPublished)} title="Lưu trữ sản phẩm, không xóa dữ liệu đơn cũ">
+        <Archive size={16} />
+        <span>{pending ? 'Đang lưu' : (!isAvailable && !isPublished ? 'Đã lưu trữ' : 'Lưu trữ')}</span>
+      </button>
       {state.status !== 'idle' && (
-        <span className={state.status === 'error' ? styles.actionError : styles.actionSuccess} aria-live="polite">
+        <span className={state.status === 'error' ? styles.actionError : styles.actionSuccess} role={state.status === 'error' ? 'alert' : 'status'} aria-live={state.status === 'error' ? 'assertive' : 'polite'}>
           {state.message}
         </span>
       )}

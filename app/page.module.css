@@ -1,4 +1,45 @@
 /* HERO */
+.noScriptNotice {
+  display: block;
+  padding: 12px 24px;
+  background: var(--cream-light);
+  color: var(--brown-dark);
+  text-align: center;
+  font-size: 13px;
+}
+
+:global(html.js) .noScriptNotice {
+  display: none;
+}
+
+.noScriptNotice a {
+  color: var(--orange-hover);
+  font-weight: 800;
+}
+
+.routeState {
+  min-height: 44vh;
+  display: grid;
+  align-content: center;
+  padding-top: 72px;
+  padding-bottom: 96px;
+}
+
+.routeState h1 {
+  margin: 0 0 12px;
+  color: var(--brown-dark);
+}
+
+.routeState p {
+  max-width: 560px;
+  color: var(--brown);
+}
+
+.routeStateStatus {
+  color: var(--brown-dark);
+  font-weight: 700;
+}
+
 .hero {
   position: relative;
   min-height: 88vh;

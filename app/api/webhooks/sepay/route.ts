@@ -77,17 +77,30 @@ export async function POST(request: Request) {
 
   try {
     const admin = createAdminSupabaseClient();
-    const { error } = await admin.rpc('process_sepay_webhook', {
-      p_provider_transaction_id: event.id,
-      p_gateway: event.gateway,
-      p_transaction_at: event.transactionAt,
-      p_account_number: event.accountNumber,
-      p_code: event.code,
-      p_transfer_type: event.transferType,
-      p_transfer_amount: event.transferAmount,
-      p_reference_code: event.referenceCode,
-      p_payload: rawPayload as Json,
-    });
+    const isStoredValueCode = typeof event.code === 'string' && /^B[TF][0-9]+$/i.test(event.code.trim());
+    const { error } = isStoredValueCode
+      ? await admin.rpc('process_stored_value_webhook', {
+        p_provider_transaction_id: event.id,
+        p_gateway: event.gateway,
+        p_transaction_at: event.transactionAt,
+        p_account_number: event.accountNumber,
+        p_code: event.code,
+        p_transfer_type: event.transferType,
+        p_transfer_amount: event.transferAmount,
+        p_reference_code: event.referenceCode,
+        p_payload: rawPayload as Json,
+      })
+      : await admin.rpc('process_sepay_webhook', {
+        p_provider_transaction_id: event.id,
+        p_gateway: event.gateway,
+        p_transaction_at: event.transactionAt,
+        p_account_number: event.accountNumber,
+        p_code: event.code,
+        p_transfer_type: event.transferType,
+        p_transfer_amount: event.transferAmount,
+        p_reference_code: event.referenceCode,
+        p_payload: rawPayload as Json,
+      });
     if (error) return rejectWebhook(500, correlationId, 'database_error');
   } catch {
     return rejectWebhook(500, correlationId, 'configuration_error');

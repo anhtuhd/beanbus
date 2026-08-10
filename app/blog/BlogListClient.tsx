@@ -29,11 +29,17 @@ export default function BlogListClient({ posts }: { posts: BlogPost[] }) {
       </div>
 
       <div className="wrap">
-        <div className={styles.blogGrid}>
+        {posts.length === 0 ? (
+          <div className={styles.emptyState} role="status">
+            <Clock size={32} aria-hidden="true" />
+            <h2>{t('Chưa có bài viết mới', 'No articles yet')}</h2>
+            <p>{t('Các câu chuyện và kiến thức cà phê sẽ được cập nhật tại đây.', 'New coffee stories and knowledge will appear here.')}</p>
+          </div>
+        ) : <div className={styles.blogGrid}>
           {posts.map((post, index) => (
             <article key={post.id} className={styles.postCard}>
               <div className={styles.imgBox}>
-                <Image src={post.coverImage} alt={post.titleVi} fill loading={index === 0 ? 'eager' : 'lazy'} sizes="(max-width: 768px) 100vw, 50vw" className={styles.postImg} />
+                <Image src={post.coverImage} alt={post.titleVi} fill unoptimized loading={index === 0 ? 'eager' : 'lazy'} sizes="(max-width: 768px) 100vw, 50vw" className={styles.postImg} />
                 <span className={styles.categoryBadge}>
                   {lang === 'en' ? post.categoryEn : post.categoryVi}
                 </span>
@@ -60,7 +66,7 @@ export default function BlogListClient({ posts }: { posts: BlogPost[] }) {
               </div>
             </article>
           ))}
-        </div>
+        </div>}
       </div>
     </div>
   );

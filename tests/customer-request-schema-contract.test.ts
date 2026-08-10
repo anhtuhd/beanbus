@@ -6,6 +6,10 @@ const migration = readFileSync(
   new URL('../supabase/migrations/20260809153500_customer_requests.sql', import.meta.url),
   'utf8'
 );
+const capacityMigration = readFileSync(
+  new URL('../supabase/migrations/20260810035000_rsvp_capacity.sql', import.meta.url),
+  'utf8'
+);
 
 test('customer requests are typed, consent-aware, and honest about delivery', () => {
   assert.match(migration, /request_type text not null[\s\S]*'contact'[\s\S]*'rsvp'[\s\S]*'b2b_quote'/i);
@@ -26,4 +30,14 @@ test('customer request rows are private and admin updates are constrained', () =
   assert.match(migration, /grant update \(status, notification_status, updated_at\)/i);
   assert.match(migration, /current_user_role\(\)\) = 'admin'/i);
   assert.match(migration, /grant execute on function public\.create_customer_request[\s\S]*to anon, authenticated/i);
+});
+
+test('RSVP capacity is checked under an event lock and rejects closed/full events', () => {
+  assert.match(capacityMigration, /create function public\.enforce_rsvp_capacity/i);
+  assert.match(capacityMigration, /pg_advisory_xact_lock\(hashtextextended\('event:'/i);
+  assert.match(capacityMigration, /for update/i);
+  assert.match(capacityMigration, /EVENT_CLOSED/);
+  assert.match(capacityMigration, /EVENT_FULL/);
+  assert.match(capacityMigration, /status in \('pending', 'in_progress', 'resolved'\)/i);
+  assert.match(capacityMigration, /before insert on public\.customer_requests/i);
 });
