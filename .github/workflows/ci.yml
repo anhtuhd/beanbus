@@ -101,6 +101,15 @@ jobs:
           name: pgtap-output
           path: pgtap-output.log
           if-no-files-found: error
+      - name: Publish pgTAP summary
+        if: failure()
+        run: |
+          {
+            echo '## pgTAP output'
+            echo '```text'
+            sed -n '1,260p' pgtap-output.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   live-smoke:
     if: github.event_name == 'workflow_dispatch'

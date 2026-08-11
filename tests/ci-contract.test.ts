@@ -65,4 +65,5 @@ test('CI database job starts Supabase and executes SQL checks', () => {
   assert.match(workflow, /supabase test db/);
   assert.match(workflow, /tee pgtap-output\.log/);
   assert.match(workflow, /name: pgtap-output/);
+  assert.match(workflow, /GITHUB_STEP_SUMMARY/);
 });
