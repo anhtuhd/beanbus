@@ -87,7 +87,7 @@ select is(
     60000,
     now() - interval '1 hour',
     now() + interval '1 hour',
-    1,
+    2,
     1,
     true
   )),
