@@ -19,6 +19,7 @@
 - [x] Thêm live smoke opt-in `npm run test:e2e:live`; test sẽ kiểm tra health và Google-only login trên `https://www.beanbus.store`.
 - [x] Đã chạy live smoke với quyền browser phù hợp; health pass nhưng assertion Google-only fail vì deployment production vẫn render nút `Nhận mã qua Zalo`.
 - [x] Thêm GitHub Actions manual live smoke (`workflow_dispatch`) với `production_base_url`, bắt buộc HTTPS, không yêu cầu Gmail session hay production secret.
+- [x] CI chạy tự động trên `main`, các branch `codex/**` và pull request vào `main`, tránh commit triển khai bị bỏ qua quality gate.
 - [x] `npm audit --omit=dev --audit-level=high` báo 0 vulnerability.
 - [x] Production build đã kiểm tra console/page error: không còn cảnh báo JSON-LD; cảnh báo native script chỉ xuất hiện trong React development overlay và phù hợp với khuyến nghị JSON-LD của Next.js.
 - [ ] Chạy `npm run db:lint` và `npm run db:test` trên Docker-compatible Supabase runtime (đã thử local; hiện bị `ECONNREFUSED 127.0.0.1:54322` vì chưa có Docker/Postgres).
