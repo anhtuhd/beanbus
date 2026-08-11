@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { safeRedirectPath } from '@/lib/auth/input';
 import { resolveAuthOrigin } from '@/lib/auth/origin';
+import { resolvePostAuthPath } from '@/lib/auth/redirect';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 export async function GET(request: Request) {
@@ -20,7 +21,20 @@ export async function GET(request: Request) {
     const supabase = await createServerSupabaseClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (!error) return NextResponse.redirect(new URL(next, siteUrl));
+    if (!error) {
+      const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
+      const userId = claimsData?.claims?.sub;
+      const { data: profile, error: profileError } = userId
+        ? await supabase.from('profiles').select('role').eq('id', userId).maybeSingle()
+        : { data: null, error: claimsError };
+
+      if (!claimsError && !profileError && profile) {
+        return NextResponse.redirect(new URL(resolvePostAuthPath(profile.role, next), siteUrl));
+      }
+
+      await supabase.auth.signOut();
+      return NextResponse.redirect(new URL('/login?error=profile_unavailable', siteUrl));
+    }
   }
 
   return NextResponse.redirect(new URL('/login?error=oauth_callback_failed', siteUrl));

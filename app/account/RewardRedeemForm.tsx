@@ -12,16 +12,21 @@ export default function RewardRedeemForm({ rewardId, disabled }: { rewardId: str
   const router = useRouter();
   const [state, action, pending] = useActionState(redeemMemberReward, initialRedeemState);
   const processedVoucher = useRef<string | null>(null);
+  const idempotencyKey = useRef<string | null>(null);
   const idempotencyInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (state.status !== 'success' || !state.voucherCode || processedVoucher.current === state.voucherCode) return;
     processedVoucher.current = state.voucherCode;
+    idempotencyKey.current = null;
+    if (idempotencyInput.current) idempotencyInput.current.value = '';
     router.refresh();
   }, [router, state]);
 
   const handleSubmit = () => {
-    if (idempotencyInput.current) idempotencyInput.current.value = crypto.randomUUID();
+    const key = idempotencyKey.current ?? crypto.randomUUID();
+    idempotencyKey.current = key;
+    if (idempotencyInput.current) idempotencyInput.current.value = key;
   };
 
   return (

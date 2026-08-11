@@ -47,7 +47,6 @@ const DEFAULT_USER: UserProfile = {
   points: 680000, // 680,000 points = 680,000đ value
   totalSpent: 2450000,
   joinedDate: '2025-11-10',
-  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
   role: 'member',
 };
 

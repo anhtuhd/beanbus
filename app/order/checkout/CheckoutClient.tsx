@@ -10,11 +10,14 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useOrders, PaymentMethod, OrderType } from '@/context/OrderContext';
 import { useAuth } from '@/context/AuthContext';
 import { SepayQRModal } from '@/components/ui/SepayQRModal';
+import TurnstileWidget from '@/app/login/TurnstileWidget';
 import { Bike, ShoppingBag, Clock, MapPin, QrCode, DollarSign, ShieldCheck, Store, Tag, LoaderCircle } from 'lucide-react';
 import styles from './checkout.module.css';
 
 const isProduction = process.env.NEXT_PUBLIC_APP_MODE === 'production';
 const isSepayEnabled = process.env.NEXT_PUBLIC_ENABLE_SEPAY === 'true';
+const formCaptchaSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+const formCaptchaEnabled = process.env.NEXT_PUBLIC_ENABLE_FORM_CAPTCHA === 'true' && Boolean(formCaptchaSiteKey);
 
 function getOrderErrorMessage(error: string, t: (vi: string, en: string) => string) {
   if (error === 'INVALID_CUSTOMER') return t('Vui lòng kiểm tra họ tên và số điện thoại.', 'Please check your name and phone number.');
@@ -41,6 +44,7 @@ export default function CheckoutClient() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(isProduction && !isSepayEnabled ? 'cod' : 'sepay_qr');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
   const idempotencyKey = useRef<string | null>(null);
 
   // Sepay Modal State
@@ -94,6 +98,7 @@ export default function CheckoutClient() {
             optionIds: item.selectedOptions.map((option) => option.id),
             specialNote: item.specialNote,
           })),
+          turnstileToken: formCaptchaEnabled ? turnstileToken : undefined,
         });
 
         if (!result.ok) {
@@ -347,6 +352,10 @@ export default function CheckoutClient() {
             </div>
 
             {submitError && <p className={styles.submitError} role="alert">{submitError}</p>}
+
+            {formCaptchaEnabled && formCaptchaSiteKey && (
+              <TurnstileWidget siteKey={formCaptchaSiteKey} onTokenChange={setTurnstileToken} />
+            )}
 
             <button
               type="submit"

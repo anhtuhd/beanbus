@@ -10,6 +10,7 @@ import {
   WalletCards,
   ShoppingBag,
   Coins,
+  Settings2,
 } from 'lucide-react';
 import { getAppMode } from '@/lib/env';
 import { isStoredValueConfigured } from '@/lib/stored-value/config';
@@ -25,6 +26,7 @@ const sections = [
   { href: '/admin/loyalty', label: 'Loyalty', icon: Coins },
   { href: '/admin/vouchers', label: 'Voucher', icon: Ticket },
   { href: '/admin/rewards', label: 'Rewards', icon: Gift },
+  { href: '/admin/policies', label: 'Chính sách', icon: Settings2 },
   { href: '/admin/stored-value', label: 'Stored-value', icon: WalletCards },
 ] as const;
 

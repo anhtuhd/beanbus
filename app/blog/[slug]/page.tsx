@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import Script from 'next/script';
 import BlogArticleClient from './BlogArticleClient';
 import type { BlogPost } from '@/data/events';
 import { getPublishedBlogPost } from '@/lib/content/queries';
@@ -65,7 +66,11 @@ export default async function BlogPostPage({ params }: Props) {
   };
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }} />
+      <Script
+        id="blog-jsonld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }}
+      />
       <BlogArticleClient post={post} />
       <BlogArticleNoScript post={post} />
     </>

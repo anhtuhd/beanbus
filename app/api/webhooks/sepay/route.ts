@@ -3,10 +3,12 @@ import { parseSepayWebhook, verifySepayHmac } from '@/lib/payments/sepay';
 import {
   CORRELATION_HEADER,
   createCorrelationId,
+  logOperationalEvent,
   logOperationalFailure,
   type OperationalReason,
 } from '@/lib/observability/logger';
 import { createAdminSupabaseClient } from '@/lib/supabase/admin';
+import { isStoredValueConfigured } from '@/lib/stored-value/config';
 import type { Json } from '@/lib/supabase/database.types';
 
 export const runtime = 'nodejs';
@@ -78,7 +80,10 @@ export async function POST(request: Request) {
   try {
     const admin = createAdminSupabaseClient();
     const isStoredValueCode = typeof event.code === 'string' && /^B[TF][0-9]+$/i.test(event.code.trim());
-    const { error } = isStoredValueCode
+    if (isStoredValueCode && !isStoredValueConfigured()) {
+      return rejectWebhook(404, correlationId, 'feature_disabled');
+    }
+    const result = isStoredValueCode
       ? await admin.rpc('process_stored_value_webhook', {
         p_provider_transaction_id: event.id,
         p_gateway: event.gateway,
@@ -101,7 +106,18 @@ export async function POST(request: Request) {
         p_reference_code: event.referenceCode,
         p_payload: rawPayload as Json,
       });
-    if (error) return rejectWebhook(500, correlationId, 'database_error');
+    if (result.error) return rejectWebhook(500, correlationId, 'database_error');
+    const outcome = result.data?.[0]?.outcome;
+    if (outcome !== 'processed' && outcome !== 'duplicate' && outcome !== 'rejected') {
+      return rejectWebhook(500, correlationId, 'missing_result');
+    }
+    logOperationalEvent({
+      correlationId,
+      event: 'webhook_processed',
+      level: outcome === 'rejected' ? 'warn' : 'info',
+      operation: 'process_sepay_webhook',
+      metrics: { outcome, storedValue: isStoredValueCode },
+    });
   } catch {
     return rejectWebhook(500, correlationId, 'configuration_error');
   }

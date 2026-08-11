@@ -19,6 +19,9 @@ test('Google login is provider-gated and uses a local safe callback', () => {
 test('OAuth callback exchanges the code before redirecting', () => {
   assert.match(callback, /safeRedirectPath\(requestUrl\.searchParams\.get\('next'\)\)/);
   assert.match(callback, /exchangeCodeForSession\(code\)/);
+  assert.match(callback, /supabase\.auth\.getClaims\(\)/);
+  assert.match(callback, /from\('profiles'\)\.select\('role'\)/);
+  assert.match(callback, /resolvePostAuthPath\(profile\.role, next\)/);
+  assert.match(callback, /profile_unavailable/);
   assert.match(callback, /oauth_callback_failed/);
-  assert.match(callback, /new URL\(next, siteUrl\)/);
 });

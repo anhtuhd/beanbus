@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Calendar, CheckCircle, LoaderCircle, MapPin, Sparkles, X } from 'lucide-react';
 import { createCustomerRequest } from '@/app/request-actions';
 import { useLanguage } from '@/context/LanguageContext';
@@ -79,7 +80,7 @@ export default function RsvpButton({ event }: { event: EventItem }) {
       <button className="btn btn-primary btn-sm" onClick={open}>
         {t('Yêu Cầu Tham Gia', 'Request RSVP')}
       </button>
-      {isOpen && (
+      {isOpen && typeof document !== 'undefined' && createPortal(
         <div className={styles.overlay} onClick={close}>
           <div ref={dialogRef} className={styles.modal} onClick={(clickEvent) => clickEvent.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby={`rsvp-title-${event.id}`} tabIndex={-1}>
             <div className={styles.modalHeader}>
@@ -122,7 +123,8 @@ export default function RsvpButton({ event }: { event: EventItem }) {
               </form>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

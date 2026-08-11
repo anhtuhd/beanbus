@@ -4,7 +4,14 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main]
+    branches: [main, 'codex/**']
+  workflow_dispatch:
+    inputs:
+      production_base_url:
+        description: 'Public HTTPS URL to smoke-test after deployment'
+        required: true
+        default: 'https://www.beanbus.store'
+        type: string
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -84,4 +91,61 @@ jobs:
       - name: Lint database
         run: supabase db lint --local --level warning
       - name: Run pgTAP tests
-        run: supabase test db
+        run: |
+          set -o pipefail
+          supabase test db 2>&1 | tee pgtap-output.log
+      - name: Upload pgTAP output
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pgtap-output
+          path: pgtap-output.log
+          if-no-files-found: error
+      - name: Publish pgTAP summary
+        if: failure()
+        run: |
+          {
+            echo '## pgTAP output'
+            echo '```text'
+            sed -n '1,260p' pgtap-output.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Annotate pgTAP failures
+        if: failure()
+        run: |
+          message="$(grep -E '^# Failed test|^ERROR:|^Failed [0-9]+|^  Failed tests:' pgtap-output.log | tr '\n' ' ' | cut -c1-1000 || true)"
+          if [ -n "$message" ]; then
+            message="${message//'%'/'%25'}"
+            message="${message//$'\r'/'%0D'}"
+            message="${message//$'\n'/'%0A'}"
+            echo "::error title=pgTAP failure::$message"
+          fi
+
+  live-smoke:
+    if: github.event_name == 'workflow_dispatch'
+    needs: e2e
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_BASE_URL: ${{ inputs.production_base_url }}
+      PLAYWRIGHT_LIVE: 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Use Node.js 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Production live smoke
+        run: npm run test:e2e:live
+      - name: Upload browser artifacts
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: live-smoke-test-results
+          path: test-results
+          if-no-files-found: ignore

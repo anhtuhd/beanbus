@@ -138,7 +138,7 @@
 }
 
 .tabBtn {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 700;
   font-size: 13.5px;
   background: var(--cream-light);
@@ -194,7 +194,7 @@
   background: var(--orange);
   color: #fff;
   font-size: 10.5px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 800;
   padding: 4px 10px;
   border-radius: 50px;
@@ -259,7 +259,7 @@
 }
 
 .price {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 800;
   font-size: 19px;
   color: var(--orange);

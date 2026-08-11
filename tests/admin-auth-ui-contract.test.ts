@@ -1,0 +1,15 @@
+import { readFile } from 'node:fs/promises';
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+
+const headerSource = await readFile(new URL('../components/layout/Header.tsx', import.meta.url), 'utf8');
+
+test('admin header is identified by the server-resolved profile role', () => {
+  assert.match(headerSource, /const isAdmin = user\?\.role === 'admin'/);
+  assert.match(headerSource, /isAdmin \? t\('Quản trị'/);
+});
+
+test('admin header hides member-only tier and points affordances', () => {
+  assert.match(headerSource, /!isAdmin && user\?\.points !== undefined/);
+  assert.match(headerSource, /isAdmin \? '\/admin' : isLoggedIn \? '\/account'/);
+});

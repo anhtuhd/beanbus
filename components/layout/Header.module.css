@@ -29,6 +29,11 @@
   align-items: center;
 }
 
+.logoImage {
+  width: 166px;
+  height: 31px;
+}
+
 .logoBox {
   display: flex;
   align-items: center;
@@ -50,7 +55,7 @@
 }
 
 .brandName {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 900;
   font-size: 20px;
   letter-spacing: 1px;
@@ -59,7 +64,7 @@
 }
 
 .brandSub {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-size: 8.5px;
   font-weight: 700;
   letter-spacing: 2px;
@@ -82,7 +87,7 @@
 }
 
 .navLink {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 600;
   font-size: 14px;
   color: var(--brown-dark);
@@ -148,8 +153,12 @@
   transform: translateX(-50%) translateY(0);
 }
 
+.navDropdownWrapper[data-keyboard-open='true'] .dropdownMenu {
+  transition: none;
+}
+
 .dropdownItem {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-poppins), sans-serif;
   font-size: 14px;
   font-weight: 500;
   color: var(--brown-dark);
@@ -181,7 +190,7 @@
   border: 1.5px solid var(--brown);
   border-radius: 50px;
   overflow: hidden;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 700;
   font-size: 12px;
 }
@@ -229,7 +238,7 @@
   color: #fff;
   font-size: 11px;
   font-weight: 800;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -254,7 +263,7 @@
   border: 1px solid rgba(134, 114, 103, 0.2);
   padding: 8px 14px;
   border-radius: 50px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-size: 12.5px;
   font-weight: 700;
   color: var(--brown-dark);
@@ -313,14 +322,14 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 700;
   font-size: 14px;
   color: var(--orange);
 }
 
 .userPoints {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-poppins), sans-serif;
   font-size: 12px;
   color: var(--brown);
   margin-top: 4px;
@@ -330,7 +339,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-poppins), sans-serif;
   font-size: 14px;
   font-weight: 500;
   color: var(--brown-dark);
@@ -381,7 +390,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-size: 18px;
   font-weight: 700;
   color: var(--brown-dark);
@@ -400,7 +409,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-poppins), sans-serif;
   font-size: 16px;
   color: var(--brown-dark);
   padding: 12px 16px;
@@ -447,6 +456,11 @@
 }
 
 @media (max-width: 640px) {
+  .logoImage {
+    width: 142px;
+    height: 27px;
+  }
+
   .quickOrder {
     display: none;
   }

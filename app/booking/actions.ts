@@ -5,6 +5,7 @@ import { getAppMode } from '@/lib/env';
 import { logOperationalFailure } from '@/lib/observability/logger';
 import { getRequestCorrelationId } from '@/lib/observability/request';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { verifyFormCaptcha } from '@/lib/security/turnstile';
 
 export type CreateBookingResult =
   | {
@@ -22,6 +23,22 @@ export async function createProductionBooking(input: unknown): Promise<CreateBoo
 
   const parsed = parseBookingRequestInput(input);
   if (!parsed.ok) return parsed;
+
+  const captcha = await verifyFormCaptcha(input);
+  if (!captcha.ok) {
+    const correlationId = await getRequestCorrelationId();
+    logOperationalFailure({
+      correlationId,
+      event: 'booking_failed',
+      operation: 'create_booking',
+      reason: captcha.reason,
+    });
+    return {
+      ok: false,
+      error: captcha.reason === 'configuration_error' ? 'BOT_CHECK_UNAVAILABLE' : 'BOT_CHECK_FAILED',
+      reference: captcha.reason === 'configuration_error' ? correlationId : undefined,
+    };
+  }
 
   const correlationId = await getRequestCorrelationId();
   const supabase = await createServerSupabaseClient();

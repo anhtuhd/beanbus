@@ -85,7 +85,7 @@
   border: 1.5px solid rgba(134, 114, 103, 0.15);
   border-radius: 12px;
   padding: 12px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 700;
   font-size: 13.5px;
   color: var(--brown-dark);
@@ -246,7 +246,7 @@
 }
 
 .itemPrice {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 800;
   color: var(--orange);
 }

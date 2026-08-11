@@ -65,9 +65,11 @@ NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=false
 
 Phone OTP của Beanbus được gửi bằng ZBS Template Message trong ứng dụng Zalo, không phải SMS nhà mạng. Giữ cờ `false` trong lúc deploy migration, Edge Function, Vault, Auth Hook và Turnstile; chỉ bật sau khi staging vượt qua smoke test. Xem checklist và runbook tại [`docs/zalo-otp-runbook.md`](docs/zalo-otp-runbook.md).
 
-Để bật Google, cấu hình Google Client ID/Secret trong Supabase Auth, thêm `<NEXT_PUBLIC_SITE_URL>/auth/callback` vào danh sách redirect URL cho phép, rồi đổi `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=true`.
+Giai đoạn kiểm thử hiện tại dùng Google-only: giữ `NEXT_PUBLIC_ENABLE_PHONE_AUTH=false` và đặt `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=true` sau khi cấu hình provider. Cấu hình Google Client ID/Secret trong Supabase Auth, thêm `<NEXT_PUBLIC_SITE_URL>/auth/callback` vào danh sách redirect URL cho phép, rồi kiểm tra callback bằng một Gmail test.
 
 Credential Zalo, Turnstile secret và Google chỉ nhập trong Supabase Dashboard hoặc secret store của môi trường triển khai; không đưa chúng vào `.env.local`, biến `NEXT_PUBLIC_*`, chat hay commit. `NEXT_PUBLIC_TURNSTILE_SITE_KEY` là ngoại lệ vì site key được thiết kế để công khai.
+
+Các form booking/contact/checkout có thể bật thêm `NEXT_PUBLIC_ENABLE_FORM_CAPTCHA=true`. Khi bật, giữ `NEXT_PUBLIC_TURNSTILE_SITE_KEY` ở Vercel và `TURNSTILE_SECRET_KEY` ở server secret store; server sẽ xác minh từng token với Cloudflare trước khi ghi dữ liệu.
 
 ## Cấu hình Sepay
 
@@ -75,6 +77,7 @@ Sepay tắt mặc định. Khi đã có tài khoản ngân hàng liên kết, đ
 
 ```dotenv
 NEXT_PUBLIC_ENABLE_SEPAY=true
+NEXT_PUBLIC_ENABLE_SEPAY_RECONCILIATION=false
 SEPAY_WEBHOOK_SECRET=
 SEPAY_BANK_CODE=
 SEPAY_BANK_ACCOUNT=
@@ -83,7 +86,9 @@ SEPAY_ACCOUNT_NAME=
 
 Trên Sepay Dashboard, tạo webhook `Money in` dạng JSON tới `https://www.beanbus.store/hooks/payment`, chọn `HMAC-SHA256`, và dùng cùng `SEPAY_WEBHOOK_SECRET`. Mã thanh toán của đơn mới có dạng `DH_<mã hóa đơn>` như `DH_123`; không chọn chế độ không xác thực ở production. Contract HMAC và payload bám theo [tài liệu xác thực webhook](https://developer.sepay.vn/en/sepay-webhooks/xac-thuc) và [tài liệu tích hợp webhook](https://developer.sepay.vn/en/sepay-webhooks/tich-hop-webhook).
 
-`SUPABASE_SECRET_KEY` cũng bắt buộc khi bật Sepay để Route Handler gọi transaction đối soát service-only. `SEPAY_API_KEY` chưa bắt buộc; chỉ cần sau này khi bật reconciliation API.
+`SUPABASE_SECRET_KEY` cũng bắt buộc khi bật Sepay để Route Handler gọi transaction service-only. `SEPAY_API_KEY` và `CRON_SECRET` chỉ nhập khi bật `NEXT_PUBLIC_ENABLE_SEPAY_RECONCILIATION=true`; reconciliation chạy server-only theo lịch và không thay thế HMAC webhook.
+
+Voucher được giữ quota ở trạng thái reservation khi tạo đơn, consume khi SePay đã paid hoặc COD completed, và release một lần khi đơn hủy hoặc thanh toán SePay hết hạn/thất bại. Chính sách hoàn voucher sau refund vẫn cần chủ dự án phê duyệt trước khi migrate production.
 
 ## Cấu hình nạp điểm và flash-sale
 

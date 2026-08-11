@@ -2,9 +2,11 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useLanguage } from '@/context/LanguageContext';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
-import { Coffee, MapPin, Phone, Clock, Mail } from 'lucide-react';
+import { MapPin, Phone, Clock, Mail } from 'lucide-react';
+import { BRAND_ASSETS } from '@/lib/brand/assets';
 import styles from './Footer.module.css';
 
 export const Footer: React.FC = () => {
@@ -18,13 +20,13 @@ export const Footer: React.FC = () => {
         {/* TOP SECTION */}
         <div className={styles.top}>
           <div className={styles.brandCol}>
-            <div className={styles.logo}>
-              <Coffee size={28} className={styles.logoIcon} />
-              <div className={styles.logoText}>
-                <span className={styles.brandName}>BEANBUS</span>
-                <span className={styles.brandSub}>COFFEE ROASTER</span>
-              </div>
-            </div>
+            <Image
+              src={BRAND_ASSETS.logoLight}
+              alt="Beanbus Coffee Roaster"
+              width={190}
+              height={36}
+              className={styles.logoImage}
+            />
             <p className={styles.tagline}>Brew Better Every Day</p>
             <p className={styles.desc}>
               {t(

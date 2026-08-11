@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import Script from 'next/script';
 import ProductDetailClient from './ProductDetailClient';
 import { CATEGORIES, PRODUCTS, type Category, type Product } from '@/data/products';
 import { getCatalog, getCatalogProduct } from '@/lib/catalog/queries';
@@ -81,7 +82,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }} />
+      <Script
+        id="product-jsonld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }}
+      />
       <ProductDetailClient product={product} category={category} />
       <ProductDetailNoScript product={product} category={category} />
     </>

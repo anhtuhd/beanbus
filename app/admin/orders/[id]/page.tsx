@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import styles from '../../requests/requests.module.css';
 import detailStyles from '../../../account/account.module.css';
 import OrderStatusForm from '../OrderStatusForm';
+import RefundOrderForm from '../RefundOrderForm';
 import { requireAdmin } from '@/lib/auth/session';
 import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
@@ -38,6 +39,7 @@ const PAYMENT_STATUS_LABEL: Record<string, string> = {
   paid: 'Đã thanh toán',
   failed: 'Thanh toán lỗi',
   expired: 'Hết hạn',
+  refunded: 'Đã hoàn tiền',
 };
 
 function formatDate(value: string | null): string {
@@ -89,7 +91,10 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
           <h1>Đơn #{order.order_number}</h1>
           <p>Tạo lúc {formatDate(order.created_at)}</p>
         </div>
-        <OrderStatusForm orderId={order.id} currentStatus={order.status} paymentMethod={order.payment_method} paymentStatus={order.payment_status} />
+        <div>
+          <OrderStatusForm orderId={order.id} currentStatus={order.status} paymentMethod={order.payment_method} paymentStatus={order.payment_status} />
+          {order.payment_method === 'sepay_qr' && order.payment_status === 'paid' && <RefundOrderForm orderId={order.id} amountVnd={order.total_vnd} />}
+        </div>
       </header>
 
       {dataError && <div className={styles.stateBox} role="alert">Một phần chi tiết đơn hàng chưa thể tải.</div>}

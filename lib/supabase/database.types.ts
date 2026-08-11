@@ -218,6 +218,78 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      commerce_policy: {
+        Row: {
+          id: boolean;
+          loyalty_reverse_on_cancel: boolean;
+          loyalty_reverse_on_refund: boolean;
+          refund_enabled: boolean;
+          refund_window_hours: number;
+          updated_at: string;
+          updated_by: string | null;
+          voucher_on_cancel: 'release' | 'consume';
+          voucher_on_refund: 'release' | 'consume';
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      commerce_policy_history: {
+        Row: {
+          actor_user_id: string;
+          created_at: string;
+          id: number;
+          loyalty_reverse_on_cancel: boolean;
+          loyalty_reverse_on_refund: boolean;
+          refund_enabled: boolean;
+          refund_window_hours: number;
+          voucher_on_cancel: 'release' | 'consume';
+          voucher_on_refund: 'release' | 'consume';
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      order_refund_history: {
+        Row: {
+          actor_user_id: string;
+          amount_vnd: number;
+          created_at: string;
+          id: number;
+          order_id: string;
+          payment_id: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      sepay_reconciliation_events: {
+        Row: {
+          payment_id: string | null;
+          payload: Json;
+          processed_at: string | null;
+          provider_transaction_key: string;
+          reason: string | null;
+          received_at: string;
+          status: 'received' | 'processed' | 'rejected';
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      sepay_reconciliation_state: {
+        Row: {
+          cursor_at: string | null;
+          cursor_key: string | null;
+          id: boolean;
+          lease_key: string | null;
+          lease_until: string | null;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       content_publication_history: {
         Row: {
           actor_user_id: string;
@@ -817,6 +889,20 @@ export type Database = {
         Update: Partial<Database['public']['Tables']['vouchers']['Insert']>;
         Relationships: [];
       };
+      voucher_reservations: {
+        Row: {
+          consumed_at: string | null;
+          order_id: string;
+          released_at: string | null;
+          reserved_at: string;
+          status: 'reserved' | 'consumed' | 'released';
+          updated_at: string;
+          voucher_code: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -942,6 +1028,40 @@ export type Database = {
           updated_order_status: Database['public']['Enums']['order_status'];
         }[];
       };
+      get_commerce_policy: {
+        Args: Record<string, never>;
+        Returns: {
+          loyalty_reverse_on_cancel: boolean;
+          loyalty_reverse_on_refund: boolean;
+          refund_enabled: boolean;
+          refund_window_hours: number;
+          updated_at: string;
+          voucher_on_cancel: 'release' | 'consume';
+          voucher_on_refund: 'release' | 'consume';
+        }[];
+      };
+      update_commerce_policy: {
+        Args: {
+          p_loyalty_reverse_on_cancel: boolean;
+          p_loyalty_reverse_on_refund: boolean;
+          p_refund_enabled: boolean;
+          p_refund_window_hours: number;
+          p_voucher_on_cancel: 'release' | 'consume';
+          p_voucher_on_refund: 'release' | 'consume';
+        };
+        Returns: {
+          updated_loyalty_reverse_on_cancel: boolean;
+          updated_loyalty_reverse_on_refund: boolean;
+          updated_refund_enabled: boolean;
+          updated_refund_window_hours: number;
+          updated_voucher_on_cancel: 'release' | 'consume';
+          updated_voucher_on_refund: 'release' | 'consume';
+        }[];
+      };
+      refund_order_payment: {
+        Args: { p_order_id: string };
+        Returns: { refunded_amount_vnd: number; refunded_order_id: string }[];
+      };
       update_member_role: {
         Args: {
           p_role: Database['public']['Enums']['app_role'];
@@ -1062,6 +1182,25 @@ export type Database = {
           total_spent_vnd: number;
         }[];
       };
+      get_member_requests: {
+        Args: { p_page: number; p_page_size: number; p_user_id: string };
+        Returns: {
+          created_at: string;
+          id: string;
+          kind: string;
+          notification_status: string;
+          reference_number: number;
+          request_type: string;
+          reservation_at: string | null;
+          status: string;
+          subject_reference: string | null;
+          total_count: number;
+        }[];
+      };
+      get_member_request_count: {
+        Args: { p_user_id: string };
+        Returns: number;
+      };
       update_loyalty_policy: {
         Args: { p_cod_eligible: boolean; p_earn_bps: number; p_enabled: boolean };
         Returns: { updated_cod_eligible: boolean; updated_earn_bps: number; updated_enabled: boolean }[];
@@ -1118,6 +1257,40 @@ export type Database = {
           matched_order_id: string | null;
           outcome: string;
         }[];
+      };
+      process_sepay_reconciliation: {
+        Args: {
+          p_account_number: string;
+          p_code: string;
+          p_content: string;
+          p_gateway: string;
+          p_payload: Json;
+          p_provider_transaction_key: string;
+          p_reference_code: string;
+          p_transaction_at: string;
+          p_transfer_amount: number;
+          p_transfer_type: string;
+        };
+        Returns: {
+          matched_order_id: string | null;
+          outcome: string;
+        }[];
+      };
+      acquire_sepay_reconciliation_lease: {
+        Args: { p_lease_key: string };
+        Returns: boolean;
+      };
+      complete_sepay_reconciliation: {
+        Args: { p_cursor_at: string; p_cursor_key: string; p_lease_key: string };
+        Returns: undefined;
+      };
+      release_sepay_reconciliation_lease: {
+        Args: { p_lease_key: string };
+        Returns: undefined;
+      };
+      expire_pending_sepay_payments: {
+        Args: Record<string, never>;
+        Returns: number;
       };
       get_stored_value_catalog: {
         Args: Record<string, never>;

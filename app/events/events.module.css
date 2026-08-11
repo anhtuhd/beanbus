@@ -349,7 +349,7 @@
 
 .reference strong {
   color: var(--orange-hover);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
 }
 
 .consentRow {

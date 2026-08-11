@@ -85,8 +85,8 @@ test('loyalty summary is ledger-backed and policy-gated', () => {
   assert.match(page, /voucherPage=\{accountData\.voucherPage\}/);
   assert.match(page, /voucherTotalPages=\{accountData\.voucherTotalPages\}/);
   assert.match(query, /from\('loyalty_rewards'\)/);
-  assert.match(query, /from\('booking_requests'\)/);
-  assert.match(query, /from\('customer_requests'\)/);
+  assert.match(query, /rpc\('get_member_requests'/);
+  assert.match(query, /rpc\('get_member_request_count'/);
   assert.match(query, /requests: MemberRequest\[\]/);
 });
 
@@ -157,10 +157,10 @@ test('member vouchers can be sent to the cart while server checkout remains auth
   assert.match(cartClient, /role="status"/);
 });
 
-test('member reward redemption rotates idempotency keys between successful attempts', () => {
+test('member reward redemption keeps a key through retries and rotates after success', () => {
   const rewardForm = readFileSync('app/account/RewardRedeemForm.tsx', 'utf8');
-  assert.match(rewardForm, /crypto\.randomUUID\(\)/);
-  assert.match(rewardForm, /idempotencyInput\.current\.value = crypto\.randomUUID\(\)/);
+  assert.match(rewardForm, /const idempotencyKey = useRef<string \| null>\(null\)/);
+  assert.match(rewardForm, /const key = idempotencyKey\.current \?\? crypto\.randomUUID\(\)/);
+  assert.match(rewardForm, /idempotencyKey\.current = null/);
   assert.match(rewardForm, /onSubmit=\{handleSubmit\}/);
-  assert.doesNotMatch(rewardForm, /stableUuid/);
 });

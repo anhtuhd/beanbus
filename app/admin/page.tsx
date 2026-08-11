@@ -1,12 +1,14 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import type { ReactNode } from 'react';
-import { AlertTriangle, CalendarClock, Coffee, FileText, Inbox, ShieldCheck, ShoppingBag, Users, Coins, Ticket, Gift } from 'lucide-react';
+import { AlertTriangle, CalendarClock, Coffee, FileText, Inbox, ShoppingBag, Users, Coins, Ticket, Gift, Settings2 } from 'lucide-react';
 import AdminClient from './AdminClient';
 import styles from './admin.module.css';
 import { getAppMode } from '@/lib/env';
 import { requireAdmin } from '@/lib/auth/session';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { isStoredValueConfigured } from '@/lib/stored-value/config';
+import { BRAND_ASSETS } from '@/lib/brand/assets';
 
 function KpiCard({ label, value, icon, href }: { label: string; value: number; icon: ReactNode; href?: string }) {
   const content = (
@@ -44,7 +46,13 @@ export default async function AdminDashboardPage() {
     <div className={`wrap ${styles.adminPage}`}>
       <div className={styles.adminBanner}>
         <div className={styles.adminTitleBox}>
-          <ShieldCheck size={32} className={styles.shieldIcon} />
+          <Image
+            src={BRAND_ASSETS.logoLight}
+            alt="Beanbus Coffee Roaster"
+            width={180}
+            height={34}
+            className={styles.adminLogo}
+          />
           <div>
             <h1>Beanbus Operations</h1>
             <p>Quản lý dữ liệu production qua các luồng được phân quyền.</p>
@@ -59,6 +67,7 @@ export default async function AdminDashboardPage() {
           <Link href="/admin/loyalty" className="btn btn-dark btn-sm"><Coins size={16} /> Loyalty</Link>
           <Link href="/admin/vouchers" className="btn btn-dark btn-sm"><Ticket size={16} /> Vouchers</Link>
           <Link href="/admin/rewards" className="btn btn-dark btn-sm"><Gift size={16} /> Rewards</Link>
+          <Link href="/admin/policies" className="btn btn-dark btn-sm"><Settings2 size={16} /> Chính sách</Link>
           {storedValueConfigured && <Link href="/admin/stored-value" className="btn btn-dark btn-sm"><Coins size={16} /> Stored-value</Link>}
         </div>
       </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import Script from 'next/script';
 import EventDetailClient from './EventDetailClient';
 import type { EventItem } from '@/data/events';
 import { getPublishedEvent } from '@/lib/content/queries';
@@ -55,7 +56,11 @@ export default async function EventDetailPage({ params }: Props) {
   };
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }} />
+      <Script
+        id="event-jsonld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }}
+      />
       <EventDetailClient event={event} />
       <EventDetailNoScript event={event} />
     </>
