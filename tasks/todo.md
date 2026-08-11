@@ -104,8 +104,9 @@
 - [ ] Chạy live smoke số tiền nhỏ và kiểm tra amount/account/code/direction/timestamp.
 - [ ] Replay cùng provider event và xác nhận không có side effect lần hai.
 - [ ] Cấu hình IP allowlist cho webhook ở lớp edge/firewall phù hợp.
-- [ ] Cấp SePay API v2 token trong secret store khi owner quyết định bật reconciliation, không dùng API v1 cho integration mới.
-- [x] Thêm job reconciliation mỗi 15 phút với API v2, text provider key, lease, cursor/checkpoint, idempotent replay và structured event counters; migration hosted đã áp dụng, token và alert wiring còn chờ.
+- [x] Cấp SePay API v2 token và tạo `CRON_SECRET` dạng Hidden trong Vercel Production; không ghi secret vào repository.
+- [x] Thêm job reconciliation mỗi 15 phút với API v2, text provider key, lease, cursor/checkpoint, idempotent replay và structured event counters; migration hosted đã áp dụng.
+- [ ] Nâng Vercel lên Pro hoặc cấu hình external scheduler tương đương; Hobby không cho cron `*/15 * * * *`, nên giữ reconciliation flag tắt để không bỏ sót giao dịch.
 - [x] Reconciliation không tiến checkpoint qua transaction mang mã Beanbus nhưng malformed; giao dịch ngân hàng không liên quan vẫn được bỏ qua an toàn.
 - [x] Cleanup pending SePay payment hết hạn và nối với voucher release; pending COD timeout còn chờ policy.
 - [x] Bổ sung structured events cho webhook outcome, signature/webhook failure và reconciliation completion/gap; không log payload/token/PII.
@@ -153,5 +154,5 @@
 - [ ] Xác nhận hai mã `BEANBUS10`, `WELCOMEVIP`: live hay phải tắt.
 - [ ] Chính sách loyalty/COD/refund/voucher reuse bằng văn bản ngắn hoặc chỉnh trực tiếp trong `/admin/policies` sau khi bootstrap admin.
 - [ ] Kênh nhận thông báo booking/contact của nhân viên.
-- [ ] SePay API v2 token nhập trực tiếp vào secret store khi bắt đầu reconciliation.
+- [x] SePay API v2 token và `CRON_SECRET` đã nhập trực tiếp vào Vercel Production secret store; reconciliation vẫn chờ scheduler phù hợp.
 - [ ] Privacy policy, terms, logo và ảnh có quyền sử dụng.
