@@ -25,7 +25,7 @@
 - [ ] Chạy `npm run db:lint` và `npm run db:test` trên Docker-compatible Supabase runtime (đã thử local; hiện bị `ECONNREFUSED 127.0.0.1:54322` vì chưa có Docker/Postgres).
 - [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; đủ 37 migration local khớp remote tới `20260811050000`.
 - [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration sửa loyalty/content/SePay/flash-sale warning; advisor multiple-permissive-policy vẫn là backlog maintainability.
-- [ ] GitHub database job `31460799996` fail ở bước pgTAP; quality và E2E pass nhưng log assertion chi tiết chưa truy cập được qua API public. Run mới `31461044708` đang chạy.
+- [ ] GitHub database job `31461207779` fail ở bước pgTAP; quality và E2E pass. Artifact `pgtap-output` đã được upload, cần đọc assertion cụ thể để đóng gate.
 
 ## 0. Tạm dừng Phone OTP/Zalo
 
