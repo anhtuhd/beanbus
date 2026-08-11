@@ -62,7 +62,7 @@
 ## 2. P0 - Sửa loyalty và voucher
 
 - [x] Tạo forward migration để reversal loyalty chạy kể cả policy hiện đã disabled hoặc `earn_bps=0`.
-- [x] Thêm pgTAP: earn -> disable policy -> cancel; duplicate transition không reverse hai lần. Runtime execution vẫn chờ Docker/Supabase.
+- [x] Thêm pgTAP: earn -> disable policy -> cancel; duplicate transition không reverse hai lần. GitHub database job đã chạy trên Postgres ephemeral và pass; local Docker runtime vẫn chưa có.
 - [x] Implement local lifecycle `reserved/consumed/released` với reservation ledger và audit state.
 - [x] Mặc định local: reserve khi tạo đơn; consume khi SePay paid hoặc COD completed; release một lần khi cancel/payment failed/expired.
 - [x] Cleanup pending SePay payment hết hạn nối với order payment failed và voucher release.
@@ -77,8 +77,8 @@
 
 - [x] Client giữ nguyên redemption idempotency key qua retry; chỉ rotate sau success đã xác nhận.
 - [x] RPC forward migration chỉ trả duplicate redemption khi `source_key` và `user_id` cùng khớp; khác user trả conflict không lộ voucher code.
-- [ ] Thêm behavioral test mô phỏng request commit nhưng response bị mất.
-- [x] Thêm pgTAP cho retry cùng user và collision key khác user; runtime execution còn chờ Postgres.
+- [x] Behavioral retry được mô phỏng bằng repeated RPC với cùng idempotency key: trả lại voucher cũ và không tạo ledger/voucher thứ hai; case cross-user collision cũng được kiểm tra.
+- [x] Thêm pgTAP cho retry cùng user và collision key khác user; GitHub database job đã pass, còn hosted member smoke/RLS cần tài khoản thật.
 - [x] Cập nhật contract test để yêu cầu key ổn định qua retry thay vì UUID mới ở mọi submit.
 
 ## 4. Reconcile và kiểm thử Supabase
@@ -112,7 +112,7 @@
 
 ## 6. Hội viên và admin còn thiếu
 
-- [x] Sửa account request pagination bằng RPC `UNION ALL`, stable ordering, page bounds, indexes và total count; pgTAP runtime còn chờ Postgres.
+- [x] Sửa account request pagination bằng RPC `UNION ALL`, stable ordering, page bounds, indexes và total count; pgTAP/CI đã pass, còn hosted RLS smoke cần tài khoản thật.
 - [ ] Test hosted account: profile, order detail/reorder, request cancel, loyalty history, reward, voucher ownership.
 - [ ] Test hosted admin: dashboard, orders, requests, catalog, content, members, role, loyalty, vouchers, rewards.
 - [x] Viết runbook first-admin, revoke role, audit role changes và account recovery; owner execution/sign-off còn chờ hosted access.
@@ -138,7 +138,7 @@
 - [ ] Không còn finding P0/P1 mở.
 - [ ] Phone/Zalo và stored-value xác nhận vẫn tắt ở UI lẫn remote execution; Zalo cron đã xác nhận `0`, còn Auth Provider/Hook và Vercel flags cần owner kiểm tra.
 - [ ] Google login/logout/profile/admin role smoke pass bằng tài khoản thật.
-- [ ] Lint, typecheck, 239/239 unit-contract tests, build, pgTAP và focused E2E đã xanh; còn thiếu hosted Google/RLS smoke và owner sign-off.
+- [x] Lint, typecheck, 239/239 unit-contract tests, build, pgTAP và focused E2E đã xanh trên local/GitHub; còn thiếu hosted Google/RLS smoke và owner sign-off.
 - [ ] Sepay webhook + reconciliation live smoke pass nếu bật payment.
 - [ ] Monitoring, backup, rollback và incident contacts đã được thử.
 - [ ] Owner ký xác nhận staging ở desktop/mobile.
