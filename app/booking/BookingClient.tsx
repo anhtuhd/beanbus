@@ -5,10 +5,13 @@ import { createProductionBooking } from './actions';
 import { useLanguage } from '@/context/LanguageContext';
 import { withSupportReference } from '@/lib/observability/support-reference';
 import { useOrders } from '@/context/OrderContext';
+import TurnstileWidget from '@/app/login/TurnstileWidget';
 import { Armchair, Calendar, CalendarDays, CheckCircle, Coffee, LoaderCircle, MapPin, Snowflake, Sparkles, Trees, Users } from 'lucide-react';
 import styles from './booking.module.css';
 
 const isProduction = process.env.NEXT_PUBLIC_APP_MODE === 'production';
+const formCaptchaSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+const formCaptchaEnabled = process.env.NEXT_PUBLIC_ENABLE_FORM_CAPTCHA === 'true' && Boolean(formCaptchaSiteKey);
 
 type BookingReceipt = {
   date: string;
@@ -33,6 +36,7 @@ export default function BookingPage() {
   const [consentToContact, setConsentToContact] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
   const idempotencyKey = useRef<string | null>(null);
 
   const [confirmedBooking, setConfirmedBooking] = useState<BookingReceipt | null>(null);
@@ -56,6 +60,7 @@ export default function BookingPage() {
           seatingArea,
           note,
           consentToContact,
+          turnstileToken: formCaptchaEnabled ? turnstileToken : undefined,
         });
         if (!result.ok) {
           setSubmitError(withSupportReference(
@@ -106,6 +111,7 @@ export default function BookingPage() {
     idempotencyKey.current = null;
     setConfirmedBooking(null);
     setSubmitError('');
+    setTurnstileToken('');
   };
 
   const availableTimes = ['08:00', '09:30', '11:00', '14:00', '15:30', '17:00', '19:00', '20:30'];
@@ -312,6 +318,10 @@ export default function BookingPage() {
               </label>
 
               {submitError && <p className={styles.submitError} role="alert">{submitError}</p>}
+
+              {formCaptchaEnabled && formCaptchaSiteKey && (
+                <TurnstileWidget siteKey={formCaptchaSiteKey} onTokenChange={setTurnstileToken} />
+              )}
 
               <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }} disabled={isSubmitting}>
                 {isSubmitting ? <LoaderCircle size={18} className={styles.spinner} /> : <Sparkles size={18} />}

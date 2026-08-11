@@ -43,12 +43,16 @@ test('Zalo hook verifies Standard Webhooks and stays inside the provider timeout
 
 test('database migration limits phone and token mutations to trusted code', async () => {
   const migration = await source('supabase/migrations/20260810120000_zalo_otp_auth.sql');
+  const pauseMigration = await source('supabase/migrations/20260811034000_pause_zalo_phone_auth.sql');
 
   assert.match(migration, /revoke update \(phone\) on public\.profiles from authenticated/);
   assert.match(migration, /grant execute on function public\.get_zalo_access_token\(\) to service_role/);
   assert.match(migration, /phone_change_sent_at < now\(\) - interval '15 minutes'/);
   assert.match(migration, /beanbus-refresh-zalo-token/);
   assert.match(migration, /'17 \*\/12 \* \* \*'/);
+  assert.match(pauseMigration, /beanbus-clear-stale-phone-changes/);
+  assert.match(pauseMigration, /beanbus-refresh-zalo-token/);
+  assert.match(pauseMigration, /cron\.unschedule/);
 });
 
 test('refresh worker authenticates cron and releases a failed token lease', async () => {

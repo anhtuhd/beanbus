@@ -68,7 +68,7 @@ function focusFirstMenuItem(event: React.KeyboardEvent<HTMLButtonElement>) {
   wrapper?.setAttribute('data-keyboard-open', 'true');
   event.currentTarget.setAttribute('aria-expanded', 'true');
   const firstItem = wrapper?.querySelector<HTMLElement>('a[href]');
-  window.setTimeout(() => firstItem?.focus(), 0);
+  window.requestAnimationFrame(() => firstItem?.focus());
 }
 
 function toggleKeyboardMenu(event: React.MouseEvent<HTMLButtonElement>) {

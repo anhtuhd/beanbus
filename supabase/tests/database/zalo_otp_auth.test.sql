@@ -133,8 +133,8 @@ select is(
     'beanbus-clear-stale-phone-changes',
     'beanbus-refresh-zalo-token'
   )),
-  2,
-  'cleanup and token refresh cron jobs are scheduled'
+  0,
+  'cleanup and token refresh cron jobs remain disabled in Google-only release'
 );
 
 select * from finish();

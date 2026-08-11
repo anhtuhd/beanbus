@@ -10,7 +10,10 @@ export type OperationalEvent =
   | 'health_check_failed'
   | 'order_failed'
   | 'payment_failed'
+  | 'payment_reconciliation_completed'
+  | 'payment_reconciliation_gap'
   | 'webhook_failed'
+  | 'webhook_processed'
   | 'webhook_rejected';
 
 export type OperationalOperation =
@@ -25,6 +28,7 @@ export type OperationalOperation =
   | 'health_check'
   | 'issue_order_receipt'
   | 'process_sepay_webhook'
+  | 'reconcile_sepay_transactions'
   | 'request_phone_otp'
   | 'start_google_oauth'
   | 'update_booking_status'
@@ -44,6 +48,7 @@ export type OperationalOperation =
 export type OperationalReason =
   | 'configuration_error'
   | 'database_error'
+  | 'feature_disabled'
   | 'invalid_payload'
   | 'invalid_signature'
   | 'missing_result'
@@ -59,6 +64,24 @@ type FailureInput = {
   level?: 'error' | 'warn';
   operation: OperationalOperation;
   reason: OperationalReason;
+};
+
+type OperationalMetrics = {
+  duplicates?: number;
+  pages?: number;
+  processed?: number;
+  rejected?: number;
+  skipped?: number;
+  storedValue?: boolean;
+  outcome?: 'duplicate' | 'processed' | 'rejected';
+};
+
+type EventInput = {
+  correlationId?: string | null;
+  event: OperationalEvent;
+  level?: 'info' | 'warn';
+  operation: OperationalOperation;
+  metrics?: OperationalMetrics;
 };
 
 type LogSink = (line: string) => void;
@@ -83,5 +106,31 @@ export function logOperationalFailure(
     operation: input.operation,
     reason: input.reason,
   }));
+  return correlationId;
+}
+
+export function logOperationalEvent(
+  input: EventInput,
+  sink: LogSink = console.info,
+  now = new Date()
+): string {
+  const correlationId = createCorrelationId(input.correlationId);
+  const metrics = input.metrics ?? {};
+  const line = {
+    timestamp: now.toISOString(),
+    level: input.level ?? 'info',
+    service: 'beanbus-web',
+    event: input.event,
+    correlationId,
+    operation: input.operation,
+    ...(typeof metrics.pages === 'number' ? { pages: Math.max(0, Math.floor(metrics.pages)) } : {}),
+    ...(typeof metrics.processed === 'number' ? { processed: Math.max(0, Math.floor(metrics.processed)) } : {}),
+    ...(typeof metrics.rejected === 'number' ? { rejected: Math.max(0, Math.floor(metrics.rejected)) } : {}),
+    ...(typeof metrics.duplicates === 'number' ? { duplicates: Math.max(0, Math.floor(metrics.duplicates)) } : {}),
+    ...(typeof metrics.skipped === 'number' ? { skipped: Math.max(0, Math.floor(metrics.skipped)) } : {}),
+    ...(typeof metrics.storedValue === 'boolean' ? { storedValue: metrics.storedValue } : {}),
+    ...(metrics.outcome ? { outcome: metrics.outcome } : {}),
+  };
+  sink(JSON.stringify(line));
   return correlationId;
 }

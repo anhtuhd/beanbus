@@ -148,6 +148,10 @@
   transform: translateX(-50%) translateY(0);
 }
 
+.navDropdownWrapper[data-keyboard-open='true'] .dropdownMenu {
+  transition: none;
+}
+
 .dropdownItem {
   font-family: 'Poppins', sans-serif;
   font-size: 14px;

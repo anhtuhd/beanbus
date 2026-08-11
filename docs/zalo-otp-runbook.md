@@ -1,5 +1,7 @@
 # Zalo OTP Runbook
 
+> Current release status: Phone/Zalo is paused. Migration `20260811034000_pause_zalo_phone_auth.sql` unschedules the stale-phone cleanup and token-refresh cron jobs; do not enable the Auth Hook or phone provider until a separate rollout is approved. The runbook below is for that later rollout.
+
 Beanbus giữ Supabase Auth làm nơi sinh, hết hạn và xác minh OTP. Edge Function `send-zalo-otp` chỉ chuyển OTP sang ZBS Template Message qua số điện thoại; đây là tin trong ứng dụng Zalo, không phải SMS nhà mạng và chỉ tới số đã liên kết tài khoản Zalo.
 
 ## Trước Khi Deploy

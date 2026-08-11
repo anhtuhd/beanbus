@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   CORRELATION_HEADER,
   createCorrelationId,
+  logOperationalEvent,
   logOperationalFailure,
 } from '../lib/observability/logger.ts';
 import { withSupportReference } from '../lib/observability/support-reference.ts';
@@ -45,6 +46,37 @@ test('operational failures emit one bounded JSON record without arbitrary detail
   });
 });
 
+test('payment integration events emit bounded counters without sensitive fields', () => {
+  const lines: string[] = [];
+  logOperationalEvent({
+    correlationId: 'req_01K2A7C8Q9',
+    event: 'payment_reconciliation_completed',
+    operation: 'reconcile_sepay_transactions',
+    metrics: {
+      pages: 2,
+      processed: 1,
+      rejected: 3,
+      duplicates: 2,
+      skipped: 4,
+    },
+  }, (line) => lines.push(line), new Date('2026-08-09T12:00:00.000Z'));
+
+  assert.deepEqual(JSON.parse(lines[0]), {
+    timestamp: '2026-08-09T12:00:00.000Z',
+    level: 'info',
+    service: 'beanbus-web',
+    event: 'payment_reconciliation_completed',
+    correlationId: 'req_01K2A7C8Q9',
+    operation: 'reconcile_sepay_transactions',
+    pages: 2,
+    processed: 1,
+    rejected: 3,
+    duplicates: 2,
+    skipped: 4,
+  });
+  assert.doesNotMatch(lines[0], /payment_code|account_number|payload|token|secret/i);
+});
+
 test('proxy propagates one correlation ID upstream and back to the caller', () => {
   const proxy = readFileSync(new URL('../proxy.ts', import.meta.url), 'utf8');
   const sessionProxy = readFileSync(new URL('../lib/supabase/proxy.ts', import.meta.url), 'utf8');
@@ -71,9 +103,20 @@ test('critical server boundaries emit correlated failures without raw payload lo
     assert.match(source, /logOperationalFailure/);
   }
   assert.match(webhook, /createCorrelationId\(request\.headers\.get\(CORRELATION_HEADER\)\)/);
+  assert.match(webhook, /logOperationalEvent/);
+  assert.match(webhook, /outcome !== 'processed'/);
   assert.match(webhook, /logOperationalFailure/);
   assert.match(webhook, /headers: \{ \[CORRELATION_HEADER\]: correlationId \}/);
   assert.doesNotMatch(webhook, /logOperationalFailure\(\{[^}]*rawPayload/);
+
+  const reconciliation = readFileSync(new URL('../app/api/cron/sepay-reconciliation/route.ts', import.meta.url), 'utf8');
+  assert.match(reconciliation, /payment_reconciliation_completed/);
+  assert.match(reconciliation, /payment_reconciliation_gap/);
+  const eventCalls = reconciliation.match(/logOperationalEvent\(\{[\s\S]*?\}\);/g) ?? [];
+  assert.equal(eventCalls.length, 2);
+  for (const eventCall of eventCalls) {
+    assert.doesNotMatch(eventCall, /apiKey|payload|accountNumber|payment_code|secret/i);
+  }
 });
 
 test('health endpoint is uncached, correlated, and fails closed on production configuration', () => {

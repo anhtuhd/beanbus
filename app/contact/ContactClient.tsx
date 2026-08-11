@@ -4,10 +4,13 @@ import React, { useRef, useState } from 'react';
 import { createCustomerRequest } from '@/app/request-actions';
 import { useLanguage } from '@/context/LanguageContext';
 import { withSupportReference } from '@/lib/observability/support-reference';
+import TurnstileWidget from '@/app/login/TurnstileWidget';
 import { MapPin, Phone, Clock, Mail, MessageSquare, CheckCircle, LoaderCircle, Send } from 'lucide-react';
 import styles from './contact.module.css';
 
 const isProduction = process.env.NEXT_PUBLIC_APP_MODE === 'production';
+const formCaptchaSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+const formCaptchaEnabled = process.env.NEXT_PUBLIC_ENABLE_FORM_CAPTCHA === 'true' && Boolean(formCaptchaSiteKey);
 
 export default function ContactPage() {
   const { t } = useLanguage();
@@ -20,6 +23,7 @@ export default function ContactPage() {
   const [submitError, setSubmitError] = useState('');
   const [reference, setReference] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
   const idempotencyKey = useRef<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,6 +43,7 @@ export default function ContactPage() {
           email,
           message,
           consentToContact,
+          turnstileToken: formCaptchaEnabled ? turnstileToken : undefined,
         });
         if (!result.ok) {
           setSubmitError(withSupportReference(
@@ -72,6 +77,7 @@ export default function ContactPage() {
     setSubmitError('');
     setReference('');
     setSubmitted(false);
+    setTurnstileToken('');
   };
 
   return (
@@ -207,6 +213,10 @@ export default function ContactPage() {
                   </label>
 
                   {submitError && <p className={styles.submitError} role="alert">{submitError}</p>}
+
+                  {formCaptchaEnabled && formCaptchaSiteKey && (
+                    <TurnstileWidget siteKey={formCaptchaSiteKey} onTokenChange={setTurnstileToken} />
+                  )}
 
                   <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }} disabled={isSubmitting}>
                     {isSubmitting ? <LoaderCircle size={18} className={styles.spinner} /> : <Send size={18} />}

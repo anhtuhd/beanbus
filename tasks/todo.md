@@ -1,143 +1,147 @@
-# Beanbus Project Checklist
+# Beanbus To-do
 
-**Active plan:** `tasks/plan.md`  
-**Updated:** 2026-08-10
-**Current checkpoint:** Phase 4 — Task 14 local release gate complete; stored-value top-up/flash-sale code is now behind explicit production and admin policy gates, while owner content and hosted Supabase/provider verification remain queued
+**Plan:** `tasks/plan.md`
 
-## Baseline Snapshot
+**Cập nhật:** 2026-08-11
 
-- [x] Public UI routes and shared layout implemented.
-- [x] Menu customization, cart, checkout shell, booking, account, and admin demos implemented.
-- [x] Type check passes.
-- [x] Production build passes.
-- [x] Lint passes cleanly with no warnings.
-- [x] Application unit tests exist and pass.
-- [x] Critical browser E2E smoke test exists and passes in Chromium.
-- [x] Production backend/auth/payment implementation exists behind environment/provider gates.
-- [x] Zalo OTP implementation exists behind a disabled feature flag, including hook signature validation, Vault token rotation, phone-change verification, resend UI, and rollback runbook.
-- [ ] Zalo OTP external verification: apply migration `20260810120000`, configure OA/ZBS/template/Vault/Turnstile/Auth Hook, run pgTAP, and pass two-number staging checks before enabling the flag.
-- [ ] Production backend/auth/payment has been exercised against hosted Supabase and real providers.
-- [x] Reconcile and apply the current local migration set to hosted Supabase; remote now matches local through `20260810073000` (14 migrations applied, including member booking and customer-request cancellation).
+**Ưu tiên hiện tại:** Google-only auth -> sửa loyalty/voucher correctness -> reconcile Supabase remote -> hosted verification -> SePay hardening.
 
-## Phase 0: Stabilize
+## Trạng thái đã xác minh local
 
-- [x] Task 1: Restore lint and navigation quality baseline.
-- [x] Task 2: Add test harness and environment contract.
-- [x] Checkpoint A: All local quality gates pass; provider credentials remain feature-gated.
+- [x] `npm run lint` pass.
+- [x] `npx tsc --noEmit` pass.
+- [x] `npm test` pass 237/237.
+- [x] `npm run build` pass.
+- [x] `npm run test:e2e:auth` pass 4/4 với Google enabled và phone disabled ở 375/768/1440px.
+- [x] `npm run test:e2e` pass 30/40; 10 suite production/provider được skip đúng khi thiếu credential.
+- [x] E2E customer requests pass 4/4; RSVP modal đã được port ra `document.body` để không bị ảnh hưởng bởi transform của event card.
+- [x] E2E accessibility header/menu pass ổn định sau khi chuyển focus keyboard bằng `requestAnimationFrame` và chạy lặp 20 lần.
+- [x] Thêm live smoke opt-in `npm run test:e2e:live`; test sẽ kiểm tra health và Google-only login trên `https://www.beanbus.store`.
+- [x] Đã chạy live smoke với quyền browser phù hợp; health pass nhưng assertion Google-only fail vì deployment production vẫn render nút `Nhận mã qua Zalo`.
+- [x] Thêm GitHub Actions manual live smoke (`workflow_dispatch`) với `production_base_url`, bắt buộc HTTPS, không yêu cầu Gmail session hay production secret.
+- [x] `npm audit --omit=dev --audit-level=high` báo 0 vulnerability.
+- [x] Production build đã kiểm tra console/page error: không còn cảnh báo JSON-LD; cảnh báo native script chỉ xuất hiện trong React development overlay và phù hợp với khuyến nghị JSON-LD của Next.js.
+- [ ] Chạy `npm run db:lint` và `npm run db:test` trên Docker-compatible Supabase runtime (đã thử local; hiện bị `ECONNREFUSED 127.0.0.1:54322` vì chưa có Docker/Postgres).
+- [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; đủ 36 migration local khớp remote tới `20260811041000`.
+- [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration sửa loyalty/content/SePay warning; advisor multiple-permissive-policy vẫn là backlog maintainability.
 
-## Phase 1: Trusted Data
+## 0. Tạm dừng Phone OTP/Zalo
 
-- [x] Task 3: Add Supabase server/browser infrastructure.
-- [ ] Task 4: Ship real authentication and role authorization.
-- [x] Task 4 implementation: auth actions/callback, profile RLS, session DAL, and route guards.
-- [ ] Task 4 external verification: configure a provider and run pgTAP/member/admin paths.
-- [ ] Task 5: Migrate catalog and add `/menu/[id]`.
-- [x] Task 5 implementation: catalog schema/read model, server-backed homepage and order catalog, product details, responsive UI, and E2E.
-- [ ] Task 5 external verification: run catalog pgTAP and production queries on Supabase; catalog migration is applied remotely.
-- [ ] Checkpoint B: Auth/RLS/catalog pass tests and browser checks.
+- [ ] Vercel Production/Preview: giữ `NEXT_PUBLIC_ENABLE_PHONE_AUTH=false`.
+- [x] Supabase Auth Providers: Google đang bật và Phone đang tắt theo `GET /auth/v1/settings` (2026-08-11).
+- [ ] Supabase Auth Hooks: disable/unassign Send SMS Hook nếu đang bật.
+- [x] Supabase Cron: `beanbus-refresh-zalo-token` không còn job active sau migration pause.
+- [x] Supabase Cron: `beanbus-clear-stale-phone-changes` không còn job active sau migration pause.
+- [ ] Xác nhận Edge Function Zalo không còn invocation mới; giữ code/secrets để dùng lại sau, không đưa token vào chat/git.
+- [x] SePay webhook fail-closed với mã `BT/BF`: không gọi stored-value RPC khi `NEXT_PUBLIC_ENABLE_STORED_VALUE=false`.
+- [ ] Vercel: giữ `NEXT_PUBLIC_ENABLE_STORED_VALUE=false` và không bật stored-value/flash-sale.
 
-## Phase 2: Commerce
+## 1. Cho phép tạo hội viên bằng Gmail
 
-- [ ] Task 6: Create server-priced, idempotent orders.
-- [x] Task 6 pricing core: private schema, ownership RLS, canonical pricing RPC, and contract tests.
-- [x] Task 6 action contract: narrow payload validation and one-call pricing RPC.
-- [x] Task 6 UI wiring: production checkout, safe confirmation receipt, responsive demo E2E, and production provider gating.
-- [ ] Task 6 external verification: run pgTAP plus production pickup/delivery flows on Supabase; order migrations are applied remotely.
-- [x] Task 7 implementation: service-only ledger, HMAC webhook, dedupe/audit, expiring VietQR, polling UI, and tests.
-- [ ] Task 7 external verification: run pgTAP and Sepay Test mode/Live transfer with owner credentials.
-- [x] Task 8: Implement loyalty ledger and member account data.
-- [x] Task 8 account slice: profile editing, server-owned order history/timeline, paginated loyalty/request/voucher history, active vouchers, pagination, protected order/request details, validated reorder, member-owned request history/timeline, and direct voucher-to-cart handoff.
-- [x] Task 8 order detail slice: protected reorder action reloads only available catalog items and links members to the cart.
-- [x] Task 8 demo browser slice: member tabs, profile update, voucher view, voucher-to-cart handoff, selected-tab deep links, and local account interactions pass Playwright smoke coverage.
-- [x] Task 8 demo request slice: member request tab exposes local booking history and preserves the selected-tab deep link.
-- [x] Task 8 demo booking action slice: member can cancel an active local booking request with accessible feedback.
-- [x] Task 8 production booking action slice: member can cancel owned `pending`/`confirmed` booking requests from list/detail views through an audited, idempotent RPC.
-- [x] Task 8 production booking cancellation test plan: contract coverage plus a dedicated pgTAP ownership/transition/audit test is committed; execution remains hosted-runtime work.
-- [x] Task 8 production customer-request cancellation: active member-owned contact/RSVP/B2B requests can be withdrawn through an audited RPC with idempotent retry and terminal-state protection.
-- [x] Task 8 loyalty foundation: append-only ledger, idempotent order earn/reversal trigger, policy audit, summary RPC, and production display.
-- [x] Task 8 loyalty policy admin: protected `/admin/loyalty` policy read/update UI and audit history.
-- [x] Task 8 voucher operations: protected `/admin/vouchers` create/edit/activate UI, bounded search/pagination, and audit RPC.
-- [x] Task 8 loyalty redemption: admin reward catalog with bounded search/pagination, owned voucher issuance, idempotent point debit, voucher ownership enforcement, and member redeem UI.
-- [x] Task 8 member loyalty history: server-owned recent ledger transactions with empty/error states in the production account tab.
-- [x] Task 8 pagination hardening: member order, loyalty, request, voucher, and admin list pages cap URL-driven pagination at 100 pages.
-- [x] Task 8 pagination totals: member order/request tab badges use server counts instead of the current page length.
-- [ ] Task 8 external verification/policy sign-off: approve earning/COD/refund/expiry rules, run pgTAP/browser checks against hosted Supabase; migrations are applied remotely.
-- [ ] Task 9: Add safe `/account/topup` and `/flash-sale` flows.
-- [x] Task 9 implementation: server-authoritative top-up and flash-sale intents, quota reservation, separate Sepay payment ledger, verified webhook credit, polling UI, and admin policy/package/campaign controls.
-- [x] Task 9 navigation gate: member and admin stored-value links remain hidden until both stored-value and Sepay deployment flags are enabled.
-- [ ] Task 9 external verification: approve stored-value policy and run duplicate payment, expiry, quota, amount mismatch, and real Sepay checks on Supabase; stored-value migration is applied but the feature remains disabled.
-- [ ] Checkpoint C: No trusted price/payment/points state comes from the browser.
+- [x] Supabase Auth: Google provider đã bật; Client ID/Secret không được đọc lại từ API public.
+- [x] Read-only OAuth check: Supabase Google authorize với callback `https://www.beanbus.store/auth/callback` trả HTTP 302; chưa hoàn tất Gmail callback thật.
+- [ ] Google Console: Authorized redirect URI là `https://<project-ref>.supabase.co/auth/v1/callback`.
+- [ ] Supabase URL Configuration: Site URL là `https://www.beanbus.store`; allow redirect `https://www.beanbus.store/auth/callback` và preview URL đã duyệt.
+- [x] Vercel Production: `/api/health` trả `200`, mode `production`; production login render `googleEnabled=true`, `phoneEnabled=false`.
+- [ ] Vercel Production: build hiện tại vẫn render form Zalo disabled/divider cũ dù props đã là `phoneEnabled=false`; cần commit/push và redeploy source hiện tại.
+- [ ] Chạy `npm run test:e2e:live` sau khi redeploy; lần kiểm tra curl hiện tại đã chứng minh build cũ còn form Zalo.
+- [ ] Vercel Preview: set `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=true`, giữ phone/stored-value false và redeploy.
+- [x] Sửa login UI: khi phone disabled, không render phone form/divider; Google là primary action.
+- [x] Cập nhật E2E để kiểm tra Google-only login screen thay vì hai provider đều disabled.
+- [ ] Smoke bằng Gmail mới: OAuth callback thành công, `auth.users` và `profiles` có row, vào được `/account`.
+- [ ] Smoke logout, login lại và expired-session redirect.
+- [ ] Xác nhận member thường vào `/admin` nhận forbidden/redirect đúng.
+- [ ] Chọn email admin đầu tiên và thử runbook cấp/revoke role qua server/SQL có audit.
 
-## Phase 3: Operations
+## 2. P0 - Sửa loyalty và voucher
 
-- [ ] Task 10: Deliver booking, contact, RSVP, and B2B submissions.
-- [x] Task 10 booking slice: pending requests, consent, idempotency, serialized rate limiting, RLS, reference receipt, and responsive UI.
-- [x] Task 10 lead slice: persist contact, RSVP, and B2B forms with honest delivery states, admin-visible notification status, protected detail drill-down, and member/admin request status timelines.
-- [x] Task 10 member withdrawal slice: member customer requests support explicit `cancelled` state instead of overloading `rejected`.
-- [x] Task 10 RSVP capacity slice: server-side event existence, open-window, quota checks with per-event advisory locking and honest `EVENT_FULL`/`EVENT_CLOSED` UI states.
-- [ ] Task 10 external verification: run pgTAP and confirm booking capacity policy.
-- [ ] Task 11: Replace demo admin with protected operations.
-- [x] Task 11 request operations slice: protected all/booking/lead lists, pagination, notification-failure filtering, audited status state machines, responsive controls, and request detail drill-down.
-- [x] Task 11 cancelled-request visibility: admin filters and status badges include member-withdrawn customer requests.
-- [x] Task 11 order operations slice: protected search/filter/pagination, payment-safe transitions, and admin/system audit history.
-- [x] Task 11 order detail slice: guarded line items, options, voucher/payment context, and status-history drill-down.
-- [x] Task 11 catalog operations slice: protected search/filter/pagination, audited availability/publication RPC, and responsive controls.
-- [x] Task 11 catalog create/edit slice: audited upsert RPC and responsive inline editor.
-- [x] Task 11 catalog archive/delete policy: archive products through an audited status RPC; physical deletion remains unavailable so historical orders retain their references.
-- [x] Task 11 content operations slice: protected event/blog search/filter/pagination and audited publication RPCs.
-- [x] Task 11 event editor slice: audited create/edit RPC and responsive admin form.
-- [x] Task 11 blog editor slice: audited create/edit RPC and responsive admin form.
-- [x] Task 11 member directory slice: protected read-only profile search/filter/pagination with no role or loyalty mutation.
-- [x] Task 11 member detail slice: guarded read-only profile, paginated loyalty/order drill-down, and role-change audit timeline.
-- [x] Task 11 demo browser slice: legacy admin tabs, menu creation, and availability toggle pass Playwright smoke coverage.
-- [x] Task 11 demo booking slice: admin can update local booking status with accessible success feedback.
-- [x] Task 11 production navigation slice: shared protected menu links dashboard, operations, catalog, content, members, loyalty, vouchers, rewards, and stored-value routes.
-- [x] Task 11 feature-gated navigation: disabled stored-value is omitted from the production admin menu and dashboard actions.
-- [x] Task 11 admin menu visibility: production dashboard actions use a responsive high-contrast grid so all links remain readable at desktop/mobile widths.
-- [x] Task 11 local protection/UI slice: all focused admin routes redirect without a production session; demo admin keyboard navigation and 375px overflow pass.
-- [x] Task 11 local feedback slice: admin action forms announce errors assertively and successes politely.
-- [ ] Task 11 external verification: execute pgTAP and browser-check member/admin sessions against configured Supabase.
-- [ ] Checkpoint D: Staff can act on real requests through authorized workflows.
+- [x] Tạo forward migration để reversal loyalty chạy kể cả policy hiện đã disabled hoặc `earn_bps=0`.
+- [x] Thêm pgTAP: earn -> disable policy -> cancel; duplicate transition không reverse hai lần. Runtime execution vẫn chờ Docker/Supabase.
+- [x] Implement local lifecycle `reserved/consumed/released` với reservation ledger và audit state.
+- [x] Mặc định local: reserve khi tạo đơn; consume khi SePay paid hoặc COD completed; release một lần khi cancel/payment failed/expired.
+- [x] Cleanup pending SePay payment hết hạn nối với order payment failed và voucher release.
+- [x] Thêm pgTAP/contract test cho cancellation, payment expiry, quota release và service-only ledger.
+- [ ] Owner xác nhận mốc consume, timeout COD, và refund có hoàn voucher hay không trước khi mở checkout production.
+- [ ] Thêm test concurrent usage limit, refund policy và one-time reward voucher trên Postgres runtime.
+- [ ] Xác nhận `BEANBUS10` và `WELCOMEVIP` có phải promotion live không.
+- [ ] Nếu chưa phê duyệt, tạo forward migration disable hai voucher seed trước khi mở checkout production.
 
-## Phase 4: Release
+## 3. P1 - Sửa redemption idempotency
 
-- [x] Task 12 content/backend slice: event/blog schema, public production queries, deep links, metadata, not-found and loading/error states.
-- [x] Task 12 discovery slice: canonical/Open Graph metadata, Product/Event/Blog/LocalBusiness JSON-LD, sitemap and robots policy.
-- [ ] Task 12 final content verification: owner-approved assets/content remains open.
-- [x] Task 12 no-JavaScript audit: home, menu, order, events, blog, and canonical deep-link navigation pass with JavaScript disabled.
-- [x] Task 12 route shell slice: booking and contact retain client forms behind server metadata/canonical shells.
-- [x] Task 12 commerce shell slice: cart and checkout retain client interactions behind private server metadata shells; route pages are no longer full Client Components.
-- [x] Task 13 local implementation: focus trap/return, keyboard navigation, status announcements, responsive route smoke tests, screenshots, optimized catalog/content media, and the legacy admin product modal.
-- [x] Task 13 action feedback slice: member/admin form errors use alert semantics and successful actions use polite status announcements.
-- [ ] Task 13 external audit: screen reader/WCAG scan, Core Web Vitals, and authenticated account/admin keyboard workflows.
-- [x] Task 14 local implementation: bounded correlation logging, support references, health endpoint, security headers, CI quality/E2E/database jobs, and release runbook.
-- [x] Task 14 local verification: 205 unit/contract tests, production build, lint, type check, 30/36 full demo E2E tests, 6/6 focused member/admin demo E2E tests, and 2/4 order/checkout E2E tests pass locally; protected admin-route redirects, bounded member/admin pagination, account deep-link, public no-JavaScript navigation, and dynamic external-image strategy checks pass; provider-gated Zalo/Sepay E2E remains blocked without hosted credentials.
-- [ ] Task 14 hosted verification: run CI database job/pgTAP, provider callbacks, and staging smoke test with owner credentials; hosted migrations are applied through `20260810073000`.
-- [ ] Final checkpoint: Staging sign-off with no open P0/P1 findings.
+- [x] Client giữ nguyên redemption idempotency key qua retry; chỉ rotate sau success đã xác nhận.
+- [x] RPC forward migration chỉ trả duplicate redemption khi `source_key` và `user_id` cùng khớp; khác user trả conflict không lộ voucher code.
+- [ ] Thêm behavioral test mô phỏng request commit nhưng response bị mất.
+- [x] Thêm pgTAP cho retry cùng user và collision key khác user; runtime execution còn chờ Postgres.
+- [x] Cập nhật contract test để yêu cầu key ổn định qua retry thay vì UUID mới ở mọi submit.
 
-## Owner Decisions
+## 4. Reconcile và kiểm thử Supabase
 
-- [x] Approve Supabase architecture and access method; hosted credentials pending.
-- [x] Confirm Zalo-delivered phone OTP with Google login as fallback.
-- [ ] Provide/approve Sepay production contract and credentials.
-- [ ] Approve loyalty, COD, refund, and stored-value rules.
-- [ ] Confirm booking capacity and lead notification owners.
-- [ ] Provide/approve domain, logo, owned images, privacy policy, and terms.
-- [ ] Decide whether English needs separate indexable URLs.
+- [ ] `npx supabase link --project-ref <project-ref>` vẫn chưa lưu link CLI; đã dùng `--db-url` của project được cấu hình local.
+- [x] `npx supabase migration list` xác nhận đủ 36 migration local khớp remote, không có drift chưa giải thích.
+- [x] Review P0 forward migrations và apply theo thứ tự; backup/restore drill vẫn cần owner xác nhận.
+- [x] Apply migration tới `20260811041000_fix_remote_lint_warnings.sql`; truy vấn remote xác nhận 9 migration mới đã có.
+- [ ] Chạy toàn bộ `npm run db:lint` và `npm run db:test` trên schema sạch.
+- [ ] Chạy lại pgTAP trên staging/remote theo release runbook.
+- [ ] Test RLS bằng hai member và một admin: profiles, orders, requests, ledger, vouchers, history.
+- [x] Cập nhật `README.md` và `docs/release-runbook.md` bằng trạng thái remote đã kiểm chứng.
 
-## Required Commands Per Task
+## 5. Commerce và SePay
 
-```bash
-npx tsc --noEmit
-npm run lint
-npm test
-npm run build
-```
+- [ ] Xác nhận quyết định SePay production: webhook live hiện trả `401` khi thiếu HMAC, chứng minh `NEXT_PUBLIC_ENABLE_SEPAY` đang bật; nếu chưa mở payment traffic thì tắt flag, nếu giữ live thì hoàn tất smoke/alert/token.
+- [x] Thêm `NEXT_PUBLIC_ENABLE_SEPAY_RECONCILIATION=false` mặc định; cron chỉ chạy khi cả SePay và reconciliation cùng bật.
+- [x] Production read-only: `/api/cron/sepay-reconciliation` trả `404`, xác nhận reconciliation cron đang tắt; webhook SePay vẫn bật và yêu cầu HMAC.
+- [ ] Xác nhận Vercel secrets: webhook HMAC, bank code/account/name; không in secret ra log/chat.
+- [ ] SePay Dashboard: webhook live `https://www.beanbus.store/hooks/payment`, HMAC-SHA256, money-in, mã `DH_<mã hóa đơn>`.
+- [ ] Chạy live smoke số tiền nhỏ và kiểm tra amount/account/code/direction/timestamp.
+- [ ] Replay cùng provider event và xác nhận không có side effect lần hai.
+- [ ] Cấu hình IP allowlist cho webhook ở lớp edge/firewall phù hợp.
+- [ ] Cấp SePay API v2 token trong secret store khi owner quyết định bật reconciliation, không dùng API v1 cho integration mới.
+- [x] Thêm job reconciliation mỗi 15 phút với API v2, text provider key, lease, cursor/checkpoint, idempotent replay và structured event counters; migration hosted đã áp dụng, token và alert wiring còn chờ.
+- [x] Reconciliation không tiến checkpoint qua transaction mang mã Beanbus nhưng malformed; giao dịch ngân hàng không liên quan vẫn được bỏ qua an toàn.
+- [x] Cleanup pending SePay payment hết hạn và nối với voucher release; pending COD timeout còn chờ policy.
+- [x] Bổ sung structured events cho webhook outcome, signature/webhook failure và reconciliation completion/gap; không log payload/token/PII.
+- [ ] Cấu hình dashboard/alert production cho rejected/mismatch, signature failure, webhook failure và reconciliation gap; cần quyền Vercel/Supabase và kênh cảnh báo.
 
-Run the focused E2E command added by Task 2 for every affected customer workflow.
+## 6. Hội viên và admin còn thiếu
 
-## Commit Checklist
+- [x] Sửa account request pagination bằng RPC `UNION ALL`, stable ordering, page bounds, indexes và total count; pgTAP runtime còn chờ Postgres.
+- [ ] Test hosted account: profile, order detail/reorder, request cancel, loyalty history, reward, voucher ownership.
+- [ ] Test hosted admin: dashboard, orders, requests, catalog, content, members, role, loyalty, vouchers, rewards.
+- [x] Viết runbook first-admin, revoke role, audit role changes và account recovery; owner execution/sign-off còn chờ hosted access.
+- [ ] Chọn kênh thông báo nhân viên cho booking/contact/RSVP/B2B.
+- [ ] Implement delivery worker/webhook và update `notification_status` theo kết quả thật.
+- [x] Thêm feature-gated Turnstile cho order, booking và contact; server-side Siteverify fail-closed, mặc định vẫn tắt.
+- [ ] Quyết định booking capacity, COD eligibility, loyalty earn rate, refund và voucher reuse policy.
 
-- [ ] Stage the completed release milestone after the final diff and secret scan.
-- [ ] Commit the release milestone with a descriptive message.
-- [ ] Push `main` to `origin` and confirm the remote commit list.
+## 7. UI, security và maintainability
+
+- [x] Browser-check Google-only login ở 375/768/1440 px và keyboard focus; screen reader audit hosted còn chờ.
+- [x] Thêm CSP dạng report-only với Cloudflare/Google/Supabase origins cần thiết; chuyển enforce sau browser report review.
+- [x] HSTS chỉ bật khi production site URL là HTTPS; hosted owner vẫn cần xác nhận subdomain policy.
+- [ ] Thay dần source-regex tests ở auth/payment/loyalty/voucher bằng behavior tests.
+- [x] Remote `db lint` không còn lỗi schema hoặc warning; advisor multiple-permissive-policy để tối ưu sau khi correctness/runtime gate hoàn tất.
+- [ ] Tách `AccountClient.tsx` theo tab sau khi correctness fixes đã merge.
+- [ ] Tách `HomeClient.tsx` và CSS lớn theo workflow khi có thay đổi chức năng liên quan.
+- [ ] Kiểm tra accessibility, Core Web Vitals và console/network errors trên staging (production build local đã sạch console; hosted staging vẫn cần kiểm tra).
+- [ ] Hoàn thiện privacy policy, terms, logo, owned images và social links.
+
+## 8. Release gate
+
+- [ ] Không còn finding P0/P1 mở.
+- [ ] Phone/Zalo và stored-value xác nhận vẫn tắt ở UI lẫn remote execution; Zalo cron đã xác nhận `0`, còn Auth Provider/Hook và Vercel flags cần owner kiểm tra.
+- [ ] Google login/logout/profile/admin role smoke pass bằng tài khoản thật.
+- [ ] Lint, typecheck, 237/237 unit-contract tests, build, pgTAP và focused E2E đều xanh.
+- [ ] Sepay webhook + reconciliation live smoke pass nếu bật payment.
+- [ ] Monitoring, backup, rollback và incident contacts đã được thử.
+- [ ] Owner ký xác nhận staging ở desktop/mobile.
+
+## Thông tin/quyết định cần chủ dự án cung cấp
+
+- [x] Đã có quyền truy vấn/apply Supabase remote qua secret store local; không gửi secret qua chat.
+- [ ] Quyền Vercel để kiểm tra Production/Preview env và redeploy.
+- [ ] Email Gmail dùng làm admin đầu tiên và ít nhất một Gmail member test.
+- [ ] Xác nhận hai mã `BEANBUS10`, `WELCOMEVIP`: live hay phải tắt.
+- [ ] Chính sách loyalty/COD/refund/voucher reuse bằng văn bản ngắn.
+- [ ] Kênh nhận thông báo booking/contact của nhân viên.
+- [ ] SePay API v2 token nhập trực tiếp vào secret store khi bắt đầu reconciliation.
+- [ ] Privacy policy, terms, logo và ảnh có quyền sử dụng.

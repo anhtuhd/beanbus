@@ -22,7 +22,13 @@ declare global {
   }
 }
 
-export default function TurnstileWidget({ siteKey }: { siteKey: string }) {
+export default function TurnstileWidget({
+  siteKey,
+  onTokenChange,
+}: {
+  onTokenChange?: (token: string) => void;
+  siteKey: string;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(() => typeof window !== 'undefined' && Boolean(window.turnstile));
   const [token, setToken] = useState('');
@@ -32,15 +38,24 @@ export default function TurnstileWidget({ siteKey }: { siteKey: string }) {
 
     const widgetId = window.turnstile.render(containerRef.current, {
       sitekey: siteKey,
-      callback: setToken,
-      'expired-callback': () => setToken(''),
-      'error-callback': () => setToken(''),
+      callback: (nextToken) => {
+        setToken(nextToken);
+        onTokenChange?.(nextToken);
+      },
+      'expired-callback': () => {
+        setToken('');
+        onTokenChange?.('');
+      },
+      'error-callback': () => {
+        setToken('');
+        onTokenChange?.('');
+      },
       'response-field': false,
       theme: 'light',
     });
 
     return () => window.turnstile?.remove(widgetId);
-  }, [ready, siteKey]);
+  }, [onTokenChange, ready, siteKey]);
 
   return (
     <>

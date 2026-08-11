@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import './globals.css';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { CartProvider } from '@/context/CartContext';
@@ -68,8 +69,10 @@ export default function RootLayout({
   };
   return (
     <html lang="vi" data-scroll-behavior="smooth" suppressHydrationWarning>
-      <body>
-        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js');" }} />
+      <body suppressHydrationWarning>
+        <Script id="set-js-class" strategy="beforeInteractive">
+          {"document.documentElement.classList.add('js');"}
+        </Script>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusiness).replace(/</g, '\\u003c') }} />
         <LanguageProvider>
           <AuthProvider mode={appMode}>

@@ -5,6 +5,7 @@ import { logOperationalFailure } from '@/lib/observability/logger';
 import { getRequestCorrelationId } from '@/lib/observability/request';
 import { parseCustomerRequestInput, type CustomerRequestType } from '@/lib/requests/customer-request-input';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { verifyFormCaptcha } from '@/lib/security/turnstile';
 
 export type CreateCustomerRequestResult =
   | {
@@ -28,6 +29,22 @@ export async function createCustomerRequest(input: unknown): Promise<CreateCusto
 
   const parsed = parseCustomerRequestInput(input);
   if (!parsed.ok) return parsed;
+
+  const captcha = await verifyFormCaptcha(input);
+  if (!captcha.ok) {
+    const correlationId = await getRequestCorrelationId();
+    logOperationalFailure({
+      correlationId,
+      event: 'customer_request_failed',
+      operation: 'create_customer_request',
+      reason: captcha.reason,
+    });
+    return {
+      ok: false,
+      error: captcha.reason === 'configuration_error' ? 'BOT_CHECK_UNAVAILABLE' : 'BOT_CHECK_FAILED',
+      reference: captcha.reason === 'configuration_error' ? correlationId : undefined,
+    };
+  }
 
   const correlationId = await getRequestCorrelationId();
   const data = parsed.data;

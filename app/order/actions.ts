@@ -6,6 +6,7 @@ import { getRequestCorrelationId } from '@/lib/observability/request';
 import { getSepayConfig } from '@/lib/payments/sepay-config';
 import { createAdminSupabaseClient } from '@/lib/supabase/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { verifyFormCaptcha } from '@/lib/security/turnstile';
 
 export type CreateOrderResult =
   | {
@@ -24,6 +25,21 @@ export type CreateOrderResult =
 export async function createProductionOrder(input: unknown): Promise<CreateOrderResult> {
   const parsed = parseCreateOrderInput(input);
   if (!parsed.ok) return parsed;
+  const captcha = await verifyFormCaptcha(input);
+  if (!captcha.ok) {
+    const correlationId = await getRequestCorrelationId();
+    logOperationalFailure({
+      correlationId,
+      event: 'order_failed',
+      operation: 'create_order',
+      reason: captcha.reason,
+    });
+    return {
+      ok: false,
+      error: captcha.reason === 'configuration_error' ? 'BOT_CHECK_UNAVAILABLE' : 'BOT_CHECK_FAILED',
+      reference: captcha.reason === 'configuration_error' ? correlationId : undefined,
+    };
+  }
   if (parsed.data.paymentMethod === 'sepay_qr' && process.env.NEXT_PUBLIC_ENABLE_SEPAY !== 'true') {
     return { ok: false, error: 'PAYMENT_METHOD_UNAVAILABLE' };
   }

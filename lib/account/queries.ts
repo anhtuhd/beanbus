@@ -11,6 +11,7 @@ type AccountOrderItem = Pick<
   Database['public']['Tables']['order_items']['Row'],
   'id' | 'order_id' | 'product_name_vi' | 'product_name_en' | 'quantity' | 'line_total_vnd'
 >;
+type MemberRequestRow = Database['public']['Functions']['get_member_requests']['Returns'][number];
 
 export type MemberAccountOrder = {
   id: string;
@@ -131,6 +132,23 @@ function mapOrder(
   };
 }
 
+function mapMemberRequest(request: MemberRequestRow): MemberRequest {
+  const subject = request.kind === 'booking' && request.reservation_at
+    ? `Đặt bàn · ${new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(request.reservation_at))}`
+    : request.subject_reference ?? request.request_type;
+
+  return {
+    id: request.id,
+    referenceNumber: request.reference_number,
+    kind: request.kind as MemberRequest['kind'],
+    requestType: request.request_type,
+    status: request.status,
+    notificationStatus: request.notification_status as MemberRequest['notificationStatus'],
+    subject,
+    createdAt: request.created_at,
+  };
+}
+
 export async function getMemberAccountData(requestedPage = 1, requestedLoyaltyPage = 1, requestedRequestPage = 1, requestedVoucherPage = 1): Promise<MemberAccountData> {
   const page = boundedPage(requestedPage);
   const loyaltyPage = boundedPage(requestedLoyaltyPage);
@@ -139,7 +157,7 @@ export async function getMemberAccountData(requestedPage = 1, requestedLoyaltyPa
   const profile = await getCurrentProfile();
   if (!profile) return emptyAccountData(page, loyaltyPage, requestPage, voucherPage, 'Phiên đăng nhập đã hết hạn.');
   const supabase = await createServerSupabaseClient();
-  const [ordersResult, loyaltyResult, loyaltyEntriesResult, rewardsResult, bookingRequestsResult, customerRequestsResult] = await Promise.all([
+  const [ordersResult, loyaltyResult, loyaltyEntriesResult, rewardsResult, requestsResult, requestCountResult] = await Promise.all([
     supabase
     .from('orders')
     .select('id, order_number, status, payment_status, fulfillment, total_vnd, voucher_code, created_at', { count: 'exact' })
@@ -149,8 +167,8 @@ export async function getMemberAccountData(requestedPage = 1, requestedLoyaltyPa
     supabase.rpc('get_member_loyalty_summary', { p_user_id: profile.id }),
     supabase.from('loyalty_ledger').select('id, points, source_type, voucher_code, note, created_at', { count: 'exact' }).eq('user_id', profile.id).order('created_at', { ascending: false }).range((loyaltyPage - 1) * LOYALTY_PAGE_SIZE, loyaltyPage * LOYALTY_PAGE_SIZE - 1),
     supabase.from('loyalty_rewards').select('id, name_vi, name_en, points_cost, discount_type, discount_value, minimum_subtotal_vnd, maximum_discount_vnd').eq('is_active', true).order('points_cost'),
-    supabase.from('booking_requests').select('id, reference_number, reservation_at, status, notification_status, created_at', { count: 'exact' }).eq('user_id', profile.id).order('created_at', { ascending: false }).range(0, requestPage * REQUEST_PAGE_SIZE - 1),
-    supabase.from('customer_requests').select('id, reference_number, request_type, subject_reference, status, notification_status, created_at', { count: 'exact' }).eq('user_id', profile.id).order('created_at', { ascending: false }).range(0, requestPage * REQUEST_PAGE_SIZE - 1),
+    supabase.rpc('get_member_requests', { p_page: requestPage, p_page_size: REQUEST_PAGE_SIZE, p_user_id: profile.id }),
+    supabase.rpc('get_member_request_count', { p_user_id: profile.id }),
   ]);
 
   if (ordersResult.error) {
@@ -173,7 +191,7 @@ export async function getMemberAccountData(requestedPage = 1, requestedLoyaltyPa
     .order('created_at', { ascending: false })
     .range((voucherPage - 1) * VOUCHER_PAGE_SIZE, voucherPage * VOUCHER_PAGE_SIZE - 1);
 
-  if (itemsResult.error || vouchersResult.error || loyaltyResult.error || !loyaltyResult.data?.[0] || loyaltyEntriesResult.error || rewardsResult.error || bookingRequestsResult.error || customerRequestsResult.error) {
+  if (itemsResult.error || vouchersResult.error || loyaltyResult.error || !loyaltyResult.data?.[0] || loyaltyEntriesResult.error || rewardsResult.error || requestsResult.error || requestCountResult.error) {
     return emptyAccountData(page, loyaltyPage, requestPage, voucherPage, 'Không thể tải dữ liệu hội viên lúc này.');
   }
 
@@ -191,29 +209,8 @@ export async function getMemberAccountData(requestedPage = 1, requestedLoyaltyPa
     return (startsAt === null || startsAt <= now) && (endsAt === null || endsAt > now);
   });
 
-  const allRequests: MemberRequest[] = [
-    ...(bookingRequestsResult.data ?? []).map((request) => ({
-      id: request.id,
-      referenceNumber: request.reference_number,
-      kind: 'booking' as const,
-      requestType: 'booking',
-      status: request.status,
-      notificationStatus: request.notification_status,
-      subject: `Đặt bàn · ${new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(request.reservation_at))}`,
-      createdAt: request.created_at,
-    })),
-    ...(customerRequestsResult.data ?? []).map((request) => ({
-      id: request.id,
-      referenceNumber: request.reference_number,
-      kind: 'customer' as const,
-      requestType: request.request_type,
-      status: request.status,
-      notificationStatus: request.notification_status,
-      subject: request.subject_reference ?? request.request_type,
-      createdAt: request.created_at,
-    })),
-  ].sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt));
-  const requests = allRequests.slice((requestPage - 1) * REQUEST_PAGE_SIZE, requestPage * REQUEST_PAGE_SIZE);
+  const requests = (requestsResult.data ?? []).map(mapMemberRequest);
+  const totalRequests = requestCountResult.data ?? 0;
 
   return {
     orders: orders.map((order) => mapOrder(order, itemsByOrder.get(order.id) ?? [])),
@@ -231,11 +228,11 @@ export async function getMemberAccountData(requestedPage = 1, requestedLoyaltyPa
     page,
     totalPages: Math.max(1, Math.ceil((ordersResult.count ?? 0) / ORDER_PAGE_SIZE)),
     totalOrders: ordersResult.count ?? 0,
-    totalRequests: (bookingRequestsResult.count ?? 0) + (customerRequestsResult.count ?? 0),
+    totalRequests,
     loyaltyPage,
     loyaltyTotalPages: Math.max(1, Math.ceil((loyaltyEntriesResult.count ?? 0) / LOYALTY_PAGE_SIZE)),
     requestPage,
-    requestTotalPages: Math.max(1, Math.ceil(((bookingRequestsResult.count ?? 0) + (customerRequestsResult.count ?? 0)) / REQUEST_PAGE_SIZE)),
+    requestTotalPages: Math.max(1, Math.ceil(totalRequests / REQUEST_PAGE_SIZE)),
     voucherPage,
     voucherTotalPages: Math.max(1, Math.ceil((vouchersResult.count ?? 0) / VOUCHER_PAGE_SIZE)),
   };

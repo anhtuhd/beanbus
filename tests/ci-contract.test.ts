@@ -6,6 +6,7 @@ const workflow = fs.readFileSync('.github/workflows/ci.yml', 'utf8');
 const playwrightConfig = fs.readFileSync('playwright.config.ts', 'utf8');
 const packageJson = fs.readFileSync('package.json', 'utf8');
 const productionRequestsE2e = fs.readFileSync('tests/e2e/customer-requests-production.spec.ts', 'utf8');
+const productionLiveE2e = fs.readFileSync('tests/e2e/production-live.spec.ts', 'utf8');
 
 test('CI quality job runs the committed quality gates', () => {
   assert.match(workflow, /actions\/checkout@v6/);
@@ -29,11 +30,26 @@ test('CI E2E job covers demo and production-gated flows', () => {
   assert.match(workflow, /actions\/upload-artifact@v7/);
 });
 
+test('CI exposes a manual production smoke workflow without production credentials', () => {
+  assert.match(workflow, /workflow_dispatch:/);
+  assert.match(workflow, /production_base_url:/);
+  assert.match(workflow, /live-smoke:/);
+  assert.match(workflow, /PLAYWRIGHT_BASE_URL:/);
+  assert.match(workflow, /PLAYWRIGHT_LIVE: ['"]true['"]/);
+  assert.match(workflow, /npm run test:e2e:live/);
+  assert.match(packageJson, /PLAYWRIGHT_BASE_URL:-https:\/\/www\.beanbus\.store/);
+  assert.match(productionLiveE2e, /new URL\(liveBaseUrl!\)\.protocol/);
+  assert.match(productionLiveE2e, /toBe\('https:'\)/);
+});
+
 test('Playwright does not silently reuse a differently configured local server', () => {
   assert.match(playwrightConfig, /PLAYWRIGHT_PORT \?\? '3101'/);
+  assert.match(playwrightConfig, /PLAYWRIGHT_BASE_URL/);
+  assert.match(playwrightConfig, /useExternalServer/);
   assert.match(playwrightConfig, /PLAYWRIGHT_REUSE_SERVER === 'true'/);
   assert.match(playwrightConfig, /NEXT_DIST_DIR: '\.next-e2e'/);
   assert.match(packageJson, /PLAYWRIGHT_PORT=3101 NEXT_PUBLIC_APP_MODE=production/);
+  assert.match(packageJson, /test:e2e:live/);
   assert.doesNotMatch(packageJson, /NEXT_PUBLIC_SITE_URL=http:\/\/127\.0\.0\.1:3100/);
   assert.match(productionRequestsE2e, /requiresPublishedEvents/);
   assert.match(productionRequestsE2e, /configured Supabase content runtime/);

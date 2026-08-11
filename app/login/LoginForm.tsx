@@ -60,7 +60,7 @@ export default function LoginForm({
           <p className={styles.authStatus} role="alert">{currentError}</p>
         )}
 
-        {!codeSent ? (
+        {phoneEnabled && (!codeSent ? (
           <form action={requestAction} className={styles.loginForm}>
             <input type="hidden" name="next" value={next} />
             <div className={styles.inputGroup}>
@@ -72,21 +72,18 @@ export default function LoginForm({
                 autoComplete="tel"
                 inputMode="tel"
                 required
-                disabled={!phoneEnabled || requestPending}
+                disabled={requestPending}
                 placeholder="0987 654 321"
               />
             </div>
-            {phoneEnabled && turnstileSiteKey && <TurnstileWidget siteKey={turnstileSiteKey} />}
+            {turnstileSiteKey && <TurnstileWidget siteKey={turnstileSiteKey} />}
             <button
               type="submit"
               className={`btn btn-primary btn-lg ${styles.fullButton}`}
-              disabled={!phoneEnabled || requestPending}
+              disabled={requestPending}
             >
               {requestPending ? t('Đang gửi...', 'Sending...') : t('Nhận mã qua Zalo', 'Get code via Zalo')}
             </button>
-            {!phoneEnabled && (
-              <p className={styles.authHint}>{t('Đăng nhập qua Zalo chưa khả dụng.', 'Zalo sign-in is unavailable.')}</p>
-            )}
           </form>
         ) : (
           <form action={verifyAction} className={styles.loginForm}>
@@ -127,9 +124,11 @@ export default function LoginForm({
               {t('Dùng số điện thoại khác', 'Use another phone number')}
             </Link>
           </form>
-        )}
+        ))}
 
-        <div className={styles.divider}><span>{t('Hoặc', 'Or')}</span></div>
+        {phoneEnabled && googleEnabled && (
+          <div className={styles.divider}><span>{t('Hoặc', 'Or')}</span></div>
+        )}
 
         <form action={signInWithGoogle}>
           <input type="hidden" name="next" value={next} />

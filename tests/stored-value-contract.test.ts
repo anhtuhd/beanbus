@@ -72,6 +72,8 @@ test('server action owns payment configuration and client has no payment-success
   assert.doesNotMatch(client, /addPoints/);
   assert.match(webhook, /process_stored_value_webhook/);
   assert.match(webhook, /\^B\[TF\]\[0-9\]\+\$/i);
+  assert.match(webhook, /isStoredValueCode && !isStoredValueConfigured\(\)/);
+  assert.match(webhook, /feature_disabled/);
 });
 
 test('admin stored-value controls are guarded and audited through RPC boundaries', () => {
