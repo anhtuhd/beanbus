@@ -30,20 +30,21 @@ create temporary table status_request as select * from public.create_customer_re
 );
 
 reset role;
-grant select on status_booking, status_request to authenticated;
+select set_config('test.status_booking_id', (select booking_id::text from status_booking), true);
+select set_config('test.status_request_id', (select request_id::text from status_request), true);
 
 set local role authenticated;
 set local request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
 select throws_like(
   $$select * from public.update_booking_request_status(
-    (select booking_id from status_booking), 'confirmed'
+    current_setting('test.status_booking_id')::uuid, 'confirmed'
   )$$,
   '%ADMIN_REQUIRED%',
   'member cannot update booking status'
 );
 select throws_like(
   $$select * from public.update_customer_request_status(
-    (select request_id from status_request), 'in_progress'
+    current_setting('test.status_request_id')::uuid, 'in_progress'
   )$$,
   '%ADMIN_REQUIRED%',
   'member cannot update customer request status'
@@ -56,7 +57,7 @@ set local request.jwt.claim.sub = '22222222-2222-4222-8222-222222222222';
 
 select is(
   (select booking_status from public.update_booking_request_status(
-    (select booking_id from status_booking), 'confirmed'
+    current_setting('test.status_booking_id')::uuid, 'confirmed'
   )),
   'confirmed',
   'admin confirms pending booking'
@@ -70,7 +71,7 @@ select is(
 
 select is(
   (select booking_status from public.update_booking_request_status(
-    (select booking_id from status_booking), 'confirmed'
+    current_setting('test.status_booking_id')::uuid, 'confirmed'
   )),
   'confirmed',
   'same booking status is idempotent'
@@ -78,7 +79,7 @@ select is(
 select is((select count(*)::integer from public.booking_request_status_history), 1, 'idempotent booking retry adds no audit row');
 select throws_like(
   $$select * from public.update_booking_request_status(
-    (select booking_id from status_booking), 'rejected'
+    current_setting('test.status_booking_id')::uuid, 'rejected'
   )$$,
   '%INVALID_BOOKING_TRANSITION%',
   'invalid booking transition is rejected'
@@ -86,14 +87,14 @@ select throws_like(
 
 select is(
   (select customer_request_status from public.update_customer_request_status(
-    (select request_id from status_request), 'in_progress'
+    current_setting('test.status_request_id')::uuid, 'in_progress'
   )),
   'in_progress',
   'admin starts customer request work'
 );
 select is(
   (select customer_request_status from public.update_customer_request_status(
-    (select request_id from status_request), 'resolved'
+    current_setting('test.status_request_id')::uuid, 'resolved'
   )),
   'resolved',
   'admin resolves in-progress customer request'
