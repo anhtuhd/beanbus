@@ -6,6 +6,7 @@ import { parseStoredValueIntentInput } from '../lib/stored-value/input.ts';
 
 const migration = readFileSync('supabase/migrations/20260810060000_stored_value.sql', 'utf8');
 const expiryMigration = readFileSync('supabase/migrations/20260811014925_fix_stored_value_expiry_ambiguity.sql', 'utf8');
+const precedenceMigration = readFileSync('supabase/migrations/20260811050000_fix_flash_sale_error_precedence.sql', 'utf8');
 const databaseTest = readFileSync('supabase/tests/database/stored_value.test.sql', 'utf8');
 const action = readFileSync('app/account/stored-value-actions.ts', 'utf8');
 const client = readFileSync('app/account/StoredValueClient.tsx', 'utf8');
@@ -61,6 +62,12 @@ test('top-up expiry cleanup qualifies the table timestamp', () => {
 
 test('flash-sale expiry cleanup qualifies the table timestamp', () => {
   assert.match(expiryMigration, /update public\.flash_sale_purchases as purchase[\s\S]*purchase\.expires_at <= now\(\)/i);
+});
+
+test('flash-sale reports a member limit before campaign sold-out state', () => {
+  const userLimit = precedenceMigration.indexOf("raise exception 'FLASH_SALE_USER_LIMIT'");
+  const soldOut = precedenceMigration.indexOf("raise exception 'FLASH_SALE_SOLD_OUT'");
+  assert.ok(userLimit >= 0 && soldOut >= 0 && userLimit < soldOut);
 });
 
 test('server action owns payment configuration and client has no payment-success mutation', () => {

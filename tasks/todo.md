@@ -63,6 +63,7 @@
 - [x] Mặc định local: reserve khi tạo đơn; consume khi SePay paid hoặc COD completed; release một lần khi cancel/payment failed/expired.
 - [x] Cleanup pending SePay payment hết hạn nối với order payment failed và voucher release.
 - [x] Thêm pgTAP/contract test cho cancellation, payment expiry, quota release và service-only ledger.
+- [x] Sửa precedence lỗi flash-sale để user đã đạt `max_per_user` nhận `FLASH_SALE_USER_LIMIT` ổn định ngay cả khi campaign đồng thời hết quota; migration forward mới cần được apply lên remote trước khi bật stored-value.
 - [ ] Owner xác nhận mốc consume, timeout COD, và refund có hoàn voucher hay không trước khi mở checkout production.
 - [ ] Thêm test concurrent usage limit, refund policy và one-time reward voucher trên Postgres runtime.
 - [ ] Xác nhận `BEANBUS10` và `WELCOMEVIP` có phải promotion live không.
