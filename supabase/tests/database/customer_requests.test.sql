@@ -16,8 +16,15 @@ select * from public.create_customer_request(
   'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'contact', 'Khách Liên Hệ', '+84912345678',
   'guest@example.com', null, null, null, 'Tôi cần tư vấn sản phẩm cà phê.', true
 );
+reset role;
+grant select on created_contact to authenticated;
+set local role anon;
 select is((select request_status from created_contact), 'pending', 'contact request starts pending');
-select is((select count(*)::integer from public.customer_requests), 0, 'anonymous visitor cannot read customer requests');
+select throws_like(
+  $$select count(*)::integer from public.customer_requests$$,
+  '%permission denied%',
+  'anonymous visitor cannot read customer requests'
+);
 
 create temporary table retried_contact as
 select * from public.create_customer_request(
@@ -107,14 +114,14 @@ create temporary table member_request as select * from public.create_customer_re
   null, null, null, null, 'Tôi cần Beanbus hỗ trợ thêm.', true
 );
 select is((select count(*)::integer from public.customer_requests), 1, 'member reads only their request');
-update public.customer_requests set status = 'resolved' where id = (select request_id from member_request);
+select throws_like(
+  $$update public.customer_requests set status = 'resolved'
+    where id = (select request_id from member_request)$$,
+  '%permission denied%',
+  'member cannot update request status directly'
+);
 
 reset role;
-select is(
-  (select status from public.customer_requests where id = (select request_id from member_request)),
-  'pending',
-  'member cannot update request status'
-);
 
 set local role authenticated;
 set local request.jwt.claim.sub = '22222222-2222-4222-8222-222222222222';
@@ -125,14 +132,14 @@ update public.profiles set role = 'admin' where id = '22222222-2222-4222-8222-22
 set local role authenticated;
 set local request.jwt.claim.sub = '22222222-2222-4222-8222-222222222222';
 select is((select count(*)::integer from public.customer_requests), 7, 'admin reads all customer requests');
-update public.customer_requests set status = 'in_progress' where id = (select request_id from created_contact);
+select throws_like(
+  $$update public.customer_requests set status = 'in_progress'
+    where id = (select request_id from created_contact)$$,
+  '%permission denied%',
+  'admin cannot update request status directly'
+);
 
 reset role;
-select is(
-  (select status from public.customer_requests where id = (select request_id from created_contact)),
-  'in_progress',
-  'admin updates request status'
-);
 
 select * from finish();
 rollback;

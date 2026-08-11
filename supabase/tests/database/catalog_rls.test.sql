@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(12);
+select plan(14);
 
 select has_table('public', 'catalog_categories', 'catalog categories table exists');
 select has_table('public', 'catalog_option_sets', 'catalog option sets table exists');
@@ -41,22 +41,33 @@ where id = '44444444-4444-4444-8444-444444444444';
 
 set local role anon;
 select is((select count(*)::integer from public.products), 14, 'anonymous visitors see published products');
-update public.products set price_vnd = 1 where id = 'cd-1';
+select throws_like(
+  $$update public.products set price_vnd = 1 where id = 'cd-1'$$,
+  '%permission denied%',
+  'anonymous visitors cannot change prices'
+);
 
 reset role;
 select is((select price_vnd from public.products where id = 'cd-1'), 35000, 'anonymous visitors cannot change prices');
 
 set local role authenticated;
 set local request.jwt.claim.sub = '33333333-3333-4333-8333-333333333333';
-update public.products set price_vnd = 1 where id = 'cd-1';
+select throws_like(
+  $$update public.products set price_vnd = 1 where id = 'cd-1'$$,
+  '%permission denied%',
+  'members cannot change prices'
+);
 
 reset role;
 select is((select price_vnd from public.products where id = 'cd-1'), 35000, 'members cannot change prices');
 
 set local role authenticated;
 set local request.jwt.claim.sub = '44444444-4444-4444-8444-444444444444';
-update public.products set is_available = false where id = 'cd-1';
-select is((select is_available from public.products where id = 'cd-1'), true, 'admins cannot bypass audited catalog operations');
+select throws_like(
+  $$update public.products set is_available = false where id = 'cd-1'$$,
+  '%permission denied%',
+  'admins cannot bypass audited catalog operations'
+);
 create temporary table catalog_admin_update as
 select * from public.update_product_status('cd-1', false, false);
 

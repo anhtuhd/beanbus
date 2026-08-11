@@ -91,7 +91,11 @@ select is((select count(*)::integer from public.profiles), 2, 'admin can read al
 reset role;
 set local role anon;
 set local request.jwt.claim.sub = '';
-select is((select count(*)::integer from public.profiles), 0, 'anonymous users cannot read profiles');
+select throws_like(
+  $$select count(*)::integer from public.profiles$$,
+  '%permission denied%',
+  'anonymous users cannot read profiles'
+);
 
 select * from finish();
 rollback;

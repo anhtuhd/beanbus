@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(16);
+select plan(17);
 
 select has_table('public', 'booking_request_status_history', 'booking status history exists');
 select has_table('public', 'customer_request_status_history', 'customer request status history exists');
@@ -28,6 +28,9 @@ create temporary table status_request as select * from public.create_customer_re
   'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'contact', 'Khách Liên Hệ', '+84923456789',
   null, null, null, null, 'Tôi cần Beanbus hỗ trợ thông tin.', true
 );
+
+reset role;
+grant select on status_booking, status_request to authenticated;
 
 set local role authenticated;
 set local request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';

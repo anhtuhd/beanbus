@@ -16,8 +16,15 @@ select * from public.create_booking_request(
   'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Khách Đặt Bàn', '+84912345678',
   now() + interval '1 day', 4, 'indoor', 'Gần ổ cắm', true
 );
+reset role;
+grant select on created_booking to authenticated;
+set local role anon;
 select is((select booking_status from created_booking), 'pending', 'new booking remains pending');
-select is((select count(*)::integer from public.booking_requests), 0, 'anonymous visitor cannot read booking rows');
+select throws_like(
+  $$select count(*)::integer from public.booking_requests$$,
+  '%permission denied%',
+  'anonymous visitor cannot read booking rows'
+);
 
 create temporary table retried_booking as
 select * from public.create_booking_request(
@@ -71,14 +78,13 @@ select * from public.create_booking_request(
 );
 select is((select count(*)::integer from public.booking_requests), 1, 'member reads only their booking');
 
-update public.booking_requests set status = 'confirmed'
-where id = (select booking_id from member_booking);
-reset role;
-select is(
-  (select status from public.booking_requests where id = (select booking_id from member_booking)),
-  'pending',
-  'member cannot update booking status'
+select throws_like(
+  $$update public.booking_requests set status = 'confirmed'
+    where id = (select booking_id from member_booking)$$,
+  '%permission denied%',
+  'member cannot update booking status directly'
 );
+reset role;
 
 set local role authenticated;
 set local request.jwt.claim.sub = '22222222-2222-4222-8222-222222222222';
@@ -91,15 +97,14 @@ where id = '22222222-2222-4222-8222-222222222222';
 set local role authenticated;
 set local request.jwt.claim.sub = '22222222-2222-4222-8222-222222222222';
 select is((select count(*)::integer from public.booking_requests), 2, 'admin reads all bookings');
-update public.booking_requests set status = 'confirmed'
-where id = (select booking_id from created_booking);
+select throws_like(
+  $$update public.booking_requests set status = 'confirmed'
+    where id = (select booking_id from created_booking)$$,
+  '%permission denied%',
+  'admin cannot update booking status directly'
+);
 
 reset role;
-select is(
-  (select status from public.booking_requests where id = (select booking_id from created_booking)),
-  'confirmed',
-  'admin updates booking status'
-);
 
 select * from finish();
 rollback;

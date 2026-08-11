@@ -82,7 +82,11 @@ select throws_like(
   '%PRODUCT_UNAVAILABLE%',
   'unavailable products are rejected'
 );
-select is((select count(*)::integer from public.orders), 0, 'anonymous visitors cannot read orders');
+select throws_like(
+  $$select count(*)::integer from public.orders$$,
+  '%permission denied%',
+  'anonymous visitors cannot read orders'
+);
 
 select * from finish();
 rollback;

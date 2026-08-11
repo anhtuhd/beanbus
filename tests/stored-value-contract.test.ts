@@ -5,6 +5,7 @@ import { isStoredValueConfigured } from '../lib/stored-value/config.ts';
 import { parseStoredValueIntentInput } from '../lib/stored-value/input.ts';
 
 const migration = readFileSync('supabase/migrations/20260810060000_stored_value.sql', 'utf8');
+const expiryMigration = readFileSync('supabase/migrations/20260811014925_fix_stored_value_expiry_ambiguity.sql', 'utf8');
 const databaseTest = readFileSync('supabase/tests/database/stored_value.test.sql', 'utf8');
 const action = readFileSync('app/account/stored-value-actions.ts', 'utf8');
 const client = readFileSync('app/account/StoredValueClient.tsx', 'utf8');
@@ -52,6 +53,14 @@ test('stored value has a database replay, quota, and authorization test plan', (
   assert.match(databaseTest, /paid flash-sale consumes one sold quota/);
   assert.match(databaseTest, /FLASH_SALE_USER_LIMIT/);
   assert.match(databaseTest, /has_table_privilege\('authenticated', 'public\.wallet_topups', 'SELECT'\)/);
+});
+
+test('top-up expiry cleanup qualifies the table timestamp', () => {
+  assert.match(expiryMigration, /update public\.wallet_topups as topup[\s\S]*topup\.expires_at <= now\(\)/i);
+});
+
+test('flash-sale expiry cleanup qualifies the table timestamp', () => {
+  assert.match(expiryMigration, /update public\.flash_sale_purchases as purchase[\s\S]*purchase\.expires_at <= now\(\)/i);
 });
 
 test('server action owns payment configuration and client has no payment-success mutation', () => {

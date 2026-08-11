@@ -113,6 +113,7 @@ select is(
 );
 
 reset role;
+grant select on stored_topup_intent to service_role;
 set local role service_role;
 create temporary table stored_topup_payment as
 select * from public.create_stored_value_payment(
@@ -168,6 +169,7 @@ select * from public.create_flash_sale_intent(
 select is((select amount_vnd from stored_flash_intent), 50000, 'flash-sale price comes from the campaign');
 
 reset role;
+grant select on stored_flash_intent to service_role;
 set local role service_role;
 create temporary table stored_flash_payment as
 select * from public.create_stored_value_payment(
