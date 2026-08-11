@@ -33,7 +33,7 @@ Kết quả local tại thời điểm review:
 
 - `npm run lint`: pass.
 - `npx tsc --noEmit`: pass.
-- `npm test`: 238/238 pass.
+- `npm test`: 239/239 pass.
 - `npm run build`: pass.
 - `npm run test:e2e:auth`: 4/4 pass với Google enabled và phone disabled ở 375/768/1440px; chưa thực hiện OAuth Gmail thật.
 - `npm run test:e2e`: 30/40 pass; 10 production/provider tests skipped vì chưa có hosted credentials, trong đó live smoke được chạy riêng khi có `PLAYWRIGHT_LIVE=true`.
@@ -42,7 +42,7 @@ Kết quả local tại thời điểm review:
 - E2E customer requests đã pass 4/4 sau khi port RSVP modal ra `document.body`, tránh overlay bị kéo theo card có hiệu ứng hover/transform.
 - E2E accessibility header/menu ban đầu lộ lỗi focus không ổn định; đã sửa và xác nhận 20/20 lần lặp, sau đó full E2E pass.
 - Đã thêm live smoke opt-in `npm run test:e2e:live` với `PLAYWRIGHT_BASE_URL`, nhưng chưa đánh dấu pass vì production hiện còn render login build cũ.
-- Production smoke read-only: `https://www.beanbus.store/api/health` trả `200` với mode `production`; Supabase Google authorize với callback production trả `302`. Source hiện đã push tới `74571c7`, nhưng production vẫn cần được Vercel redeploy để xác nhận HTML Google-only; lần kiểm tra trước còn nút Zalo/divider. Webhook `/hooks/payment` trả `401` khi thiếu HMAC, chứng minh SePay webhook production đang bật; `/api/cron/sepay-reconciliation` trả `404`, chứng minh reconciliation cron đang tắt. Gmail callback/profile/admin role thật vẫn chưa test.
+- Production smoke read-only: `https://www.beanbus.store/api/health` trả `200` với mode `production`; Supabase Google authorize với callback production trả `302`. Source branch đã có health revision marker, nhưng production vẫn cần được Vercel redeploy để xác nhận HTML Google-only; sau redeploy đối chiếu trường `revision` trong health với 12 ký tự đầu của Vercel commit SHA. Lần kiểm tra trước còn nút Zalo/divider. Webhook `/hooks/payment` trả `401` khi thiếu HMAC, chứng minh SePay webhook production đang bật; `/api/cron/sepay-reconciliation` trả `404`, chứng minh reconciliation cron đang tắt. Gmail callback/profile/admin role thật vẫn chưa test.
 - Đã bổ sung `suppressHydrationWarning` cho cả `html` và `body` để không báo lỗi khi extension/browser tooling chèn attribute trước hydration; contract test đã thêm.
 - Cảnh báo React dev `Encountered a script tag while rendering React component` được xác minh là cảnh báo development khi render native JSON-LD; Next.js 16 vẫn khuyến nghị native JSON-LD script cho structured data. Production build đã kiểm tra trực tiếp, không có console warning hoặc page error, nên giữ nguyên cách triển khai hiện tại.
 - `npm audit --omit=dev --audit-level=high`: 0 vulnerability.
@@ -180,7 +180,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 Một task chỉ được đánh dấu hoàn thành khi:
 
 - Có test behavior phù hợp; thay đổi DB có pgTAP và migration forward-only.
-- `npm run lint`, `npx tsc --noEmit`, `npm test` và `npm run build` pass.
+- `npm run lint`, `npx tsc --noEmit`, `npm test` (239/239) và `npm run build` pass.
 - Luồng UI bị ảnh hưởng được test keyboard và mobile; không có loading/error/empty state giả.
 - Auth/RLS/ownership được kiểm thử bằng ít nhất hai user khác nhau.
 - Payment/points/voucher mutation idempotent, auditable và không log secret/OTP/full PII.

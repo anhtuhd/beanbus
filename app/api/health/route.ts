@@ -1,4 +1,4 @@
-import { assertProductionEnv, getAppMode } from '@/lib/env';
+import { assertProductionEnv, getAppMode, getDeploymentRevision } from '@/lib/env';
 import {
   CORRELATION_HEADER,
   createCorrelationId,
@@ -17,7 +17,12 @@ export function GET(request: Request) {
 
   try {
     assertProductionEnv();
-    return Response.json({ status: 'ok', mode: getAppMode() }, { headers });
+    const revision = getDeploymentRevision();
+    return Response.json({
+      status: 'ok',
+      mode: getAppMode(),
+      ...(revision ? { revision } : {}),
+    }, { headers });
   } catch {
     logOperationalFailure({
       correlationId,

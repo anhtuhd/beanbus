@@ -10,7 +10,7 @@
 
 - [x] `npm run lint` pass.
 - [x] `npx tsc --noEmit` pass.
-- [x] `npm test` pass 238/238.
+- [x] `npm test` pass 239/239.
 - [x] `npm run build` pass.
 - [x] `npm run test:e2e:auth` pass 4/4 với Google enabled và phone disabled ở 375/768/1440px.
 - [x] `npm run test:e2e` pass 30/40; 10 suite production/provider được skip đúng khi thiếu credential.
@@ -136,7 +136,7 @@
 - [ ] Không còn finding P0/P1 mở.
 - [ ] Phone/Zalo và stored-value xác nhận vẫn tắt ở UI lẫn remote execution; Zalo cron đã xác nhận `0`, còn Auth Provider/Hook và Vercel flags cần owner kiểm tra.
 - [ ] Google login/logout/profile/admin role smoke pass bằng tài khoản thật.
-- [ ] Lint, typecheck, 238/238 unit-contract tests, build, pgTAP và focused E2E đều xanh.
+- [ ] Lint, typecheck, 239/239 unit-contract tests, build, pgTAP và focused E2E đều xanh.
 - [ ] Sepay webhook + reconciliation live smoke pass nếu bật payment.
 - [ ] Monitoring, backup, rollback và incident contacts đã được thử.
 - [ ] Owner ký xác nhận staging ở desktop/mobile.

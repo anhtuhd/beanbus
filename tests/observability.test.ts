@@ -123,6 +123,7 @@ test('health endpoint is uncached, correlated, and fails closed on production co
   const health = readFileSync(new URL('../app/api/health/route.ts', import.meta.url), 'utf8');
 
   assert.match(health, /assertProductionEnv\(\)/);
+  assert.match(health, /getDeploymentRevision\(\)/);
   assert.match(health, /'Cache-Control': 'no-store'/);
   assert.match(health, /\[CORRELATION_HEADER\]: correlationId/);
   assert.match(health, /status: 'unavailable'/);

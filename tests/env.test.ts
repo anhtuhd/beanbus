@@ -1,9 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { assertProductionEnv, getAppMode, getSiteUrl } from '../lib/env.ts';
+import { assertProductionEnv, getAppMode, getDeploymentRevision, getSiteUrl } from '../lib/env.ts';
 
 test('getAppMode defaults to demo', () => {
   assert.equal(getAppMode({}), 'demo');
+});
+
+test('getDeploymentRevision exposes only a bounded Vercel commit SHA', () => {
+  assert.equal(getDeploymentRevision({ VERCEL_GIT_COMMIT_SHA: 'abcdef1234567890' }), 'abcdef123456');
+  assert.equal(getDeploymentRevision({ VERCEL_GIT_COMMIT_SHA: 'not-a-sha' }), undefined);
+  assert.equal(getDeploymentRevision({ VERCEL_GIT_COMMIT_SHA: 'a'.repeat(41) }), undefined);
 });
 
 test('getSiteUrl returns a validated origin without paths', () => {

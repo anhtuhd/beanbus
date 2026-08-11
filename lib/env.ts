@@ -25,6 +25,11 @@ export function getAppMode(env: Environment = process.env): AppMode {
   return env.NEXT_PUBLIC_APP_MODE === 'production' ? 'production' : 'demo';
 }
 
+export function getDeploymentRevision(env: Environment = process.env): string | undefined {
+  const revision = env.VERCEL_GIT_COMMIT_SHA?.trim();
+  return revision && /^[0-9a-f]{7,40}$/i.test(revision) ? revision.slice(0, 12) : undefined;
+}
+
 export function getSiteUrl(env: Environment = process.env): string {
   const configured = env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://beanbus.vn';
   const url = new URL(configured);
