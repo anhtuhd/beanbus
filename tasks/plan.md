@@ -33,7 +33,7 @@ Kết quả local tại thời điểm review:
 
 - `npm run lint`: pass.
 - `npx tsc --noEmit`: pass.
-- `npm test`: 237/237 pass.
+- `npm test`: 238/238 pass.
 - `npm run build`: pass.
 - `npm run test:e2e:auth`: 4/4 pass với Google enabled và phone disabled ở 375/768/1440px; chưa thực hiện OAuth Gmail thật.
 - `npm run test:e2e`: 30/40 pass; 10 production/provider tests skipped vì chưa có hosted credentials, trong đó live smoke được chạy riêng khi có `PLAYWRIGHT_LIVE=true`.
@@ -47,7 +47,8 @@ Kết quả local tại thời điểm review:
 - Cảnh báo React dev `Encountered a script tag while rendering React component` được xác minh là cảnh báo development khi render native JSON-LD; Next.js 16 vẫn khuyến nghị native JSON-LD script cho structured data. Production build đã kiểm tra trực tiếp, không có console warning hoặc page error, nên giữ nguyên cách triển khai hiện tại.
 - `npm audit --omit=dev --audit-level=high`: 0 vulnerability.
 - Đã gọi `npm run db:lint` và `npm run db:test`, nhưng cả hai bị chặn: máy không có Docker/Postgres local và Supabase CLI không kết nối được `127.0.0.1:54322`; pgTAP chưa được thực thi runtime.
-- Đã dùng Supabase CLI với connection string đã cấu hình để đối chiếu đủ 36 migration local với remote. Remote đã áp dụng tới `20260811041000_fix_remote_lint_warnings.sql`; truy vấn chỉ đọc xác nhận ledger SePay/voucher tồn tại và hai Zalo cron có `0` job active. `db lint --fail-on error` pass với `No schema errors found`; advisor nhiều permissive policy vẫn ở backlog P2.
+- Đã dùng Supabase CLI với connection string đã cấu hình để đối chiếu đủ 37 migration local với remote. Remote đã áp dụng tới `20260811050000_fix_flash_sale_error_precedence.sql`; truy vấn chỉ đọc xác nhận function flash-sale ưu tiên `FLASH_SALE_USER_LIMIT`, ledger SePay/voucher tồn tại và hai Zalo cron có `0` job active. `db lint --fail-on error` pass với `No schema errors found`; advisor nhiều permissive policy vẫn ở backlog P2.
+- Sau commit `4d456a5`, GitHub Actions run `31460799996` đã xanh `quality` và toàn bộ E2E; job database vẫn fail ở bước pgTAP nhưng endpoint công khai chỉ trả `Process completed with exit code 1`, chưa đủ log để kết luận assertion cụ thể. Không đánh dấu database/release gate hoàn tất.
 
 Các increment đã triển khai local: Google-only login UI và auth E2E, loyalty reversal forward migration, redemption idempotency key ổn định qua retry, RPC chống collision khác user, RPC phân trang request `UNION ALL` có total count/RLS, first-admin/release runbook, voucher reservation lifecycle, form CAPTCHA feature-gate, RSVP modal ổn định ngoài card hover, và SePay API v2 reconciliation feature-gated với text-key ledger, lease/checkpoint, malformed-payment retry safety, expired-payment cleanup, Vercel cron và structured operational events cho outcome/gap/counters. Đã thêm pgTAP regression tests cho loyalty, request pagination, voucher lifecycle và reconciliation. Các migration đã được reconcile/apply lên remote; provider, feature flag production và hosted user smoke vẫn chưa hoàn tất.
 

@@ -10,7 +10,7 @@
 
 - [x] `npm run lint` pass.
 - [x] `npx tsc --noEmit` pass.
-- [x] `npm test` pass 237/237.
+- [x] `npm test` pass 238/238.
 - [x] `npm run build` pass.
 - [x] `npm run test:e2e:auth` pass 4/4 với Google enabled và phone disabled ở 375/768/1440px.
 - [x] `npm run test:e2e` pass 30/40; 10 suite production/provider được skip đúng khi thiếu credential.
@@ -23,8 +23,9 @@
 - [x] `npm audit --omit=dev --audit-level=high` báo 0 vulnerability.
 - [x] Production build đã kiểm tra console/page error: không còn cảnh báo JSON-LD; cảnh báo native script chỉ xuất hiện trong React development overlay và phù hợp với khuyến nghị JSON-LD của Next.js.
 - [ ] Chạy `npm run db:lint` và `npm run db:test` trên Docker-compatible Supabase runtime (đã thử local; hiện bị `ECONNREFUSED 127.0.0.1:54322` vì chưa có Docker/Postgres).
-- [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; đủ 36 migration local khớp remote tới `20260811041000`.
-- [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration sửa loyalty/content/SePay warning; advisor multiple-permissive-policy vẫn là backlog maintainability.
+- [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; đủ 37 migration local khớp remote tới `20260811050000`.
+- [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration sửa loyalty/content/SePay/flash-sale warning; advisor multiple-permissive-policy vẫn là backlog maintainability.
+- [ ] GitHub database job `31460799996` vẫn fail ở bước pgTAP; quality và E2E đã pass nhưng log assertion chi tiết chưa truy cập được qua API public.
 
 ## 0. Tạm dừng Phone OTP/Zalo
 
@@ -133,7 +134,7 @@
 - [ ] Không còn finding P0/P1 mở.
 - [ ] Phone/Zalo và stored-value xác nhận vẫn tắt ở UI lẫn remote execution; Zalo cron đã xác nhận `0`, còn Auth Provider/Hook và Vercel flags cần owner kiểm tra.
 - [ ] Google login/logout/profile/admin role smoke pass bằng tài khoản thật.
-- [ ] Lint, typecheck, 237/237 unit-contract tests, build, pgTAP và focused E2E đều xanh.
+- [ ] Lint, typecheck, 238/238 unit-contract tests, build, pgTAP và focused E2E đều xanh.
 - [ ] Sepay webhook + reconciliation live smoke pass nếu bật payment.
 - [ ] Monitoring, backup, rollback và incident contacts đã được thử.
 - [ ] Owner ký xác nhận staging ở desktop/mobile.
