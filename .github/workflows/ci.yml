@@ -91,7 +91,16 @@ jobs:
       - name: Lint database
         run: supabase db lint --local --level warning
       - name: Run pgTAP tests
-        run: supabase test db
+        run: |
+          set -o pipefail
+          supabase test db 2>&1 | tee pgtap-output.log
+      - name: Upload pgTAP output
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pgtap-output
+          path: pgtap-output.log
+          if-no-files-found: error
 
   live-smoke:
     if: github.event_name == 'workflow_dispatch'

@@ -42,7 +42,7 @@ Kết quả local tại thời điểm review:
 - E2E customer requests đã pass 4/4 sau khi port RSVP modal ra `document.body`, tránh overlay bị kéo theo card có hiệu ứng hover/transform.
 - E2E accessibility header/menu ban đầu lộ lỗi focus không ổn định; đã sửa và xác nhận 20/20 lần lặp, sau đó full E2E pass.
 - Đã thêm live smoke opt-in `npm run test:e2e:live` với `PLAYWRIGHT_BASE_URL`, nhưng chưa đánh dấu pass vì production hiện còn render login build cũ.
-- Production smoke read-only: `https://www.beanbus.store/api/health` trả `200` với mode `production`; Supabase Google authorize với callback production trả `302`. Sau khi push `87473ae`, production vẫn trả HTML build cũ với nút Zalo/divider, chứng minh Vercel chưa redeploy branch này hoặc production branch chưa nhận commit. Webhook `/hooks/payment` trả `401` khi thiếu HMAC, chứng minh SePay webhook production đang bật; `/api/cron/sepay-reconciliation` trả `404`, chứng minh reconciliation cron đang tắt. Gmail callback/profile/admin role thật vẫn chưa test.
+- Production smoke read-only: `https://www.beanbus.store/api/health` trả `200` với mode `production`; Supabase Google authorize với callback production trả `302`. Sau các commit source tới `85d0644`, production vẫn cần được Vercel redeploy để xác nhận HTML Google-only; lần kiểm tra trước còn nút Zalo/divider. Webhook `/hooks/payment` trả `401` khi thiếu HMAC, chứng minh SePay webhook production đang bật; `/api/cron/sepay-reconciliation` trả `404`, chứng minh reconciliation cron đang tắt. Gmail callback/profile/admin role thật vẫn chưa test.
 - Đã bổ sung `suppressHydrationWarning` cho cả `html` và `body` để không báo lỗi khi extension/browser tooling chèn attribute trước hydration; contract test đã thêm.
 - Cảnh báo React dev `Encountered a script tag while rendering React component` được xác minh là cảnh báo development khi render native JSON-LD; Next.js 16 vẫn khuyến nghị native JSON-LD script cho structured data. Production build đã kiểm tra trực tiếp, không có console warning hoặc page error, nên giữ nguyên cách triển khai hiện tại.
 - `npm audit --omit=dev --audit-level=high`: 0 vulnerability.
@@ -75,13 +75,13 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 
 1. **Loyalty reversal đã có forward fix và remote lint đã pass, nhưng chưa có runtime/pgTAP sign-off.** `apply_loyalty_for_order()` hiện xử lý reversal độc lập với policy hiện tại; pgTAP regression đã thêm cho chuỗi disable policy -> cancel/refund. Chưa coi là đóng trước production cho tới khi chạy trên schema sạch và remote test account.
 2. **Voucher lifecycle đã có schema remote nhưng chưa có runtime/pgTAP sign-off đầy đủ.** Migration đã có `reserved/consumed/released`, cleanup SePay expiry và audit ledger; mặc định consume khi SePay paid/COD completed, release khi cancel/payment failed/expired. Owner vẫn phải xác nhận refund có hoàn voucher hay không trước khi mở checkout production.
-3. **Remote inventory đã được reconcile và apply.** 36 migration local khớp remote tới `20260811041000`; còn thiếu pgTAP/RLS runtime và backup/restore sign-off, không còn drift chưa giải thích.
+3. **Remote inventory đã được reconcile và apply.** 37 migration local khớp remote tới `20260811050000`; còn thiếu pgTAP/RLS runtime và backup/restore sign-off, không còn drift chưa giải thích.
 
 ### P1 - Phải hoàn thành trước mở traffic thật
 
 1. **Redemption idempotency đã có forward fix ở local, chưa được runtime/remote xác nhận.** UI giữ key qua retry; RPC scope duplicate theo `user_id` và trả conflict chung cho collision khác user. Cần pgTAP/runtime hosted trước khi coi là đóng.
 2. **Hai voucher seed đang active không thời hạn.** `BEANBUS10` và `WELCOMEVIP` có thể trở thành khuyến mãi production ngoài ý muốn. Chủ dự án phải phê duyệt hoặc tắt bằng forward migration.
-3. **Google happy path chưa được kiểm thử và production deployment còn stale.** E2E local chứng minh Google-only UI; hosted authorize trả `302`, nhưng chưa chứng minh Gmail mới tạo `auth.users`, `profiles`, session và logout đúng. Commit `87473ae` đã được push; build production vẫn render phone form cũ và cần Vercel redeploy/merge vào production branch.
+3. **Google happy path chưa được kiểm thử và production deployment còn stale.** E2E local chứng minh Google-only UI; hosted authorize trả `302`, nhưng chưa chứng minh Gmail mới tạo `auth.users`, `profiles`, session và logout đúng. Các commit source tới `85d0644` đã được push; build production cần Vercel redeploy/merge vào production branch.
 4. **Tắt flag phone chưa đủ để dừng toàn bộ Zalo remote.** Hai cron đã được xác nhận không active sau migration pause, nhưng owner vẫn phải kiểm tra Phone provider và Send SMS Hook trên Supabase Dashboard.
 5. **SePay webhook production đang bật nhưng reconciliation cron đang tắt.** Webhook chưa có HMAC trả `401`; cron trả `404`, nên chưa cần token cron. Nếu giữ webhook live, vẫn cần live smoke/alert/IP allowlist; nếu bật reconciliation sau này, cấp API v2 token và hoàn tất gate trước. SePay khuyến nghị đối soát 15-30 phút/lần: [bảo mật webhook](https://developer.sepay.vn/vi/sepay-webhooks/bao-mat), [API giao dịch v2](https://developer.sepay.vn/vi/sepay-api/v2/giao-dich/danh-sach).
 6. **Anonymous mutation đã có Turnstile feature-gate ở local.** Booking/contact/order gọi Cloudflare Siteverify trước khi ghi khi `NEXT_PUBLIC_ENABLE_FORM_CAPTCHA=true`; production vẫn cần owner cấp key, bật flag và kiểm tra abuse/alert.
@@ -111,7 +111,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 - Google Console dùng Supabase callback `https://<project-ref>.supabase.co/auth/v1/callback`; Supabase Redirect URLs cho phép `https://www.beanbus.store/auth/callback` và URL preview được duyệt.
 - [x] Ẩn phone form khi feature bị tắt; thêm test cho login Google-only.
 - Test Gmail mới: login, profile auto-create, account access, logout, login lại; test member bị chặn admin.
-- [x] Dùng Supabase CLI với connection string được cấp, so sánh đủ 36 migration và apply các forward migration đã review; migration cuối dọn warning lint và giữ pause hai Zalo cron.
+- [x] Dùng Supabase CLI với connection string được cấp, so sánh đủ 37 migration và apply các forward migration đã review; migration cuối dọn warning lint, sửa precedence flash-sale và giữ pause hai Zalo cron.
 
 **Exit criteria:** Một tài khoản Gmail thật hoàn thành account flow; phone/Zalo không còn UI hay remote execution; có migration inventory được lưu trong checklist phát hành.
 

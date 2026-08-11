@@ -25,7 +25,7 @@
 - [ ] Chạy `npm run db:lint` và `npm run db:test` trên Docker-compatible Supabase runtime (đã thử local; hiện bị `ECONNREFUSED 127.0.0.1:54322` vì chưa có Docker/Postgres).
 - [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; đủ 37 migration local khớp remote tới `20260811050000`.
 - [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration sửa loyalty/content/SePay/flash-sale warning; advisor multiple-permissive-policy vẫn là backlog maintainability.
-- [ ] GitHub database job `31460799996` vẫn fail ở bước pgTAP; quality và E2E đã pass nhưng log assertion chi tiết chưa truy cập được qua API public.
+- [ ] GitHub database job `31460799996` fail ở bước pgTAP; quality và E2E pass nhưng log assertion chi tiết chưa truy cập được qua API public. Run mới `31461044708` đang chạy.
 
 ## 0. Tạm dừng Phone OTP/Zalo
 
@@ -45,7 +45,7 @@
 - [ ] Google Console: Authorized redirect URI là `https://<project-ref>.supabase.co/auth/v1/callback`.
 - [ ] Supabase URL Configuration: Site URL là `https://www.beanbus.store`; allow redirect `https://www.beanbus.store/auth/callback` và preview URL đã duyệt.
 - [x] Vercel Production: `/api/health` trả `200`, mode `production`; production login render `googleEnabled=true`, `phoneEnabled=false`.
-- [x] Commit/push source Google-only và plan milestone: `87473ae` trên `codex/zalo-otp-integration`.
+- [x] Commit/push source Google-only và các milestone plan tới `85d0644` trên `codex/zalo-otp-integration`.
 - [ ] Vercel Production: build hiện tại vẫn render form Zalo disabled/divider cũ dù props đã là `phoneEnabled=false`; cần redeploy branch này hoặc merge commit vào production branch.
 - [ ] Chạy `npm run test:e2e:live` sau khi redeploy; lần kiểm tra curl hiện tại đã chứng minh build cũ còn form Zalo.
 - [ ] Vercel Preview: set `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=true`, giữ phone/stored-value false và redeploy.
@@ -81,9 +81,9 @@
 ## 4. Reconcile và kiểm thử Supabase
 
 - [ ] `npx supabase link --project-ref <project-ref>` vẫn chưa lưu link CLI; đã dùng `--db-url` của project được cấu hình local.
-- [x] `npx supabase migration list` xác nhận đủ 36 migration local khớp remote, không có drift chưa giải thích.
+- [x] `npx supabase migration list` xác nhận đủ 37 migration local khớp remote tới `20260811050000`, không có drift chưa giải thích.
 - [x] Review P0 forward migrations và apply theo thứ tự; backup/restore drill vẫn cần owner xác nhận.
-- [x] Apply migration tới `20260811041000_fix_remote_lint_warnings.sql`; truy vấn remote xác nhận 9 migration mới đã có.
+- [x] Apply migration tới `20260811050000_fix_flash_sale_error_precedence.sql`; truy vấn remote xác nhận toàn bộ 37 migration đã có.
 - [ ] Chạy toàn bộ `npm run db:lint` và `npm run db:test` trên schema sạch.
 - [ ] Chạy lại pgTAP trên staging/remote theo release runbook.
 - [ ] Test RLS bằng hai member và một admin: profiles, orders, requests, ledger, vouchers, history.
