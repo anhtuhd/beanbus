@@ -23,10 +23,10 @@
 - [x] `npm audit --omit=dev --audit-level=high` báo 0 vulnerability.
 - [x] Production build đã kiểm tra console/page error: không còn cảnh báo JSON-LD; cảnh báo native script chỉ xuất hiện trong React development overlay và phù hợp với khuyến nghị JSON-LD của Next.js.
 - [ ] Chạy `npm run db:lint` và `npm run db:test` trên Docker-compatible Supabase runtime (đã thử local; hiện bị `ECONNREFUSED 127.0.0.1:54322` vì chưa có Docker/Postgres).
-- [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; 37 migration hiện có trên remote khớp tới `20260811050000`.
-- [ ] Apply `20260811120000_fix_loyalty_redemption_collision.sql` lên remote sau khi CI database xác nhận xanh.
-- [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration sửa loyalty/content/SePay/flash-sale warning; advisor multiple-permissive-policy vẫn là backlog maintainability.
-- [ ] GitHub run `31461697461` trên `74571c7`: quality và E2E pass, database fail ở pgTAP. Artifact `pgtap-output` (`9090031114`) và job summary đã được upload; cần đọc assertion cụ thể để đóng gate.
+- [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; đủ 38 migration local khớp remote tới `20260811120000`.
+- [x] Apply `20260811120000_fix_loyalty_redemption_collision.sql` lên remote sau khi CI database xác nhận xanh.
+- [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration loyalty/content/SePay/flash-sale; advisor multiple-permissive-policy vẫn là backlog maintainability.
+- [x] GitHub run `31462882057` trên `8d55557` completed successfully; quality, database và E2E đều xanh. Lỗi collision của run `31462604288` đã có assertion cụ thể và được sửa.
 
 ## 0. Tạm dừng Phone OTP/Zalo
 
@@ -47,7 +47,7 @@
 - [ ] Google Console: Authorized redirect URI là `https://<project-ref>.supabase.co/auth/v1/callback`.
 - [ ] Supabase URL Configuration: Site URL là `https://www.beanbus.store`; allow redirect `https://www.beanbus.store/auth/callback` và preview URL đã duyệt.
 - [x] Vercel Production: `/api/health` trả `200`, mode `production`; production login render `googleEnabled=true`, `phoneEnabled=false`.
-- [x] Commit/push source Google-only và các milestone plan tới `74571c7` trên `codex/zalo-otp-integration`.
+- [x] Commit/push source Google-only và các milestone plan tới `8d55557` trên `codex/zalo-otp-integration`.
 - [ ] Vercel Production: build hiện tại vẫn render form Zalo disabled/divider cũ dù props đã là `phoneEnabled=false`; cần redeploy branch này hoặc merge commit vào production branch.
 - [ ] Chạy `npm run test:e2e:live` sau khi redeploy; lần kiểm tra curl hiện tại đã chứng minh build cũ còn form Zalo.
 - [ ] Vercel Preview: set `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=true`, giữ phone/stored-value false và redeploy.
@@ -84,10 +84,10 @@
 ## 4. Reconcile và kiểm thử Supabase
 
 - [ ] `npx supabase link --project-ref <project-ref>` vẫn chưa lưu link CLI; đã dùng `--db-url` của project được cấu hình local.
-- [x] `npx supabase migration list` xác nhận đủ 37 migration local khớp remote tới `20260811050000`, không có drift chưa giải thích.
+- [x] `npx supabase migration list` xác nhận đủ 38 migration local khớp remote tới `20260811120000`, không có drift chưa giải thích.
 - [x] Review P0 forward migrations và apply theo thứ tự; backup/restore drill vẫn cần owner xác nhận.
-- [x] Apply migration tới `20260811050000_fix_flash_sale_error_precedence.sql`; truy vấn remote xác nhận 37 migration đã có.
-- [ ] Sau CI pass, apply và kiểm tra read-only migration `20260811120000_fix_loyalty_redemption_collision.sql`.
+- [x] Apply migration tới `20260811050000_fix_flash_sale_error_precedence.sql`; đây là mốc trước khi migration loyalty collision được thêm, remote hiện đã có đủ 38 migration.
+- [x] Sau CI pass, apply và kiểm tra migration `20260811120000_fix_loyalty_redemption_collision.sql`; remote inventory khớp và lint không có schema error.
 - [ ] Chạy toàn bộ `npm run db:lint` và `npm run db:test` trên schema sạch.
 - [ ] Chạy lại pgTAP trên staging/remote theo release runbook.
 - [ ] Test RLS bằng hai member và một admin: profiles, orders, requests, ledger, vouchers, history.
@@ -138,7 +138,7 @@
 - [ ] Không còn finding P0/P1 mở.
 - [ ] Phone/Zalo và stored-value xác nhận vẫn tắt ở UI lẫn remote execution; Zalo cron đã xác nhận `0`, còn Auth Provider/Hook và Vercel flags cần owner kiểm tra.
 - [ ] Google login/logout/profile/admin role smoke pass bằng tài khoản thật.
-- [ ] Lint, typecheck, 239/239 unit-contract tests, build, pgTAP và focused E2E đều xanh.
+- [ ] Lint, typecheck, 239/239 unit-contract tests, build, pgTAP và focused E2E đã xanh; còn thiếu hosted Google/RLS smoke và owner sign-off.
 - [ ] Sepay webhook + reconciliation live smoke pass nếu bật payment.
 - [ ] Monitoring, backup, rollback và incident contacts đã được thử.
 - [ ] Owner ký xác nhận staging ở desktop/mobile.
