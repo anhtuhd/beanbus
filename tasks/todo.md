@@ -23,7 +23,8 @@
 - [x] `npm audit --omit=dev --audit-level=high` báo 0 vulnerability.
 - [x] Production build đã kiểm tra console/page error: không còn cảnh báo JSON-LD; cảnh báo native script chỉ xuất hiện trong React development overlay và phù hợp với khuyến nghị JSON-LD của Next.js.
 - [ ] Chạy `npm run db:lint` và `npm run db:test` trên Docker-compatible Supabase runtime (đã thử local; hiện bị `ECONNREFUSED 127.0.0.1:54322` vì chưa có Docker/Postgres).
-- [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; đủ 37 migration local khớp remote tới `20260811050000`.
+- [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; 37 migration hiện có trên remote khớp tới `20260811050000`.
+- [ ] Apply `20260811120000_fix_loyalty_redemption_collision.sql` lên remote sau khi CI database xác nhận xanh.
 - [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration sửa loyalty/content/SePay/flash-sale warning; advisor multiple-permissive-policy vẫn là backlog maintainability.
 - [ ] GitHub run `31461697461` trên `74571c7`: quality và E2E pass, database fail ở pgTAP. Artifact `pgtap-output` (`9090031114`) và job summary đã được upload; cần đọc assertion cụ thể để đóng gate.
 
@@ -85,7 +86,8 @@
 - [ ] `npx supabase link --project-ref <project-ref>` vẫn chưa lưu link CLI; đã dùng `--db-url` của project được cấu hình local.
 - [x] `npx supabase migration list` xác nhận đủ 37 migration local khớp remote tới `20260811050000`, không có drift chưa giải thích.
 - [x] Review P0 forward migrations và apply theo thứ tự; backup/restore drill vẫn cần owner xác nhận.
-- [x] Apply migration tới `20260811050000_fix_flash_sale_error_precedence.sql`; truy vấn remote xác nhận toàn bộ 37 migration đã có.
+- [x] Apply migration tới `20260811050000_fix_flash_sale_error_precedence.sql`; truy vấn remote xác nhận 37 migration đã có.
+- [ ] Sau CI pass, apply và kiểm tra read-only migration `20260811120000_fix_loyalty_redemption_collision.sql`.
 - [ ] Chạy toàn bộ `npm run db:lint` và `npm run db:test` trên schema sạch.
 - [ ] Chạy lại pgTAP trên staging/remote theo release runbook.
 - [ ] Test RLS bằng hai member và một admin: profiles, orders, requests, ledger, vouchers, history.

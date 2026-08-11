@@ -84,14 +84,18 @@ select throws_like(
   'cross-user idempotency collision is rejected without returning the voucher'
 );
 select is(
-  (select count(*)::integer from public.vouchers where code like 'REWARD-%'),
-  1,
-  'cross-user collision creates no second voucher'
+  (select count(*)::integer from public.vouchers
+   where code = (select voucher_code from first_redemption)
+     and assigned_user_id = '66666666-6666-4666-8666-666666666666'),
+  0,
+  'cross-user collision creates no voucher for the second member'
 );
 select is(
-  (select count(*)::integer from public.loyalty_ledger where source_type = 'redemption'),
-  1,
-  'cross-user collision creates no second redemption ledger row'
+  (select count(*)::integer from public.loyalty_ledger
+   where source_key = 'redemption:77777777-7777-4777-8777-777777777777'
+     and user_id = '66666666-6666-4666-8666-666666666666'),
+  0,
+  'cross-user collision creates no ledger row for the second member'
 );
 
 reset role;

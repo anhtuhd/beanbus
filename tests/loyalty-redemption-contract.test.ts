@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 
 const migration = readFileSync('supabase/migrations/20260810033201_loyalty_redemption.sql', 'utf8');
 const fixMigration = readFileSync('supabase/migrations/20260811025637_fix_loyalty_reversal_idempotency.sql', 'utf8');
+const collisionMigration = readFileSync('supabase/migrations/20260811120000_fix_loyalty_redemption_collision.sql', 'utf8');
 const action = readFileSync('app/account/redeem-actions.ts', 'utf8');
 const page = readFileSync('app/account/AccountClient.tsx', 'utf8');
 const form = readFileSync('app/account/RewardRedeemForm.tsx', 'utf8');
@@ -22,6 +23,9 @@ test('redemption creates an owned voucher and debits the ledger idempotently', (
 test('redemption idempotency keys are scoped to the authenticated member', () => {
   assert.match(fixMigration, /source_key = 'redemption:' \|\| p_idempotency_key::text\s+and user_id = v_user_id/);
   assert.match(fixMigration, /IDEMPOTENCY_CONFLICT/);
+  assert.match(collisionMigration, /hashtextextended\('loyalty-redemption:' \|\| p_idempotency_key::text, 0\)/);
+  assert.match(collisionMigration, /where source_key = v_source_key\s+for update/);
+  assert.match(collisionMigration, /v_existing\.user_id is distinct from v_user_id/);
 });
 
 test('member redemption action and UI use the protected RPC', () => {
