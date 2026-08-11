@@ -36,6 +36,7 @@
 - [x] Supabase Cron: `beanbus-clear-stale-phone-changes` không còn job active sau migration pause.
 - [ ] Xác nhận Edge Function Zalo không còn invocation mới; giữ code/secrets để dùng lại sau, không đưa token vào chat/git.
 - [x] SePay webhook fail-closed với mã `BT/BF`: không gọi stored-value RPC khi `NEXT_PUBLIC_ENABLE_STORED_VALUE=false`.
+- [x] Supabase remote: `stored_value_policy` hiện có `enabled=false`, `topup_enabled=false`, `flash_sale_enabled=false`; stored-value/flash-sale đang bị khóa ở database.
 - [ ] Vercel: giữ `NEXT_PUBLIC_ENABLE_STORED_VALUE=false` và không bật stored-value/flash-sale.
 
 ## 1. Cho phép tạo hội viên bằng Gmail
@@ -67,7 +68,7 @@
 - [x] Sửa precedence lỗi flash-sale để user đã đạt `max_per_user` nhận `FLASH_SALE_USER_LIMIT` ổn định ngay cả khi campaign đồng thời hết quota; migration forward mới cần được apply lên remote trước khi bật stored-value.
 - [ ] Owner xác nhận mốc consume, timeout COD, và refund có hoàn voucher hay không trước khi mở checkout production.
 - [ ] Thêm test concurrent usage limit, refund policy và one-time reward voucher trên Postgres runtime.
-- [ ] Xác nhận `BEANBUS10` và `WELCOMEVIP` có phải promotion live không.
+- [ ] Xác nhận `BEANBUS10` và `WELCOMEVIP` có phải promotion live không; read-only remote check cho thấy cả hai đang `is_active=true`, không có `starts_at/ends_at`, giới hạn lần lượt 1000/500.
 - [ ] Nếu chưa phê duyệt, tạo forward migration disable hai voucher seed trước khi mở checkout production.
 
 ## 3. P1 - Sửa redemption idempotency
