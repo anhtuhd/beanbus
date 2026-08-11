@@ -39,7 +39,6 @@ const navConfig: NavItem[] = [
     labelEn: 'About Beanbus',
     children: [
       { href: '/#story', labelVi: 'Câu chuyện', labelEn: 'Story' },
-      { href: '/#roastery', labelVi: 'Xưởng Rang', labelEn: 'Roastery' },
       { href: '/#beans', labelVi: 'Hạt Cà Phê', labelEn: 'Coffee Beans' },
       { href: '/about', labelVi: 'Về chúng tôi', labelEn: 'About' },
     ]
