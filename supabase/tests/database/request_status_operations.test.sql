@@ -30,8 +30,8 @@ create temporary table status_request as select * from public.create_customer_re
 );
 
 reset role;
-select set_config('test.status_booking_id', (select booking_id::text from status_booking), true);
-select set_config('test.status_request_id', (select request_id::text from status_request), true);
+select set_config('test.status_booking_id', (select booking_id::text from status_booking), false);
+select set_config('test.status_request_id', (select request_id::text from status_request), false);
 
 set local role authenticated;
 set local request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
