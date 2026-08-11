@@ -1,8 +1,10 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { ArrowLeft, Coins, ShieldCheck } from 'lucide-react';
 import { requireAdmin } from '@/lib/auth/session';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import type { Database } from '@/lib/supabase/database.types';
+import { isStoredValueConfigured } from '@/lib/stored-value/config';
 import StoredValuePolicyForm from './StoredValuePolicyForm';
 import TopupPackageForm from './TopupPackageForm';
 import FlashSaleCampaignForm from './FlashSaleCampaignForm';
@@ -35,6 +37,7 @@ function parseCatalog(value: unknown): StoredValueAdminCatalog | null {
 }
 
 export default async function AdminStoredValuePage() {
+  if (!isStoredValueConfigured()) redirect('/admin');
   await requireAdmin();
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.rpc('get_admin_stored_value_catalog');
