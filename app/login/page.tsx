@@ -3,12 +3,14 @@ import LoginForm from './LoginForm';
 import { getAppMode } from '@/lib/env';
 import { getCurrentProfile } from '@/lib/auth/session';
 import { safeRedirectPath } from '@/lib/auth/input';
+import { resolvePostAuthPath } from '@/lib/auth/redirect';
 
 const AUTH_ERRORS: Record<string, string> = {
   google_not_configured: 'Đăng nhập Google chưa được cấu hình.',
   auth_config_error: 'Cấu hình địa chỉ đăng nhập chưa hợp lệ.',
   oauth_start_failed: 'Không thể bắt đầu đăng nhập Google.',
   oauth_callback_failed: 'Phiên đăng nhập Google không hợp lệ hoặc đã hết hạn.',
+  profile_unavailable: 'Không thể tải quyền tài khoản. Vui lòng đăng nhập lại.',
 };
 
 export default async function LoginPage({
@@ -22,7 +24,7 @@ export default async function LoginPage({
   if (getAppMode() === 'demo') redirect('/account');
 
   const profile = await getCurrentProfile();
-  if (profile) redirect(next);
+  if (profile) redirect(resolvePostAuthPath(profile.role, next));
 
   const errorCode = typeof query.error === 'string' ? query.error : '';
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -30,6 +32,7 @@ export default async function LoginPage({
   return (
     <LoginForm
       next={next}
+      passwordEnabled={process.env.NEXT_PUBLIC_ENABLE_PASSWORD_AUTH === 'true'}
       phoneEnabled={process.env.NEXT_PUBLIC_ENABLE_PHONE_AUTH === 'true' && Boolean(turnstileSiteKey)}
       googleEnabled={process.env.NEXT_PUBLIC_ENABLE_GOOGLE_AUTH === 'true'}
       turnstileSiteKey={turnstileSiteKey}

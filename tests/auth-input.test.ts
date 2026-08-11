@@ -1,9 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  normalizeAuthEmail,
   normalizeVietnameseMobile,
   safeRedirectPath,
 } from '../lib/auth/input.ts';
+
+test('normalizeAuthEmail canonicalizes valid credentials and rejects malformed input', () => {
+  assert.equal(normalizeAuthEmail(' Admin@Example.COM '), 'admin@example.com');
+  assert.equal(normalizeAuthEmail('not-an-email'), null);
+  assert.equal(normalizeAuthEmail(''), null);
+});
 
 test('normalizeVietnameseMobile converts local mobile numbers to E.164', () => {
   assert.equal(normalizeVietnameseMobile('0987 654 321'), '+84987654321');

@@ -45,10 +45,22 @@
   min-height: 88vh;
   display: flex;
   align-items: center;
-  background: linear-gradient(180deg, rgba(20, 16, 14, 0.55), rgba(20, 16, 14, 0.78)),
-    url('https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
+  overflow: hidden;
   color: #fff;
   padding: 80px 0;
+}
+
+.heroImage {
+  object-fit: cover;
+  object-position: center;
+  z-index: 0;
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(20, 16, 14, 0.45), rgba(20, 16, 14, 0.7));
 }
 
 .heroContent {
@@ -62,7 +74,7 @@
   font-weight: 900;
   color: #fff;
   text-transform: uppercase;
-  letter-spacing: -1px;
+  letter-spacing: 0;
   line-height: 1.05;
   margin-bottom: 20px;
 }
@@ -86,7 +98,7 @@
 }
 
 .heroTag {
-  font-family: 'Caveat', cursive;
+  font-family: var(--font-handwritten), cursive;
   font-size: 32px;
   color: var(--green);
   margin-top: 24px;
@@ -122,7 +134,7 @@
 }
 
 .statTitle {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 700;
   font-size: 15px;
   color: #fff;
@@ -172,7 +184,7 @@
 }
 
 .badgeNumber {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 900;
   font-size: 26px;
   line-height: 1;
@@ -191,7 +203,7 @@
 }
 
 .storySignature {
-  font-family: 'Caveat', cursive;
+  font-family: var(--font-handwritten), cursive;
   font-size: 32px;
   color: var(--orange);
   margin-top: 16px;
@@ -282,7 +294,7 @@
   background: var(--orange);
   color: #fff;
   font-size: 10.5px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 50px;
@@ -335,7 +347,7 @@
 }
 
 .dishPrice {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 800;
   color: var(--orange);
   font-size: 18px;
@@ -400,7 +412,7 @@
 .beansTable th {
   background: var(--brown-dark);
   color: #fff;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 700;
   font-size: 12px;
   text-transform: uppercase;
@@ -423,7 +435,7 @@
 }
 
 .priceTd {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 800;
   color: var(--orange);
   white-space: nowrap;
@@ -650,7 +662,7 @@
 
 .reference strong {
   color: var(--orange-hover);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
 }
 
 .consentRow {

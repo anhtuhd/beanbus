@@ -1,4 +1,10 @@
 const VIETNAMESE_MOBILE = /^(?:\+84|0)([35789]\d{8})$/;
+const AUTH_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function normalizeAuthEmail(value: string): string | null {
+  const email = value.trim().toLowerCase();
+  return email.length <= 254 && AUTH_EMAIL.test(email) ? email : null;
+}
 
 export function normalizeVietnameseMobile(value: string): string | null {
   const compact = value.trim().replace(/[\s().-]/g, '');

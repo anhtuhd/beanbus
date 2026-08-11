@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useLanguage } from '@/context/LanguageContext';
+import { BRAND_ASSETS } from '@/lib/brand/assets';
 import { ChevronRight } from 'lucide-react';
 import styles from './about.module.css';
 
@@ -82,7 +83,7 @@ export default function AboutClient() {
 
             <div className={styles.imgSide}>
               <Image
-                src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=800&auto=format&fit=crop"
+                src={BRAND_ASSETS.story}
                 alt="Beanbus Roastery"
                 width={800}
                 height={600}
@@ -128,7 +129,7 @@ export default function AboutClient() {
           </div>
           <div className={styles.rImgBox}>
             <Image
-              src="https://images.unsplash.com/photo-1517256064527-09c73fc73e38?q=80&w=800&auto=format&fit=crop"
+              src={BRAND_ASSETS.roasteryOne}
               alt="Roastery machine"
               width={800}
               height={600}

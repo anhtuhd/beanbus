@@ -59,6 +59,12 @@
   min-width: 0;
 }
 
+.adminLogo {
+  width: 180px;
+  height: auto;
+  flex: 0 0 auto;
+}
+
 .shieldIcon {
   color: var(--green);
 }
@@ -174,7 +180,7 @@
 }
 
 .kpiValue {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 900;
   font-size: 20px;
   color: var(--brown-dark);
@@ -190,7 +196,7 @@
   background: none;
   border: none;
   padding: 12px 20px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 700;
   font-size: 14.5px;
   color: var(--brown);
@@ -248,7 +254,7 @@
 
 .adminTable th {
   background: var(--cream-light);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 700;
   font-size: 12px;
   color: var(--brown-dark);
@@ -261,7 +267,7 @@
 }
 
 .priceTd {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 800;
   color: var(--orange);
 }

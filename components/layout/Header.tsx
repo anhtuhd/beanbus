@@ -3,11 +3,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { useLanguage } from '@/context/LanguageContext';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
+import { BRAND_ASSETS } from '@/lib/brand/assets';
 import { 
-  ShoppingBag, User, Menu, X, Coffee, Phone, ChevronDown, Award
+  ShoppingBag, User, Menu, X, Phone, ChevronDown, Award, ShieldCheck
 } from 'lucide-react';
 import styles from './Header.module.css';
 
@@ -143,6 +145,7 @@ export const Header: React.FC = () => {
   const { lang, setLang, t } = useLanguage();
   const { cartCount, setIsCartOpen } = useCart();
   const { user, isLoggedIn } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [mobileMenuPath, setMobileMenuPath] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const burgerRef = useRef<HTMLButtonElement>(null);
@@ -179,13 +182,14 @@ export const Header: React.FC = () => {
       <div className={`wrap ${styles.navBar}`}>
         {/* LOGO */}
         <Link href="/" className={styles.logo}>
-          <div className={styles.logoBox}>
-            <Coffee className={styles.logoIcon} />
-            <div className={styles.logoText}>
-              <span className={styles.brandName}>BEANBUS</span>
-              <span className={styles.brandSub}>COFFEE ROASTER</span>
-            </div>
-          </div>
+          <Image
+            src={BRAND_ASSETS.logoDark}
+            alt="Beanbus Coffee Roaster"
+            width={180}
+            height={34}
+            priority
+            className={styles.logoImage}
+          />
         </Link>
 
         {/* DESKTOP NAV */}
@@ -258,10 +262,10 @@ export const Header: React.FC = () => {
 
           {/* ACCOUNT DROPDOWN */}
           <div className={styles.accountDropdownWrapper} onBlur={closeMenuOnBlur} onKeyDown={closeMenuOnEscape}>
-            <button className={styles.accountBtn} title={t('Hội viên', 'Member')} aria-haspopup="true" aria-expanded="false" onClick={toggleKeyboardMenu} onKeyDown={focusFirstMenuItem}>
+            <button className={styles.accountBtn} title={isAdmin ? t('Quản trị', 'Admin') : t('Hội viên', 'Member')} aria-haspopup="true" aria-expanded="false" onClick={toggleKeyboardMenu} onKeyDown={focusFirstMenuItem}>
               <User size={18} />
               <span className={styles.accountText}>
-                {isLoggedIn ? user?.tier : t('Hội viên', 'Member')}
+                {isAdmin ? t('Quản trị', 'Admin') : isLoggedIn ? user?.tier : t('Hội viên', 'Member')}
               </span>
               <ChevronDown size={14} className={styles.chevron} />
             </button>
@@ -270,19 +274,19 @@ export const Header: React.FC = () => {
               {isLoggedIn && (
                 <div className={styles.userInfo}>
                   <div className={styles.userTier}>
-                    <Award size={16} />
-                    <span>{user?.tier || 'Member'}</span>
+                    {isAdmin ? <ShieldCheck size={16} /> : <Award size={16} />}
+                    <span>{isAdmin ? t('Quản trị', 'Admin') : user?.tier || 'Member'}</span>
                   </div>
-                  {user?.points !== undefined && (
+                  {!isAdmin && user?.points !== undefined && (
                     <div className={styles.userPoints}>
                       {user.points} points
                     </div>
                   )}
                 </div>
               )}
-              <Link href={isLoggedIn ? '/account' : '/login'} className={styles.accountDropItem}>
+              <Link href={isAdmin ? '/admin' : isLoggedIn ? '/account' : '/login'} className={styles.accountDropItem}>
                 <User size={16} />
-                {t('Tài khoản', 'Account')}
+                {isAdmin ? t('Mở Admin Panel', 'Open Admin Panel') : t('Tài khoản', 'Account')}
               </Link>
             </div>
           </div>
@@ -322,8 +326,8 @@ export const Header: React.FC = () => {
               />
             ))}
             <div className={styles.mobileExtraLinks}>
-              <Link href={isLoggedIn ? '/account' : '/login'} className={styles.mobileNavLink} onClick={() => setMobileOpen(false)}>
-                <User size={17} /> {t('Tài khoản hội viên', 'Member Account')} {isLoggedIn ? `(${user?.tier || 'Member'})` : ''}
+              <Link href={isAdmin ? '/admin' : isLoggedIn ? '/account' : '/login'} className={styles.mobileNavLink} onClick={() => setMobileOpen(false)}>
+                <User size={17} /> {isAdmin ? t('Admin Panel', 'Admin Panel') : t('Tài khoản hội viên', 'Member Account')} {!isAdmin && isLoggedIn ? `(${user?.tier || 'Member'})` : ''}
               </Link>
             </div>
           </nav>

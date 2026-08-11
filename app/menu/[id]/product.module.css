@@ -121,7 +121,7 @@
 .price {
   display: block;
   color: var(--orange);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-size: 30px;
 }
 

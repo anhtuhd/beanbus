@@ -246,14 +246,20 @@ export default function AccountClient({
       {/* USER PROFILE HEADER */}
       <div className={styles.userBanner}>
         <div className={styles.userMainInfo}>
-          <Image
-            src={user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'}
-            alt={user.name}
-            width={72}
-            height={72}
-            unoptimized
-            className={styles.userAvatar}
-          />
+          {user.avatar ? (
+            <Image
+              src={user.avatar}
+              alt={user.name}
+              width={72}
+              height={72}
+              unoptimized
+              className={styles.userAvatar}
+            />
+          ) : (
+            <div className={`${styles.userAvatar} ${styles.userAvatarFallback}`} aria-hidden="true">
+              {user.name.trim().charAt(0).toUpperCase() || 'B'}
+            </div>
+          )}
           <div className={styles.userNameBox}>
             <h2>{user.name}</h2>
             <div className={styles.badgesRow}>

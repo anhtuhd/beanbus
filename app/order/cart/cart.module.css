@@ -1,7 +1,7 @@
 .page { padding-bottom: 80px; padding-top: 44px; }
 
 .pageHeader { align-items: end; border-bottom: 1px solid rgba(134, 114, 103, 0.18); display: flex; justify-content: space-between; margin-bottom: 32px; padding-bottom: 22px; }
-.pageHeader p { color: var(--orange); font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 1px; margin: 0 0 7px; text-transform: uppercase; }
+.pageHeader p { color: var(--orange); font-family: var(--font-montserrat), sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 1px; margin: 0 0 7px; text-transform: uppercase; }
 .pageHeader h1 { font-size: clamp(28px, 4vw, 38px); }
 .pageHeader > span { background: var(--cream-light); border-radius: var(--radius-full); color: var(--brown-dark); font-size: 13px; font-weight: 700; padding: 7px 12px; }
 
@@ -18,7 +18,7 @@
 .options, .note { color: var(--brown); font-size: 12.5px; line-height: 1.45; margin: 7px 0 0; }
 .note { color: var(--brown-dark); }
 .itemFooter { align-items: center; display: flex; justify-content: space-between; margin-top: auto; padding-top: 12px; }
-.itemFooter > strong { color: var(--orange); font-family: 'Montserrat', sans-serif; font-size: 17px; }
+.itemFooter > strong { color: var(--orange); font-family: var(--font-montserrat), sans-serif; font-size: 17px; }
 .quantity { align-items: center; background: var(--cream-light); border: 1px solid var(--gray-200); border-radius: var(--radius-full); display: flex; gap: 10px; padding: 4px; }
 .quantity button { align-items: center; background: var(--white); border: 0; border-radius: 50%; color: var(--brown-dark); cursor: pointer; display: flex; height: 25px; justify-content: center; width: 25px; }
 .quantity button:hover { color: var(--orange); }
@@ -46,7 +46,7 @@
 .totals strong { color: var(--brown-dark); }
 .totals .discount span, .totals .discount strong { color: var(--green-deep); }
 .totals .total { border-top: 1px solid var(--gray-300); font-size: 16px; margin-top: 4px; padding-top: 14px; }
-.totals .total strong { color: var(--orange); font-family: 'Montserrat', sans-serif; font-size: 21px; }
+.totals .total strong { color: var(--orange); font-family: var(--font-montserrat), sans-serif; font-size: 21px; }
 .summary :global(.btn) { width: 100%; }
 
 .emptyPage { align-items: center; display: flex; flex-direction: column; min-height: 62vh; padding-top: 100px; text-align: center; }

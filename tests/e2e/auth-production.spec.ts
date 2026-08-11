@@ -16,6 +16,12 @@ test('protected routes redirect to a provider-gated login screen', async ({ page
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Hội Viên Beanbus Coffee');
   await expect(page.getByRole('button', { name: 'Nhận mã qua Zalo' })).not.toBeVisible();
   await expect(page.getByRole('button', { name: 'Tiếp tục với Google' })).toBeEnabled();
+  const passwordButton = page.getByRole('button', { name: 'Đăng nhập quản trị' });
+  if (process.env.NEXT_PUBLIC_ENABLE_PASSWORD_AUTH === 'true') {
+    await expect(passwordButton).toBeVisible();
+  } else {
+    await expect(passwordButton).not.toBeVisible();
+  }
 
   await page.goto('/admin');
   await expect(page).toHaveURL(/\/login\?next=%2Fadmin$/);
@@ -45,11 +51,17 @@ for (const viewport of [
   { width: 768, height: 1024 },
   { width: 1440, height: 900 },
 ]) {
-  test(`Google-only login remains readable and keyboard focusable at ${viewport.width}px`, async ({ page }) => {
+  test(`configured login methods remain readable and keyboard focusable at ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.goto('/account');
     await expect(page.getByRole('button', { name: 'Tiếp tục với Google' })).toBeEnabled();
     await expect(page.getByRole('button', { name: 'Nhận mã qua Zalo' })).not.toBeVisible();
+    const passwordButton = page.getByRole('button', { name: 'Đăng nhập quản trị' });
+    if (process.env.NEXT_PUBLIC_ENABLE_PASSWORD_AUTH === 'true') {
+      await expect(passwordButton).toBeVisible();
+    } else {
+      await expect(passwordButton).not.toBeVisible();
+    }
 
     const dimensions = await page.evaluate(() => ({
       viewport: window.innerWidth,

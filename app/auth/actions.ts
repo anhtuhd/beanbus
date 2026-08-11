@@ -1,12 +1,14 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { normalizeVietnameseMobile, safeRedirectPath } from '@/lib/auth/input';
+import { normalizeAuthEmail, normalizeVietnameseMobile, safeRedirectPath } from '@/lib/auth/input';
 import { resolveAuthOrigin } from '@/lib/auth/origin';
+import { resolvePostAuthPath } from '@/lib/auth/redirect';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import type { PhoneAuthState } from './phone-state';
+import type { PasswordAuthState } from './password-state';
 
-function providerEnabled(name: 'PHONE' | 'GOOGLE'): boolean {
+function providerEnabled(name: 'PHONE' | 'GOOGLE' | 'PASSWORD'): boolean {
   return process.env[`NEXT_PUBLIC_ENABLE_${name}_AUTH`] === 'true';
 }
 
@@ -65,11 +67,53 @@ export async function verifyPhoneOtp(
   }
 
   const supabase = await createServerSupabaseClient();
-  const { error } = await supabase.auth.verifyOtp({ phone, token, type: 'sms' });
+  const { data: verification, error } = await supabase.auth.verifyOtp({ phone, token, type: 'sms' });
 
   if (error) return { status: 'error', message: authFailureMessage(), phone };
 
-  redirect(next);
+  const userId = verification.user?.id;
+  const { data: profile, error: profileError } = userId
+    ? await supabase.from('profiles').select('role').eq('id', userId).maybeSingle()
+    : { data: null, error: new Error('Missing verified user') };
+
+  if (profileError || !profile) {
+    await supabase.auth.signOut();
+    return { status: 'error', message: authFailureMessage(), phone };
+  }
+
+  redirect(resolvePostAuthPath(profile.role, next));
+}
+
+export async function signInWithPassword(
+  _previousState: PasswordAuthState,
+  formData: FormData
+): Promise<PasswordAuthState> {
+  if (!providerEnabled('PASSWORD')) {
+    return { message: 'Đăng nhập bằng email và mật khẩu chưa được cấu hình.' };
+  }
+
+  const email = normalizeAuthEmail(String(formData.get('email') ?? ''));
+  const password = String(formData.get('password') ?? '');
+  const next = safeRedirectPath(formData.get('next'));
+
+  if (!email || password.length === 0) return { message: authFailureMessage() };
+
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) return { message: authFailureMessage() };
+
+  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims?.sub;
+  const { data: profile, error: profileError } = userId
+    ? await supabase.from('profiles').select('role').eq('id', userId).maybeSingle()
+    : { data: null, error: claimsError };
+
+  if (claimsError || profileError || !profile) {
+    await supabase.auth.signOut({ scope: 'local' });
+    return { message: authFailureMessage() };
+  }
+
+  redirect(resolvePostAuthPath(profile.role, next));
 }
 
 export async function signInWithGoogle(formData: FormData): Promise<void> {

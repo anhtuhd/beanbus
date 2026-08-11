@@ -1,4 +1,5 @@
 import AccountClient, { type AccountTab } from './AccountClient';
+import { redirect } from 'next/navigation';
 import { requireProfile } from '@/lib/auth/session';
 import { toUserProfile } from '@/lib/auth/types';
 import { getAppMode } from '@/lib/env';
@@ -27,6 +28,7 @@ export default async function AccountPage({
   if (appMode === 'demo') return <AccountClient initialTab={initialTab} />;
 
   const profile = await requireProfile('/account');
+  if (profile.role === 'admin') redirect('/admin');
   const accountData = await getMemberAccountData(requestedPage, requestedLoyaltyPage, requestedRequestPage, requestedVoucherPage);
   return (
     <AccountClient

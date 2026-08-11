@@ -10,6 +10,7 @@ import { COFFEE_BEANS, CoffeeBean } from '@/data/beans';
 import { ProductCustomizerModal } from '@/components/ui/ProductCustomizerModal';
 import { useDialogFocus } from '@/lib/ui/use-dialog-focus';
 import { withSupportReference } from '@/lib/observability/support-reference';
+import { BRAND_ASSETS } from '@/lib/brand/assets';
 import {
   Coffee,
   Sparkles,
@@ -48,10 +49,10 @@ export default function HomeClient({ products }: { products: Product[] }) {
   const bestSellers = products.filter((p) => p.badge === 'best' || p.badge === 'signature').slice(0, 4);
 
   const galleryImages = [
-    { src: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=800&auto=format&fit=crop', caption: 'Không gian quán Beanbus Hải Phòng' },
-    { src: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?q=80&w=800&auto=format&fit=crop', caption: 'Trạm pha chế Espresso Bar' },
-    { src: 'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?q=80&w=800&auto=format&fit=crop', caption: 'Cupping & Nếm thử cà phê tại xưởng' },
-    { src: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?q=80&w=800&auto=format&fit=crop', caption: 'Khách hàng thưởng thức đồ uống tại Beanbus' },
+    { src: BRAND_ASSETS.galleryOne, caption: 'Không gian quán Beanbus Hải Phòng' },
+    { src: BRAND_ASSETS.galleryTwo, caption: 'Trạm pha chế Espresso Bar' },
+    { src: BRAND_ASSETS.galleryThree, caption: 'Cupping & Nếm thử cà phê tại xưởng' },
+    { src: BRAND_ASSETS.galleryFour, caption: 'Khách hàng thưởng thức đồ uống tại Beanbus' },
   ];
 
   const handleOpenQuote = (bean?: CoffeeBean) => {
@@ -123,6 +124,14 @@ export default function HomeClient({ products }: { products: Product[] }) {
       </div>
       {/* ============ HERO SECTION ============ */}
       <section className={styles.hero} id="top">
+        <Image
+          src={BRAND_ASSETS.hero}
+          alt="Không gian quán và xưởng rang Beanbus"
+          fill
+          priority
+          sizes="100vw"
+          className={styles.heroImage}
+        />
         <div className={styles.heroOverlay}></div>
         <div className={`wrap ${styles.heroContent}`}>
           <div className="eyebrow eyebrow-green">
@@ -193,7 +202,7 @@ export default function HomeClient({ products }: { products: Product[] }) {
           <div className={styles.storyGrid}>
             <div className={styles.storyImgWrap}>
               <Image
-                src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=800&auto=format&fit=crop"
+                src={BRAND_ASSETS.story}
                 alt="Beanbus Coffee Roaster signage"
                 width={800}
                 height={700}

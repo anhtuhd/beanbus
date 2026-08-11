@@ -29,6 +29,11 @@
   gap: 10px;
 }
 
+.logoImage {
+  width: 190px;
+  height: auto;
+}
+
 .logoIcon {
   color: var(--green);
 }
@@ -39,7 +44,7 @@
 }
 
 .brandName {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-weight: 900;
   font-size: 22px;
   letter-spacing: 1px;
@@ -48,7 +53,7 @@
 }
 
 .brandSub {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 2px;
@@ -57,7 +62,7 @@
 }
 
 .tagline {
-  font-family: 'Caveat', cursive;
+  font-family: var(--font-handwritten), cursive;
   font-size: 26px;
   color: var(--green);
   margin-bottom: 0;
@@ -99,7 +104,7 @@
 }
 
 .linksCol h4, .contactCol h4 {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 1px;
