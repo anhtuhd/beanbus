@@ -56,8 +56,8 @@
 - [ ] Smoke bằng Gmail mới: OAuth callback thành công, `auth.users` và `profiles` có row, vào được `/account`.
 - [ ] Smoke logout, login lại và expired-session redirect.
 - [ ] Xác nhận member thường vào `/admin` nhận forbidden/redirect đúng.
-- [x] Supabase remote read-only aggregate hiện có 1 profile mang role `admin` (không đọc email/PII); vẫn cần owner xác nhận đó là Gmail admin và thử cấp/revoke có audit.
-- [ ] Chọn email admin đầu tiên và thử runbook cấp/revoke role qua server/SQL có audit.
+- [x] Supabase remote read-only check xác nhận Gmail admin đã có profile với role `admin`; không lưu email/PII vào repository.
+- [ ] Thử cấp/revoke role qua server/SQL có audit; hiện admin đã được bootstrap và chỉ cần smoke test quyền.
 
 ## 2. P0 - Sửa loyalty và voucher
 
@@ -148,7 +148,7 @@
 
 - [x] Đã có quyền truy vấn/apply Supabase remote qua secret store local; không gửi secret qua chat.
 - [ ] Quyền Vercel để kiểm tra Production/Preview env và redeploy.
-- [ ] Email Gmail dùng làm admin đầu tiên và ít nhất một Gmail member test; lần đăng nhập Google đầu tiên sẽ tự tạo account/profile.
+- [x] Đã nhận Gmail admin và Gmail member test; admin đã tồn tại trong Auth/profile, member cần đăng nhập Google lần đầu để tự tạo account/profile.
 - [ ] Email nhận thông báo nhân viên và sender transport: Gmail SMTP App Password hoặc Gmail API OAuth.
 - [ ] Xác nhận hai mã `BEANBUS10`, `WELCOMEVIP`: live hay phải tắt.
 - [ ] Chính sách loyalty/COD/refund/voucher reuse bằng văn bản ngắn hoặc chỉnh trực tiếp trong `/admin/policies` sau khi bootstrap admin.
