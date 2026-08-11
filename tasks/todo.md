@@ -55,6 +55,7 @@
 - [ ] Smoke bằng Gmail mới: OAuth callback thành công, `auth.users` và `profiles` có row, vào được `/account`.
 - [ ] Smoke logout, login lại và expired-session redirect.
 - [ ] Xác nhận member thường vào `/admin` nhận forbidden/redirect đúng.
+- [x] Supabase remote read-only aggregate hiện có 1 profile mang role `admin` (không đọc email/PII); vẫn cần owner xác nhận đó là Gmail admin và thử cấp/revoke có audit.
 - [ ] Chọn email admin đầu tiên và thử runbook cấp/revoke role qua server/SQL có audit.
 
 ## 2. P0 - Sửa loyalty và voucher
