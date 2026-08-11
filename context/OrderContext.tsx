@@ -104,7 +104,7 @@ const INITIAL_ORDERS: Order[] = [
     paymentStatus: 'paid',
     status: 'ready',
     createdAt: '2026-08-09T10:15:00Z',
-    sepayCode: 'SEPAY8801',
+    sepayCode: 'DH_8801',
   },
   {
     id: 'BB-2026-8799',
@@ -194,7 +194,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   ): Order => {
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const orderId = `BB-2026-${randomNum}`;
-    const sepayCode = `SEPAY${randomNum}`;
+    const sepayCode = `DH_${randomNum}`;
 
     const newOrder: Order = {
       ...orderData,

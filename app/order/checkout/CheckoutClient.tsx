@@ -133,7 +133,7 @@ export default function CheckoutClient() {
       setSepayModal({
         isOpen: true,
         orderId: created.id,
-        sepayCode: created.sepayCode || `SEPAY${created.id.replace(/\D/g, '')}`,
+        sepayCode: created.sepayCode || `DH_${created.id.replace(/\D/g, '')}`,
       });
     } else {
       // COD

@@ -9,8 +9,8 @@ const payload = {
   transactionDate: '2026-08-09 14:30:00',
   accountNumber: '0937936688',
   subAccount: '',
-  code: 'BB101',
-  content: 'BB101 thanh toan',
+  code: 'DH_101',
+  content: 'DH_101 thanh toan',
   transferType: 'in',
   description: 'NGUYEN VAN A chuyen tien',
   transferAmount: 81000,
@@ -45,12 +45,12 @@ test('builds a VietQR URL from server-owned payment instructions', () => {
     accountNumber: '0937936688',
     amountVnd: 81000,
     bankCode: 'MB',
-    paymentCode: 'BB101',
+    paymentCode: 'DH_101',
   }));
 
   assert.equal(url.origin, 'https://vietqr.app');
   assert.equal(url.searchParams.get('acc'), '0937936688');
   assert.equal(url.searchParams.get('amount'), '81000');
-  assert.equal(url.searchParams.get('des'), 'BB101');
+  assert.equal(url.searchParams.get('des'), 'DH_101');
   assert.equal(url.searchParams.get('template'), 'compact');
 });

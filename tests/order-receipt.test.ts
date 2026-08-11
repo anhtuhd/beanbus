@@ -29,14 +29,14 @@ test('rejects malformed receipt totals, statuses, and line items', () => {
   assert.equal(parseOrderReceipt({ ...receipt, totalVnd: '45000' }), null);
   assert.equal(parseOrderReceipt({ ...receipt, paymentStatus: 'client-paid' }), null);
   assert.equal(parseOrderReceipt({ ...receipt, items: [{ quantity: 0 }] }), null);
-  assert.equal(parseOrderReceipt({ ...receipt, payment: { code: 'BB101', status: 'browser-paid' } }), null);
+  assert.equal(parseOrderReceipt({ ...receipt, payment: { code: 'DH_101', status: 'browser-paid' } }), null);
 });
 
 test('accepts server-created pending payment instructions', () => {
   const payment = {
     accountNumber: '0937936688',
     bankCode: 'MB',
-    code: 'BB101',
+    code: 'DH_101',
     expiresAt: '2026-08-09T08:00:00Z',
     status: 'pending',
   };

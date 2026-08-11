@@ -81,7 +81,7 @@ SEPAY_BANK_ACCOUNT=
 SEPAY_ACCOUNT_NAME=
 ```
 
-Trên Sepay Dashboard, tạo webhook `Money in` dạng JSON tới `<NEXT_PUBLIC_SITE_URL>/api/webhooks/sepay`, chọn `HMAC-SHA256`, và dùng cùng `SEPAY_WEBHOOK_SECRET`. Cấu hình payment-code prefix `BB` với suffix số để Sepay trích mã như `BB123`; không chọn chế độ không xác thực ở production. Contract HMAC và payload bám theo [tài liệu xác thực webhook](https://developer.sepay.vn/en/sepay-webhooks/xac-thuc) và [tài liệu tích hợp webhook](https://developer.sepay.vn/en/sepay-webhooks/tich-hop-webhook).
+Trên Sepay Dashboard, tạo webhook `Money in` dạng JSON tới `https://www.beanbus.store/hooks/payment`, chọn `HMAC-SHA256`, và dùng cùng `SEPAY_WEBHOOK_SECRET`. Mã thanh toán của đơn mới có dạng `DH_<mã hóa đơn>` như `DH_123`; không chọn chế độ không xác thực ở production. Contract HMAC và payload bám theo [tài liệu xác thực webhook](https://developer.sepay.vn/en/sepay-webhooks/xac-thuc) và [tài liệu tích hợp webhook](https://developer.sepay.vn/en/sepay-webhooks/tich-hop-webhook).
 
 `SUPABASE_SECRET_KEY` cũng bắt buộc khi bật Sepay để Route Handler gọi transaction đối soát service-only. `SEPAY_API_KEY` chưa bắt buộc; chỉ cần sau này khi bật reconciliation API.
 

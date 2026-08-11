@@ -28,7 +28,7 @@ select * from public.create_sepay_payment(
   (select order_id from sepay_receipt), (select receipt_token from sepay_receipt), 'MB', '0937936688'
 );
 
-select matches((select payment_code from sepay_payment), '^BB[0-9]+$', 'payment uses readable order code');
+select matches((select payment_code from sepay_payment), '^DH_[0-9]+$', 'payment uses the invoice code convention');
 select is((select amount_vnd from sepay_payment), 35000, 'payment amount matches canonical order total');
 select is((select count(*)::integer from public.create_sepay_payment(
   (select order_id from sepay_receipt), (select receipt_token from sepay_receipt), 'MB', '0937936688'

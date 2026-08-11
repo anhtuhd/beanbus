@@ -29,7 +29,7 @@ export function DemoConfirmation() {
     paymentStatus: isPaidParam ? ('paid' as const) : ('pending' as const),
     status: isPaidParam ? ('confirmed' as const) : ('pending' as const),
     createdAt: new Date().toISOString(),
-    sepayCode: 'SEPAY8801',
+    sepayCode: 'DH_8801',
   };
 
   const steps = [

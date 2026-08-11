@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const route = readFileSync(new URL('../app/api/webhooks/sepay/route.ts', import.meta.url), 'utf8');
+const liveRoute = readFileSync(new URL('../app/hooks/payment/route.ts', import.meta.url), 'utf8');
 const proxy = readFileSync(new URL('../proxy.ts', import.meta.url), 'utf8');
 
 test('webhook route verifies the raw body before parsing or writing', () => {
@@ -24,5 +25,6 @@ test('webhook route is feature-gated and bounds JSON request size', () => {
   assert.match(route, /\{ success: true \}/);
   assert.match(route, /\[CORRELATION_HEADER\]: correlationId/);
   assert.doesNotMatch(route, /paid=true|addPoints|updateOrderStatus/);
-  assert.match(proxy, /\(\?!api\/webhooks\|/);
+  assert.match(liveRoute, /export \{ POST \} from ['"]@\/app\/api\/webhooks\/sepay\/route['"]/);
+  assert.match(proxy, /\(\?!api\/webhooks\|hooks\/payment\|/);
 });
