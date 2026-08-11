@@ -110,6 +110,16 @@ jobs:
             sed -n '1,260p' pgtap-output.log
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Annotate pgTAP failures
+        if: failure()
+        run: |
+          message="$(grep -E '^# Failed test|^ERROR:|^Failed [0-9]+|^  Failed tests:' pgtap-output.log | tr '\n' ' ' | cut -c1-1000 || true)"
+          if [ -n "$message" ]; then
+            message="${message//'%'/'%25'}"
+            message="${message//$'\r'/'%0D'}"
+            message="${message//$'\n'/'%0A'}"
+            echo "::error title=pgTAP failure::$message"
+          fi
 
   live-smoke:
     if: github.event_name == 'workflow_dispatch'
