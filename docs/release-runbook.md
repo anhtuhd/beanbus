@@ -15,9 +15,9 @@ Set these values in the deployment platform. Never commit them to the repository
 - `NEXT_PUBLIC_ENABLE_FORM_CAPTCHA=false` by default; when enabled, set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and server-only `TURNSTILE_SECRET_KEY`
 - `NEXT_PUBLIC_ENABLE_SEPAY`, `SEPAY_WEBHOOK_SECRET`, `SEPAY_BANK_CODE`, `SEPAY_BANK_ACCOUNT`, and `SEPAY_ACCOUNT_NAME` when Sepay is enabled
 - `NEXT_PUBLIC_ENABLE_SEPAY_RECONCILIATION=false` by default; `SEPAY_API_KEY` and `CRON_SECRET` are required only when reconciliation is explicitly enabled
-- Voucher lifecycle default: reserve at order creation, consume on paid SePay or completed COD, release once on cancellation/payment failure/expired SePay payment; owner approval is required for refund behavior
+- Commerce policy default: reserve at order creation, consume on paid SePay or completed COD, release once on cancellation/payment failure/refund; admin can change voucher release/consume, loyalty reversal, refund enable, and refund window at `/admin/policies`
 - `NEXT_PUBLIC_ENABLE_STORED_VALUE=false` by default; set it to `true` only after the stored-value migration, policy approval, package/campaign review, and Sepay verification
-- Approved provider, notification, logo, image, privacy, terms, booking-capacity, loyalty, COD, refund, and stored-value settings
+- Approved provider, Gmail notification transport/recipient, logo, image, privacy, terms, booking-capacity, loyalty, COD, refund, and stored-value settings
 
 ## Pre-deploy Gate
 
@@ -52,13 +52,13 @@ The database checks require Docker and the Supabase CLI. Hosted database verific
 
    Stop when the remote history contains drift that is not explained by a reviewed migration.
 3. Apply the reviewed migrations with `npm run db:push` against the linked hosted project.
-   Current hosted record (2026-08-11): the remote inventory contains 38 applied migrations through `20260811120000_fix_loyalty_redemption_collision.sql`. GitHub runs `31462882057` and `31463311264` passed quality, database, E2E and live-smoke checks. Remote `db lint --fail-on error` passes with no schema errors. The CLI emitted a Docker catalog-cache warning after the successful remote apply; it does not invalidate the migration result. The loyalty migration serializes redemption attempts by idempotency key and rejects cross-user collisions.
+   Current hosted record (2026-08-11): the remote inventory contains 39 applied migrations through `20260811133000_commerce_policy.sql`. GitHub runs `31462882057` and `31463311264` passed quality, database, E2E and live-smoke checks. Remote `db lint --fail-on error` passes with no schema errors. The latest policy migration adds audited admin configuration for voucher lifecycle, loyalty reversal, refund window/enablement, and a protected SePay refund RPC. The CLI emitted a Docker catalog-cache warning after the successful remote apply; it does not invalidate the migration result.
 4. Verify RLS, role membership, protected RPC transitions, and audit rows with an admin and a non-admin account.
 5. Deploy the application with the production environment variables above.
-   Current read-only check (2026-08-11): production flags expose Google enabled and Phone disabled, but the deployed HTML still contains the legacy disabled Zalo form. The implementation branch contains the Google-only UI and health revision marker; do not sign off until Vercel redeploys the branch or merges it into the production branch.
-6. Verify `GET /api/health` returns `200` with `{"status":"ok"}`, a usable `x-request-id`, and (on Vercel) a 12-character `revision` matching the deployed commit SHA prefix. Current read-only production check passed on 2026-08-11 and returned `mode: production`; the deployed legacy login build still needs replacement.
+   Current check (2026-08-11): Vercel redeployed production from `origin/main` without merging the current branch's Zalo changes. Login HTML exposes `phoneEnabled=false` and `googleEnabled=true`; stored-value is false and SePay is true.
+6. Verify `GET /api/health` returns `200` with `{"status":"ok"}`, a usable `x-request-id`, and (on Vercel) a 12-character `revision` matching the deployed commit SHA prefix. Current production check passed on 2026-08-11 and returned `mode: production`.
 7. Configure the Sepay webhook URL and secret only after the deployed endpoint is reachable over HTTPS.
-   Current read-only check (2026-08-11): `POST /hooks/payment` without a signature returns `401`, so SePay is currently enabled in production. Either disable it until the payment gate is signed off, or complete the live token, alert, allowlist, and small-amount smoke checklist before accepting traffic.
+   Current check (2026-08-11): production has SePay enabled and `POST /hooks/payment` without a signature returns `401`. Dashboard configuration remains `https://www.beanbus.store/hooks/payment`, HMAC-SHA256, money-in, code `DH_<mã hóa đơn>`. Complete the live token, alert, allowlist, and small-amount smoke checklist before accepting traffic.
 8. If reconciliation is enabled, verify the 15-minute cron can expire pending SePay payments and release their voucher reservations before advancing its checkpoint. Current read-only production check returns `404`, so reconciliation is currently disabled even though the webhook is enabled.
    The application sends SePay API v2 date bounds as `YYYY-MM-DD HH:mm:ss` in `Asia/Ho_Chi_Minh`, matching the [official reconciliation contract](https://developer.sepay.vn/vi/sepay-webhooks/doi-soat-giao-dich). It emits bounded JSON events for `webhook_processed`, `payment_reconciliation_completed`, and `payment_reconciliation_gap`, plus correlated failure events for signature/database/provider errors. Configure production log alerts for rejected outcomes, repeated failures, and gap events; do not alert on or export payloads, payment codes, account numbers, or tokens.
 9. If form CAPTCHA is enabled, verify booking, contact, and checkout reject a missing/expired token and accept one valid token; never expose `TURNSTILE_SECRET_KEY` to the browser.
@@ -111,6 +111,8 @@ Verify the result from a service-role-only session, then sign in again with that
 - Stored-value remains disabled until both the deployment flag and admin policy are enabled; after approval, verify one top-up and one flash-sale payment, including duplicate callback, expiry, sold-out, and amount-mismatch cases.
 - Booking, contact, RSVP, and B2B submissions return a reference that staff can locate.
 - An authorized admin can search and transition permitted records; a non-admin receives a forbidden response.
+- An authorized admin can open `/admin/policies`, configure voucher/loyalty/refund behavior, and refund an eligible paid SePay order within the configured window.
+- Gmail notification delivery remains pending until the owner supplies a sender transport and recipient; `notification_status=not_configured` is intentionally honest until then.
 
 ## Rollback and Incidents
 

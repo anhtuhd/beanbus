@@ -218,6 +218,51 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      commerce_policy: {
+        Row: {
+          id: boolean;
+          loyalty_reverse_on_cancel: boolean;
+          loyalty_reverse_on_refund: boolean;
+          refund_enabled: boolean;
+          refund_window_hours: number;
+          updated_at: string;
+          updated_by: string | null;
+          voucher_on_cancel: 'release' | 'consume';
+          voucher_on_refund: 'release' | 'consume';
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      commerce_policy_history: {
+        Row: {
+          actor_user_id: string;
+          created_at: string;
+          id: number;
+          loyalty_reverse_on_cancel: boolean;
+          loyalty_reverse_on_refund: boolean;
+          refund_enabled: boolean;
+          refund_window_hours: number;
+          voucher_on_cancel: 'release' | 'consume';
+          voucher_on_refund: 'release' | 'consume';
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      order_refund_history: {
+        Row: {
+          actor_user_id: string;
+          amount_vnd: number;
+          created_at: string;
+          id: number;
+          order_id: string;
+          payment_id: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       sepay_reconciliation_events: {
         Row: {
           payment_id: string | null;
@@ -982,6 +1027,40 @@ export type Database = {
           updated_order_id: string;
           updated_order_status: Database['public']['Enums']['order_status'];
         }[];
+      };
+      get_commerce_policy: {
+        Args: Record<string, never>;
+        Returns: {
+          loyalty_reverse_on_cancel: boolean;
+          loyalty_reverse_on_refund: boolean;
+          refund_enabled: boolean;
+          refund_window_hours: number;
+          updated_at: string;
+          voucher_on_cancel: 'release' | 'consume';
+          voucher_on_refund: 'release' | 'consume';
+        }[];
+      };
+      update_commerce_policy: {
+        Args: {
+          p_loyalty_reverse_on_cancel: boolean;
+          p_loyalty_reverse_on_refund: boolean;
+          p_refund_enabled: boolean;
+          p_refund_window_hours: number;
+          p_voucher_on_cancel: 'release' | 'consume';
+          p_voucher_on_refund: 'release' | 'consume';
+        };
+        Returns: {
+          updated_loyalty_reverse_on_cancel: boolean;
+          updated_loyalty_reverse_on_refund: boolean;
+          updated_refund_enabled: boolean;
+          updated_refund_window_hours: number;
+          updated_voucher_on_cancel: 'release' | 'consume';
+          updated_voucher_on_refund: 'release' | 'consume';
+        }[];
+      };
+      refund_order_payment: {
+        Args: { p_order_id: string };
+        Returns: { refunded_amount_vnd: number; refunded_order_id: string }[];
       };
       update_member_role: {
         Args: {

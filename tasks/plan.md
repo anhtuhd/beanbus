@@ -2,9 +2,9 @@
 
 **Cập nhật:** 2026-08-11
 
-**Trạng thái:** Đang triển khai, chưa sẵn sàng phát hành production
+**Trạng thái:** Đang triển khai, Google-only và SePay webhook đã deploy; chưa sẵn sàng nhận toàn bộ traffic production
 
-**Phạm vi hiện tại:** Dùng Google OAuth để tạo/đăng nhập tài khoản hội viên; tạm dừng Phone OTP/Zalo; giữ stored-value và flash-sale ở trạng thái tắt.
+**Phạm vi hiện tại:** Dùng Google OAuth để tạo/đăng nhập tài khoản hội viên; tạm dừng Phone OTP/Zalo; bật SePay webhook đơn hàng; giữ reconciliation, stored-value và flash-sale ở trạng thái tắt.
 
 ## 1. Mục tiêu gần nhất
 
@@ -33,24 +33,24 @@ Kết quả local tại thời điểm review:
 
 - `npm run lint`: pass.
 - `npx tsc --noEmit`: pass.
-- `npm test`: 239/239 pass.
+- `npm test`: 243/243 pass.
 - `npm run build`: pass.
 - `npm run test:e2e:auth`: 4/4 pass với Google enabled và phone disabled ở 375/768/1440px; chưa thực hiện OAuth Gmail thật.
 - `npm run test:e2e`: 30/40 pass; 10 production/provider tests skipped vì chưa có hosted credentials, trong đó live smoke được chạy riêng khi có `PLAYWRIGHT_LIVE=true`.
-- `npm run test:e2e:live`: fail đúng tại assertion Google-only vì production vẫn render nút `Nhận mã qua Zalo`; health check và trang login đều reachable.
+- `npm run test:e2e:live`: lần trước fail do deployment cũ; sau đó production đã redeploy từ `origin/main` và curl xác nhận `phoneEnabled=false`, `googleEnabled=true`.
 - GitHub Actions đã có `workflow_dispatch` live smoke nhận `production_base_url`, bắt buộc HTTPS, chạy sau E2E và chỉ kiểm tra public production surface.
 - E2E customer requests đã pass 4/4 sau khi port RSVP modal ra `document.body`, tránh overlay bị kéo theo card có hiệu ứng hover/transform.
 - E2E accessibility header/menu ban đầu lộ lỗi focus không ổn định; đã sửa và xác nhận 20/20 lần lặp, sau đó full E2E pass.
-- Đã thêm live smoke opt-in `npm run test:e2e:live` với `PLAYWRIGHT_BASE_URL`, nhưng chưa đánh dấu pass vì production hiện còn render login build cũ.
-- Production smoke read-only: `https://www.beanbus.store/api/health` trả `200` với mode `production`; Supabase Google authorize với callback production trả `302`. Source branch đã có health revision marker, nhưng production vẫn cần được Vercel redeploy để xác nhận HTML Google-only; sau redeploy đối chiếu trường `revision` trong health với 12 ký tự đầu của Vercel commit SHA. Lần kiểm tra trước còn nút Zalo/divider. Webhook `/hooks/payment` trả `401` khi thiếu HMAC, chứng minh SePay webhook production đang bật; `/api/cron/sepay-reconciliation` trả `404`, chứng minh reconciliation cron đang tắt. Gmail callback/profile/admin role thật vẫn chưa test.
+- Đã thêm live smoke opt-in `npm run test:e2e:live` với `PLAYWRIGHT_BASE_URL`; Gmail callback/profile/admin role thật vẫn chưa test.
+- Production smoke: `https://www.beanbus.store/api/health` trả `200`; login HTML có `phoneEnabled=false` và `googleEnabled=true`; webhook `/hooks/payment` trả `401` khi thiếu HMAC; `/api/cron/sepay-reconciliation` trả `404`. Send SMS Hook vẫn cần kiểm tra riêng trong Supabase Dashboard.
 - Đã bổ sung `suppressHydrationWarning` cho cả `html` và `body` để không báo lỗi khi extension/browser tooling chèn attribute trước hydration; contract test đã thêm.
 - Cảnh báo React dev `Encountered a script tag while rendering React component` được xác minh là cảnh báo development khi render native JSON-LD; Next.js 16 vẫn khuyến nghị native JSON-LD script cho structured data. Production build đã kiểm tra trực tiếp, không có console warning hoặc page error, nên giữ nguyên cách triển khai hiện tại.
 - `npm audit --omit=dev --audit-level=high`: 0 vulnerability.
 - Đã gọi `npm run db:lint` và `npm run db:test`, nhưng cả hai bị chặn: máy không có Docker/Postgres local và Supabase CLI không kết nối được `127.0.0.1:54322`; pgTAP chưa được thực thi runtime.
-- Đã dùng Supabase CLI với connection string đã cấu hình để đối chiếu remote. Remote hiện đã áp dụng đủ 38 migration tới `20260811120000_fix_loyalty_redemption_collision.sql`. Migration loyalty dùng advisory lock theo idempotency key và chặn collision khác user; `db lint --fail-on error` sau khi apply trả `No schema errors found`. Advisor nhiều permissive policy vẫn ở backlog P2.
-- GitHub Actions runs `31462882057` (implementation) và `31463311264` (plan/release docs) đều `completed successfully`: `quality`, `database`, `e2e` và `live-smoke` đều xanh. Lỗi pgTAP collision ở run `31462604288` đã được sửa bằng test isolation và database lock. Local `npm test` hiện 239/239 pass; full hosted OAuth vẫn chưa test.
+- Đã dùng Supabase CLI với connection string đã cấu hình để apply migration commerce policy; remote hiện có 39 migration tới `20260811133000_commerce_policy.sql`. Remote `db lint --fail-on error` trả `No schema errors found`; pgTAP policy chưa chạy được trên máy vì thiếu Docker/psql.
+- GitHub Actions runs `31462882057` và `31463311264` đều `completed successfully`; local `npm test` hiện 243/243 pass; full hosted OAuth vẫn chưa test.
 
-Các increment đã triển khai local: Google-only login UI và auth E2E, loyalty reversal forward migration, redemption idempotency key ổn định qua retry, RPC chống collision khác user, RPC phân trang request `UNION ALL` có total count/RLS, first-admin/release runbook, voucher reservation lifecycle, form CAPTCHA feature-gate, RSVP modal ổn định ngoài card hover, và SePay API v2 reconciliation feature-gated với text-key ledger, lease/checkpoint, malformed-payment retry safety, expired-payment cleanup, Vercel cron và structured operational events cho outcome/gap/counters. Đã thêm pgTAP regression tests cho loyalty, request pagination, voucher lifecycle và reconciliation. Các migration đã được reconcile/apply lên remote; provider, feature flag production và hosted user smoke vẫn chưa hoàn tất.
+Các increment đã triển khai local: Google-only login UI và auth E2E, loyalty reversal forward migration, redemption idempotency key ổn định qua retry, RPC chống collision khác user, RPC phân trang request `UNION ALL` có total count/RLS, first-admin/release runbook, voucher reservation lifecycle, commerce policy có audit và RPC hoàn tiền SePay theo thời hạn, form CAPTCHA feature-gate, RSVP modal ổn định ngoài card hover, và SePay API v2 reconciliation feature-gated. Provider, hosted user smoke, Gmail notification transport và live payment smoke vẫn chưa hoàn tất.
 
 ## 3. Tiến độ theo chức năng
 
@@ -59,33 +59,33 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 | Public site, menu, content, responsive UI | Gần hoàn chỉnh | Nội dung/ảnh chính thức, privacy/terms, browser audit cuối |
 | Google Auth và session guards | Đã có | Bật provider/flag, smoke test tài khoản Gmail thật, xác minh profile trigger và logout |
 | Phone OTP/Zalo | Đã code nhưng tạm dừng | Giữ flag false; vô hiệu Auth Hook/cron/provider remote nếu đã bật |
-| Hội viên | Đã có profile, đơn, request, voucher, loyalty; request pagination và voucher reservation đã chuyển xuống RPC/ledger; loyalty summary lint đã sửa | Chạy pgTAP/RLS hosted; owner xác nhận refund/voucher policy |
-| Admin | Đã có route guard và các màn vận hành chính | Quy trình cấp admin đầu tiên, kiểm thử role thật và vận hành hosted |
-| Order/checkout | Server-priced, idempotent và có reservation/release voucher local | Chạy pgTAP/hosted E2E; xác nhận policy refund và expiry |
-| SePay đơn hàng | HMAC webhook, dedupe, VietQR và reconciliation API v2 đã có dưới feature flag; schema remote đã có ledger/checkpoint | Token, live smoke, IP allowlist và cảnh báo lỗi |
+| Hội viên | Đã có profile, đơn, request, voucher, loyalty và policy reversal | Gmail/RLS smoke bằng tài khoản thật; owner xác nhận voucher seed và Gmail notification |
+| Admin | Đã có route guard, catalog/voucher/loyalty/rewards và màn `Chính sách` | Bootstrap admin bằng Gmail thật; test policy/refund trên hosted runtime |
+| Order/checkout | Server-priced, idempotent, reservation/release voucher và admin refund policy/RPC | Hosted E2E; live refund test nhỏ và xác nhận expiry |
+| SePay đơn hàng | HMAC webhook production đã bật; reconciliation API v2 đang tắt | Live smoke, IP allowlist, alert; API v2 token chỉ cần khi bật reconciliation |
 | Booking/contact/RSVP/B2B | Đã lưu server và có admin workflow | Kênh thông báo cho nhân viên, chống abuse theo IP/CAPTCHA |
 | Stored-value/flash-sale | Đã code sau nhiều lớp gate | Tiếp tục tắt; chưa nằm trong release hiện tại |
 | Test/CI | Local gate và CI database/E2E xanh | Giảm source-regex tests và chạy authenticated hosted E2E |
 
-Ước lượng hiện tại: UI/routes khoảng 95%, backend implementation khoảng 93%, nhưng production verification chỉ khoảng 55%. Release readiness tổng thể khoảng 79% và vẫn bị chặn bởi Google/role smoke, pgTAP/RLS hosted, voucher policy và payment smoke.
+Ước lượng hiện tại: UI/routes khoảng 96%, backend implementation khoảng 95%, nhưng production verification chỉ khoảng 60%. Release readiness tổng thể khoảng 82% và vẫn bị chặn bởi Google/role smoke, pgTAP/RLS hosted, Gmail notification, Send SMS Hook confirmation và payment smoke.
 
 ## 4. Findings cần xử lý
 
 ### P0 - Chặn phát hành
 
 1. **Loyalty reversal đã có forward fix và remote lint đã pass, nhưng chưa có runtime/pgTAP sign-off.** `apply_loyalty_for_order()` hiện xử lý reversal độc lập với policy hiện tại; pgTAP regression đã thêm cho chuỗi disable policy -> cancel/refund. Chưa coi là đóng trước production cho tới khi chạy trên schema sạch và remote test account.
-2. **Voucher lifecycle đã có schema remote nhưng chưa có runtime/pgTAP sign-off đầy đủ.** Migration đã có `reserved/consumed/released`, cleanup SePay expiry và audit ledger; mặc định consume khi SePay paid/COD completed, release khi cancel/payment failed/expired. Owner vẫn phải xác nhận refund có hoàn voucher hay không trước khi mở checkout production.
+2. **Voucher/loyalty/refund policy đã có màn admin và migration remote.** Mặc định consume khi SePay paid/COD completed, release khi cancel/payment failed/refund; admin có thể đổi hành vi release/consume, bật/tắt refund, đặt cửa sổ 1–720 giờ và bật/tắt reversal điểm. Cần pgTAP/runtime sign-off và owner xác nhận bằng văn bản.
 3. **Remote inventory đã được reconcile và apply.** 38 migration đã khớp remote tới `20260811120000`; `db lint` sau migration không có schema error. Vẫn cần RLS/runtime smoke bằng tài khoản thật và backup/restore sign-off.
 
 ### P1 - Phải hoàn thành trước mở traffic thật
 
 1. **Redemption idempotency đã có forward fix và CI/remote migration sign-off.** UI giữ key qua retry; RPC khóa theo source key, scope duplicate theo `user_id` và trả conflict chung cho collision khác user. Vẫn cần behavioral smoke bằng hai tài khoản thật trước khi đóng hosted gate.
 2. **Hai voucher seed đang active không thời hạn.** Read-only remote check xác nhận `BEANBUS10` (limit 1000) và `WELCOMEVIP` (limit 500) đều `is_active=true` và không có cửa sổ thời gian; chúng có thể trở thành khuyến mãi production ngoài ý muốn. Chủ dự án phải phê duyệt hoặc tắt bằng forward migration.
-3. **Google happy path chưa được kiểm thử và production deployment còn stale.** E2E local chứng minh Google-only UI; hosted authorize trả `302`, nhưng chưa chứng minh Gmail mới tạo `auth.users`, `profiles`, session và logout đúng. Commit source hiện tại `8d55557` đã được push; build production cần Vercel redeploy/merge vào production branch.
+3. **Google happy path chưa được kiểm thử bằng Gmail thật.** E2E local và production HTML đã xác nhận Google-only UI; vẫn chưa chứng minh Gmail mới tạo `auth.users`, `profiles`, session và logout đúng.
 4. **Tắt flag phone chưa đủ để dừng toàn bộ Zalo remote.** Hai cron đã được xác nhận không active sau migration pause, nhưng owner vẫn phải kiểm tra Phone provider và Send SMS Hook trên Supabase Dashboard.
 5. **SePay webhook production đang bật nhưng reconciliation cron đang tắt.** Webhook chưa có HMAC trả `401`; cron trả `404`, nên chưa cần token cron. Nếu giữ webhook live, vẫn cần live smoke/alert/IP allowlist; nếu bật reconciliation sau này, cấp API v2 token và hoàn tất gate trước. SePay khuyến nghị đối soát 15-30 phút/lần: [bảo mật webhook](https://developer.sepay.vn/vi/sepay-webhooks/bao-mat), [API giao dịch v2](https://developer.sepay.vn/vi/sepay-api/v2/giao-dich/danh-sach).
 6. **Anonymous mutation đã có Turnstile feature-gate ở local.** Booking/contact/order gọi Cloudflare Siteverify trước khi ghi khi `NEXT_PUBLIC_ENABLE_FORM_CAPTCHA=true`; production vẫn cần owner cấp key, bật flag và kiểm tra abuse/alert.
-7. **Booking/contact chưa thông báo cho nhân viên.** Dữ liệu được lưu trung thực với `notification_status=not_configured`, nhưng vận hành phải chủ động mở admin để thấy yêu cầu mới.
+7. **Booking/contact chưa có email transport.** Dữ liệu vẫn lưu trung thực với `notification_status=not_configured`; để dùng Gmail cần email nhận và sender transport (Gmail SMTP App Password hoặc Gmail API OAuth) trong secret store.
 
 ### P2 - Hardening và maintainability
 
@@ -122,7 +122,8 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 - [x] Forward migration sửa loyalty: xử lý reversal độc lập với policy hiện tại; earn mới vẫn tuân policy. Đã thêm pgTAP cho chuỗi `completed -> disable policy -> cancelled/refunded` và replay.
 - [x] Giữ một redemption idempotency key qua retry, chỉ rotate sau success đã xác nhận. RPC duplicate lookup scope theo `user_id`; đã thêm contract regression cho cross-user collision.
 - [x] Triển khai local state `reserved/consumed/released`: reserve khi tạo đơn, consume khi SePay paid hoặc COD completed, release đúng một lần khi đơn hủy/payment failed/expired; có ledger và cleanup RPC.
-- Owner xác nhận mốc consume, refund có hoàn voucher hay không, và thời gian giữ reservation trước khi mở checkout production.
+- [x] Thêm admin `/admin/policies` để cấu hình voucher cancel/refund, loyalty reversal và refund window; thêm `refund_order_payment` cho SePay.
+- Owner xác nhận mốc consume, refund có hoàn voucher hay không, thời gian giữ reservation và cửa sổ refund bằng policy đã tạo.
 - Tắt hai voucher seed bằng forward migration trừ khi chủ dự án xác nhận chúng là campaign live.
 - [x] Thêm pgTAP cho cancellation, payment expiry, quota release, giới hạn usage và collision redemption; GitHub database job đã pass trên schema sạch. Refund policy và one-time reward voucher vẫn cần kiểm tra/quyết định owner.
 
@@ -156,7 +157,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 
 **Mục tiêu:** Nhân viên nhận được yêu cầu, public forms chống abuse và UI sẵn sàng phát hành.
 
-- Chọn một kênh thông báo nhân viên cho booking/contact/RSVP/B2B; update `notification_status` theo delivery thật và retry có giới hạn.
+- Gmail là kênh tạm thời cho booking/contact/RSVP/B2B; còn thiếu recipient, sender transport và secret store trước khi implement delivery worker/update `notification_status`.
 - [x] Thêm Turnstile feature-gate cho anonymous order, booking và contact; server-side validation fail-closed, key server-only và default false.
 - Owner cấp key/bật flag và chạy abuse smoke; edge/IP rate limit vẫn là hardening sau khi có traffic thật.
 - [x] Thêm CSP report-only với allowlist tối thiểu cho app, Supabase, Google map/OAuth và Turnstile; HSTS conditional khi production URL là HTTPS.

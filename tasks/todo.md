@@ -10,7 +10,7 @@
 
 - [x] `npm run lint` pass.
 - [x] `npx tsc --noEmit` pass.
-- [x] `npm test` pass 239/239.
+- [x] `npm test` pass 243/243.
 - [x] `npm run build` pass.
 - [x] `npm run test:e2e:auth` pass 4/4 với Google enabled và phone disabled ở 375/768/1440px.
 - [x] `npm run test:e2e` pass 30/40; 10 suite production/provider được skip đúng khi thiếu credential.
@@ -23,14 +23,14 @@
 - [x] `npm audit --omit=dev --audit-level=high` báo 0 vulnerability.
 - [x] Production build đã kiểm tra console/page error: không còn cảnh báo JSON-LD; cảnh báo native script chỉ xuất hiện trong React development overlay và phù hợp với khuyến nghị JSON-LD của Next.js.
 - [ ] Chạy `npm run db:lint` và `npm run db:test` trên Docker-compatible Supabase runtime (đã thử local; hiện bị `ECONNREFUSED 127.0.0.1:54322` vì chưa có Docker/Postgres).
-- [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; đủ 38 migration local khớp remote tới `20260811120000`.
+- [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; remote đã có 39 migration tới `20260811133000_commerce_policy.sql`.
 - [x] Apply `20260811120000_fix_loyalty_redemption_collision.sql` lên remote sau khi CI database xác nhận xanh.
 - [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration loyalty/content/SePay/flash-sale; advisor multiple-permissive-policy vẫn là backlog maintainability.
 - [x] GitHub run `31462882057` trên `8d55557` completed successfully; quality, database và E2E đều xanh. Lỗi collision của run `31462604288` đã có assertion cụ thể và được sửa.
 
 ## 0. Tạm dừng Phone OTP/Zalo
 
-- [ ] Vercel Production/Preview: giữ `NEXT_PUBLIC_ENABLE_PHONE_AUTH=false`.
+- [x] Vercel Production/Preview: giữ `NEXT_PUBLIC_ENABLE_PHONE_AUTH=false`.
 - [x] Supabase Auth Providers: Google đang bật và Phone đang tắt theo `GET /auth/v1/settings` (2026-08-11).
 - [ ] Supabase Auth Hooks: disable/unassign Send SMS Hook nếu đang bật.
 - [x] Supabase Cron: `beanbus-refresh-zalo-token` không còn job active sau migration pause.
@@ -38,7 +38,7 @@
 - [ ] Xác nhận Edge Function Zalo không còn invocation mới; giữ code/secrets để dùng lại sau, không đưa token vào chat/git.
 - [x] SePay webhook fail-closed với mã `BT/BF`: không gọi stored-value RPC khi `NEXT_PUBLIC_ENABLE_STORED_VALUE=false`.
 - [x] Supabase remote: `stored_value_policy` hiện có `enabled=false`, `topup_enabled=false`, `flash_sale_enabled=false`; stored-value/flash-sale đang bị khóa ở database.
-- [ ] Vercel: giữ `NEXT_PUBLIC_ENABLE_STORED_VALUE=false` và không bật stored-value/flash-sale.
+- [x] Vercel: giữ `NEXT_PUBLIC_ENABLE_STORED_VALUE=false` và không bật stored-value/flash-sale.
 
 ## 1. Cho phép tạo hội viên bằng Gmail
 
@@ -48,9 +48,9 @@
 - [ ] Supabase URL Configuration: Site URL là `https://www.beanbus.store`; allow redirect `https://www.beanbus.store/auth/callback` và preview URL đã duyệt.
 - [x] Vercel Production: `/api/health` trả `200`, mode `production`; production login render `googleEnabled=true`, `phoneEnabled=false`.
 - [x] Commit/push source Google-only và các milestone plan tới `8d55557` trên `codex/zalo-otp-integration`.
-- [ ] Vercel Production: build hiện tại vẫn render form Zalo disabled/divider cũ dù props đã là `phoneEnabled=false`; cần redeploy branch này hoặc merge commit vào production branch.
-- [ ] Chạy `npm run test:e2e:live` sau khi redeploy; lần kiểm tra curl hiện tại đã chứng minh build cũ còn form Zalo.
-- [ ] Vercel Preview: set `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=true`, giữ phone/stored-value false và redeploy.
+- [x] Vercel Production: redeploy từ `origin/main`, không merge Zalo changes của branch hiện tại; login production hiện có `phoneEnabled=false` và `googleEnabled=true`.
+- [ ] Chạy `npm run test:e2e:live` sau khi có session/hosted assertion phù hợp; curl production đã xác nhận Google-only HTML.
+- [x] Vercel Preview: set `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=true`, giữ phone/stored-value false.
 - [x] Sửa login UI: khi phone disabled, không render phone form/divider; Google là primary action.
 - [x] Cập nhật E2E để kiểm tra Google-only login screen thay vì hai provider đều disabled.
 - [ ] Smoke bằng Gmail mới: OAuth callback thành công, `auth.users` và `profiles` có row, vào được `/account`.
@@ -68,8 +68,9 @@
 - [x] Cleanup pending SePay payment hết hạn nối với order payment failed và voucher release.
 - [x] Thêm pgTAP/contract test cho cancellation, payment expiry, quota release và service-only ledger.
 - [x] Sửa precedence lỗi flash-sale để user đã đạt `max_per_user` nhận `FLASH_SALE_USER_LIMIT` ổn định ngay cả khi campaign đồng thời hết quota; migration forward mới cần được apply lên remote trước khi bật stored-value.
-- [ ] Owner xác nhận mốc consume, timeout COD, và refund có hoàn voucher hay không trước khi mở checkout production.
-- [ ] Thêm test concurrent usage limit, refund policy và one-time reward voucher trên Postgres runtime.
+- [x] Thêm admin `/admin/policies` để cấu hình voucher cancel/refund, loyalty reversal và refund window; thêm `refund_order_payment` cho SePay.
+- [ ] Owner xác nhận mốc consume, timeout COD, và policy release/consume đã chọn trước khi mở checkout production.
+- [ ] Thêm test concurrent usage limit, refund policy và one-time reward voucher trên Postgres runtime; pgTAP policy chưa chạy được do thiếu Docker/psql.
 - [ ] Xác nhận `BEANBUS10` và `WELCOMEVIP` có phải promotion live không; read-only remote check cho thấy cả hai đang `is_active=true`, không có `starts_at/ends_at`, giới hạn lần lượt 1000/500.
 - [ ] Nếu chưa phê duyệt, tạo forward migration disable hai voucher seed trước khi mở checkout production.
 
@@ -95,10 +96,10 @@
 
 ## 5. Commerce và SePay
 
-- [ ] Xác nhận quyết định SePay production: webhook live hiện trả `401` khi thiếu HMAC, chứng minh `NEXT_PUBLIC_ENABLE_SEPAY` đang bật; nếu chưa mở payment traffic thì tắt flag, nếu giữ live thì hoàn tất smoke/alert/token.
+- [x] Xác nhận quyết định SePay production: webhook được bật và production `/hooks/payment` trả `401` khi thiếu HMAC.
 - [x] Thêm `NEXT_PUBLIC_ENABLE_SEPAY_RECONCILIATION=false` mặc định; cron chỉ chạy khi cả SePay và reconciliation cùng bật.
 - [x] Production read-only: `/api/cron/sepay-reconciliation` trả `404`, xác nhận reconciliation cron đang tắt; webhook SePay vẫn bật và yêu cầu HMAC.
-- [ ] Xác nhận Vercel secrets: webhook HMAC, bank code/account/name; không in secret ra log/chat.
+- [x] Vercel env đã có webhook HMAC, bank code/account/name; không in secret ra log/chat.
 - [ ] SePay Dashboard: webhook live `https://www.beanbus.store/hooks/payment`, HMAC-SHA256, money-in, mã `DH_<mã hóa đơn>`.
 - [ ] Chạy live smoke số tiền nhỏ và kiểm tra amount/account/code/direction/timestamp.
 - [ ] Replay cùng provider event và xác nhận không có side effect lần hai.
@@ -116,10 +117,10 @@
 - [ ] Test hosted account: profile, order detail/reorder, request cancel, loyalty history, reward, voucher ownership.
 - [ ] Test hosted admin: dashboard, orders, requests, catalog, content, members, role, loyalty, vouchers, rewards.
 - [x] Viết runbook first-admin, revoke role, audit role changes và account recovery; owner execution/sign-off còn chờ hosted access.
-- [ ] Chọn kênh thông báo nhân viên cho booking/contact/RSVP/B2B.
+- [x] Chọn Gmail làm kênh tạm thời cho booking/contact/RSVP/B2B.
 - [ ] Implement delivery worker/webhook và update `notification_status` theo kết quả thật.
 - [x] Thêm feature-gated Turnstile cho order, booking và contact; server-side Siteverify fail-closed, mặc định vẫn tắt.
-- [ ] Quyết định booking capacity, COD eligibility, loyalty earn rate, refund và voucher reuse policy.
+- [ ] Owner chốt booking capacity, COD eligibility, loyalty earn rate, timeout COD, refund window và release/consume policy trong `/admin/policies`.
 
 ## 7. UI, security và maintainability
 
@@ -138,7 +139,7 @@
 - [ ] Không còn finding P0/P1 mở.
 - [ ] Phone/Zalo và stored-value xác nhận vẫn tắt ở UI lẫn remote execution; Zalo cron đã xác nhận `0`, còn Auth Provider/Hook và Vercel flags cần owner kiểm tra.
 - [ ] Google login/logout/profile/admin role smoke pass bằng tài khoản thật.
-- [x] Lint, typecheck, 239/239 unit-contract tests, build, pgTAP và focused E2E đã xanh trên local/GitHub; còn thiếu hosted Google/RLS smoke và owner sign-off.
+- [x] Lint, typecheck, 243/243 unit-contract tests, build và remote db lint đã xanh; pgTAP policy cần Docker/psql runtime, hosted Google/RLS smoke và owner sign-off còn thiếu.
 - [ ] Sepay webhook + reconciliation live smoke pass nếu bật payment.
 - [ ] Monitoring, backup, rollback và incident contacts đã được thử.
 - [ ] Owner ký xác nhận staging ở desktop/mobile.
@@ -147,9 +148,10 @@
 
 - [x] Đã có quyền truy vấn/apply Supabase remote qua secret store local; không gửi secret qua chat.
 - [ ] Quyền Vercel để kiểm tra Production/Preview env và redeploy.
-- [ ] Email Gmail dùng làm admin đầu tiên và ít nhất một Gmail member test.
+- [ ] Email Gmail dùng làm admin đầu tiên và ít nhất một Gmail member test; lần đăng nhập Google đầu tiên sẽ tự tạo account/profile.
+- [ ] Email nhận thông báo nhân viên và sender transport: Gmail SMTP App Password hoặc Gmail API OAuth.
 - [ ] Xác nhận hai mã `BEANBUS10`, `WELCOMEVIP`: live hay phải tắt.
-- [ ] Chính sách loyalty/COD/refund/voucher reuse bằng văn bản ngắn.
+- [ ] Chính sách loyalty/COD/refund/voucher reuse bằng văn bản ngắn hoặc chỉnh trực tiếp trong `/admin/policies` sau khi bootstrap admin.
 - [ ] Kênh nhận thông báo booking/contact của nhân viên.
 - [ ] SePay API v2 token nhập trực tiếp vào secret store khi bắt đầu reconciliation.
 - [ ] Privacy policy, terms, logo và ảnh có quyền sử dụng.
