@@ -16,6 +16,7 @@
 - [x] Voucher account lọc thời gian ở PostgREST và chạy song song với batch dữ liệu đầu tiên.
 - [x] SePay confirmation giảm polling khi tab ẩn, backoff tối đa 30 giây và refresh ngay khi tab được focus.
 - [x] CSP report-only production không còn `unsafe-eval`; chỉ development mới bật để hỗ trợ Next dev.
+- [x] Production Vercel revision `c7643fd379ec` đã nhận pagination commit; `/menu` trả `x-nextjs-prerender: 1`, stale-time `300` và CSP production đúng policy.
 - [ ] Chưa bật Cloudflare reverse proxy trước Vercel. Nếu cần CDN ảnh, ưu tiên Cloudflare Images hoặc R2 với `images.beanbus.store`; không chuyển `www.beanbus.store` qua proxy trước khi đo latency/cache.
 - [x] Đã apply migration `20260812043000_fix_notification_preference_lint.sql` trên Supabase remote; migration list khớp và `db lint --level warning --fail-on warning` trả `No schema errors found`.
 
@@ -217,7 +218,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 ### Backlog sau release gate
 
 - [ ] Chuyển fan-out announcement/event từ vòng lặp row-by-row sang set-based hoặc job fan-out khi số hội viên tăng.
-- [ ] Bổ sung pagination cho notification history và browser accessibility audit hosted.
+- [x] Bổ sung pagination cho notification history; browser accessibility audit hosted vẫn chờ tài khoản test thật.
 - [ ] Thay dần source-regex contract bằng behavior/integration test chạy PostgreSQL thật.
 
 ## 7. Không nằm trong release hiện tại
