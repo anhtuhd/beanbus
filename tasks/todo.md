@@ -35,7 +35,7 @@
 - [x] Notification bell bỏ `getClaims()` lặp và account voucher query chạy song song với batch chính.
 - [x] SePay payment confirmation pause/backoff polling khi tab ẩn và refresh khi quay lại.
 - [x] CSP production report-only loại `unsafe-eval`; chưa chuyển sang enforce cho tới khi review browser reports.
-- [x] Notification history có pagination 50 dòng/lần, trạng thái loading/error và RLS theo người nhận; production revision `384f095b3827` đã xác nhận.
+- [x] Notification history có pagination 50 dòng/lần, trạng thái loading/error và RLS theo người nhận; production revision `138feb739acf` đã xác nhận.
 - [x] Provider demo toàn cục nhận `appMode`; production bỏ qua hydrate/persist fixtures orders, bookings, settings và flash-sale khỏi `localStorage`.
 - [ ] Cloudflare Images/R2 là lựa chọn CDN ảnh tương lai; chưa cần cài package. Giữ Vercel làm host app và chỉ thêm `images.beanbus.store` sau khi có Cloudflare account, bucket/Images delivery URL và DNS.
 - [x] Apply `20260812043000_fix_notification_preference_lint.sql` và `20260812050000_staff_request_notifications.sql` lên Supabase remote; remote lint ở mức warning pass không còn schema warning.
