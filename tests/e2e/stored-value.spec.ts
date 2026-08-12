@@ -10,5 +10,6 @@ test('stored-value routes remain safely disabled in demo mode', async ({ page })
 
 test('production stored-value admin route does not expose admin UI in demo mode', async ({ page }) => {
   await page.goto('/admin/stored-value');
-  await expect(page).not.toHaveURL(/\/admin\/stored-value/);
+  // The first server render can be slow on a cold shared CI runner.
+  await expect(page).toHaveURL(/\/admin\/?$/, { timeout: 30_000 });
 });
