@@ -75,7 +75,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 | Public site, menu, content, responsive UI | Gần hoàn chỉnh | Nội dung/ảnh chính thức, privacy/terms, browser audit cuối |
 | Google Auth và session guards | Đã có | Bật provider/flag, smoke test tài khoản Gmail thật, xác minh profile trigger và logout |
 | Phone OTP/Zalo | Đã code nhưng tạm dừng | Giữ flag false; vô hiệu Auth Hook/cron/provider remote nếu đã bật |
-| Hội viên | Đã có profile, đơn, request, voucher, loyalty và policy reversal | Gmail/RLS smoke bằng tài khoản thật; owner xác nhận voucher seed và Resend notification |
+| Hội viên | Đã có profile, đơn, request, voucher, loyalty và policy reversal | Gmail/UI smoke bằng tài khoản thật; owner xác nhận voucher seed và Resend notification; hosted RLS transaction smoke đã pass |
 | Admin | Đã có route guard, catalog/voucher/loyalty/rewards và màn `Chính sách` | Bootstrap admin bằng Gmail thật; test policy/refund trên hosted runtime |
 | Order/checkout | Server-priced, idempotent, reservation/release voucher và admin refund policy/RPC | Hosted E2E; live refund test nhỏ và xác nhận expiry |
 | SePay đơn hàng | HMAC webhook production đã bật; reconciliation API v2 đang tắt | Live smoke, IP allowlist, alert; API v2 token chỉ cần khi bật reconciliation |
@@ -83,7 +83,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 | Stored-value/flash-sale | Đã code sau nhiều lớp gate | Tiếp tục tắt; chưa nằm trong release hiện tại |
 | Test/CI | Local gate và CI database/E2E xanh | Giảm source-regex tests và chạy authenticated hosted E2E |
 
-Ước lượng hiện tại: UI/routes khoảng 96%, backend implementation khoảng 97%, nhưng production verification chỉ khoảng 63%. Release readiness tổng thể khoảng 84% và vẫn bị chặn bởi Google/role smoke, pgTAP/RLS hosted, Resend delivery, Send SMS Hook confirmation và payment smoke.
+Ước lượng hiện tại: UI/routes khoảng 96%, backend implementation khoảng 97%; production verification đã đóng thêm hosted lint và RLS ownership nhưng vẫn chưa đủ release sign-off. Release readiness tổng thể vẫn bị chặn bởi Google/role smoke, Resend delivery, Send SMS Hook confirmation, payment smoke và backup/monitoring sign-off.
 
 ## 4. Findings cần xử lý
 
@@ -91,7 +91,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 
 1. **Loyalty reversal đã có forward fix, runtime pgTAP và remote lint sign-off.** `apply_loyalty_for_order()` xử lý reversal độc lập với policy hiện tại; pgTAP regression cho chuỗi disable policy -> cancel/refund đã pass. Hosted user smoke và owner sign-off vẫn còn.
 2. **Voucher/loyalty/refund policy đã có màn admin, migration remote và pgTAP/runtime coverage.** Mặc định consume khi SePay paid/COD completed, release khi cancel/payment failed/refund; admin có thể đổi hành vi release/consume, bật/tắt refund, đặt cửa sổ 1–720 giờ và bật/tắt reversal điểm. Chỉ còn owner xác nhận policy live bằng văn bản.
-3. **Remote inventory đã được reconcile và apply.** Remote đã khớp `45/45` migration tới `20260813010000`; helper/trigger/quyền fan-out và hosted `db lint` schema `public` đã được kiểm tra, không có schema warning. Vẫn cần RLS/runtime smoke bằng tài khoản thật và backup/restore sign-off.
+3. **Remote inventory đã được reconcile và apply.** Remote đã khớp `45/45` migration tới `20260813010000`; helper/trigger/quyền fan-out, hosted `db lint` schema `public` và RLS ownership transaction smoke đã được kiểm tra, không có schema warning. Vẫn cần UI/provider behavior bằng tài khoản thật và backup/restore sign-off.
 
 ### P1 - Phải hoàn thành trước mở traffic thật
 
@@ -106,7 +106,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 ### P2 - Hardening và maintainability
 
 1. 54/69 file unit test đọc source bằng `readFileSync` và regex. Chúng hữu ích cho contract tĩnh nhưng không thay thế runtime behavior; vùng loyalty/redemption/request pagination/voucher lifecycle đã có regression contract và pgTAP runtime, nhưng vẫn cần hosted behavior smoke.
-2. Account request pagination đã chuyển sang RPC `UNION ALL` với stable ordering, bounded page size, total count và RLS-aware access; pgTAP trên Postgres runtime đã pass. Hosted two-member ownership smoke vẫn còn.
+2. Account request pagination đã chuyển sang RPC `UNION ALL` với stable ordering, bounded page size, total count và RLS-aware access; pgTAP và hosted two-member ownership smoke đã pass. Hosted UI behavior vẫn còn.
 3. Phone UI đã được ẩn hoàn toàn khi feature tắt; còn thiếu browser/accessibility check trên staging ở các kích thước màn hình.
 4. Security headers đã có CSP report-only và HSTS conditional cho production HTTPS; cần review browser reports trước khi chuyển CSP sang enforce.
 5. Một số client/UI module quá lớn (`AccountClient.tsx` 742 dòng, `HomeClient.tsx` 542 dòng). Chỉ tách sau khi sửa correctness, theo các tab/workflow hiện có.
@@ -214,7 +214,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 ### Còn phải làm trước production
 
 - [x] Kiểm tra migration inventory remote bằng `DATABASE_URL` và apply các migration SePay/notification tới `20260813010000_notification_set_based_fanout.sql`; remote inventory khớp `45/45`, CLI chưa link project nhưng `db push --db-url` đã thành công.
-- [x] Chạy pgTAP trên schema sạch bằng Supabase local/Colima: `24` file, `390/390` tests pass; smoke transaction remote xác nhận trigger booking/contact và rollback sạch. Hosted RLS/behavior smoke vẫn cần tài khoản thật.
+- [x] Chạy pgTAP trên schema sạch bằng Supabase local/Colima: `24` file, `390/390` tests pass; smoke transaction remote xác nhận trigger booking/contact và hosted RLS hai member/admin, tất cả rollback sạch. Hosted UI/provider behavior vẫn cần tài khoản thật.
 - [x] Ba Edge Function notification đã được tạo/deploy trước đó với `verify_jwt=false`, Vault, Resend webhook endpoint và DNS sender; bản worker mới đổi sender transactional cần redeploy sau khi CLI có access token.
 - [x] Resend send smoke tới hai Gmail test được provider chấp nhận; worker production trả `disabled=true` đúng feature flag. Delivered/bounced/complained, webhook và unsubscribe thực tế vẫn cần xác minh từ mailbox/provider dashboard.
 - [ ] Cấu hình `SUPABASE_ACCESS_TOKEN` secret và `SUPABASE_PROJECT_REF` variable trong GitHub `production` environment, sau đó chạy workflow deploy worker mới.

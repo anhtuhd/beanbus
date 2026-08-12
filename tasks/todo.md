@@ -60,7 +60,7 @@
 - [x] Cố định timezone notification UI và đồng bộ outbox/suppression types với migration.
 - [x] Sửa format mã đơn demo thành `DH-YYMMDD` + 6 ký tự và thêm regression test; E2E checkout pass.
 - [x] Kiểm tra migration inventory bằng `DATABASE_URL`; apply migration notification center và staff request fan-out lên remote, xác minh bảng, trigger, cron và Realtime publication.
-- [x] Chạy pgTAP trên Docker/Postgres runtime qua Colima; `24` file, `390/390` tests pass. Hosted RLS/behavior smoke vẫn cần tài khoản thật.
+- [x] Chạy pgTAP trên Docker/Postgres runtime qua Colima; `24` file, `390/390` tests pass. Hosted RLS transaction smoke với hai member/admin cũng pass và rollback sạch; behavior bằng Gmail thật vẫn chờ.
 - [x] Booking/contact tạo in-app notification cho tất cả admin và transactional outbox; dedupe/source/kind có contract và pgTAP.
 - [x] Trang danh sách/chi tiết booking và contact của admin không còn dùng `notification_status` legacy; liên kết thống nhất về `/admin/notifications`.
 - [ ] Khi bật password auth, bật Supabase Auth `Require current password when changing password` và smoke mật khẩu sai/đúng trên hosted.
@@ -121,7 +121,7 @@
 - [x] Client giữ nguyên redemption idempotency key qua retry; chỉ rotate sau success đã xác nhận.
 - [x] RPC forward migration chỉ trả duplicate redemption khi `source_key` và `user_id` cùng khớp; khác user trả conflict không lộ voucher code.
 - [x] Behavioral retry được mô phỏng bằng repeated RPC với cùng idempotency key: trả lại voucher cũ và không tạo ledger/voucher thứ hai; case cross-user collision cũng được kiểm tra.
-- [x] Thêm pgTAP cho retry cùng user và collision key khác user; GitHub database job đã pass, còn hosted member smoke/RLS cần tài khoản thật.
+- [x] Thêm pgTAP cho retry cùng user và collision key khác user; GitHub database job và hosted RLS ownership smoke đã pass; hosted member OAuth smoke vẫn chờ.
 - [x] Cập nhật contract test để yêu cầu key ổn định qua retry thay vì UUID mới ở mọi submit.
 
 ## 4. Reconcile và kiểm thử Supabase
@@ -133,8 +133,8 @@
 - [x] Sau CI pass, apply và kiểm tra migration `20260811120000_fix_loyalty_redemption_collision.sql`; remote inventory khớp và lint không có schema error.
 - [x] Chạy toàn bộ `npm run db:lint` và `npm run db:test` trên schema sạch qua Colima: lint pass, pgTAP `24` file/`390/390` tests pass.
 - [ ] Chạy lại pgTAP trên staging/remote theo release runbook.
-- [ ] Test RLS bằng hai member và một admin: profiles, orders, requests, ledger, vouchers, history.
-- [x] Read-only hosted RLS smoke với một member, một admin và một UUID không tồn tại: member chỉ thấy profile của mình, admin thấy dữ liệu được cấp, UUID lạ thấy `0` rows trên profiles/orders/requests/notifications; full two-member smoke vẫn còn chờ.
+- [x] Test RLS bằng hai member và một admin trên hosted transaction rollback: member1 thấy order/requests/ledger/voucher/history của mình, member2 thấy `0`, admin thấy dữ liệu được cấp; không để lại dữ liệu test.
+- [x] Read-only hosted RLS smoke với một member, một admin và một UUID không tồn tại: member chỉ thấy profile của mình, admin thấy dữ liệu được cấp, UUID lạ thấy `0` rows trên profiles/orders/requests/notifications; full two-member smoke đã pass.
 - [x] Cập nhật `README.md` và `docs/release-runbook.md` bằng trạng thái remote đã kiểm chứng.
 
 ## 5. Commerce và SePay
@@ -158,7 +158,7 @@
 
 ## 6. Hội viên và admin còn thiếu
 
-- [x] Sửa account request pagination bằng RPC `UNION ALL`, stable ordering, page bounds, indexes và total count; pgTAP/CI đã pass, còn hosted RLS smoke cần tài khoản thật.
+- [x] Sửa account request pagination bằng RPC `UNION ALL`, stable ordering, page bounds, indexes và total count; pgTAP/CI và hosted RLS ownership smoke đã pass, còn hosted UI smoke cần tài khoản thật.
 - [ ] Test hosted account: profile, order detail/reorder, request cancel, loyalty history, reward, voucher ownership.
 - [ ] Test hosted admin: dashboard, orders, requests, catalog, content, members, role, loyalty, vouchers, rewards.
 - [x] Viết runbook first-admin, revoke role, audit role changes và account recovery; owner execution/sign-off còn chờ hosted access.
