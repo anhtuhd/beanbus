@@ -64,7 +64,7 @@ Kết quả local tại thời điểm review:
 - Đã cài Docker CLI, Colima và `libpq`/`psql`; Colima đang cung cấp Docker runtime cho Supabase local. `npx supabase db lint --local --level warning --fail-on warning` trả `No schema errors found`.
 - Đã dùng Supabase CLI với connection string đã cấu hình để apply migration commerce policy, SePay order expiry, notification center, notification lint, staff request fan-out và set-based fan-out. Remote đã xác minh migration inventory khớp `45/45`, trigger booking/customer/order/event, bảng notification/outbox, notification worker cron và Realtime publication; `db lint --db-url ... --schema public --level warning --fail-on warning` và local lint đều trả `No schema errors found`.
 - pgTAP local trên schema sạch đã pass `24` file, `390/390` tests; smoke transaction trên remote xác nhận booking/contact tạo notification admin và rollback sạch.
-- GitHub Actions run `31621084519` trên commit `6772ff5` đã completed/success ở quality, database và toàn bộ E2E (Demo, Auth, checkout thường, SePay contract, customer requests). Local hiện pass `npm test` 295/295, pgTAP 390/390 và build. Live smoke workflow không chạy trong push event; Gmail OAuth callback thật vẫn chưa test.
+- GitHub Actions run `31623250915` trên commit `620d058` đã completed/success ở quality, database và toàn bộ E2E (Demo, Auth, checkout thường, SePay contract, customer requests). Local hiện pass `npm test` 295/295, pgTAP 390/390 và build. Live smoke workflow không chạy trong push event; Gmail OAuth callback thật vẫn chưa test.
 
 Các increment đã triển khai local: Google-only login UI và auth E2E, loyalty reversal forward migration, redemption idempotency key ổn định qua retry, RPC chống collision khác user, RPC phân trang request `UNION ALL` có total count/RLS, first-admin/release runbook, voucher reservation lifecycle, commerce policy có audit và RPC hoàn tiền SePay theo thời hạn, form CAPTCHA feature-gate, RSVP modal ổn định ngoài card hover, SePay API v2 reconciliation feature-gated, set-based notification fan-out cho order/booking/customer/event/store announcement. Provider, hosted user smoke, Gmail/Resend delivery và live payment smoke vẫn chưa hoàn tất.
 
@@ -241,7 +241,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 Một task chỉ được đánh dấu hoàn thành khi:
 
 - Có test behavior phù hợp; thay đổi DB có pgTAP và migration forward-only.
-- `npm run lint`, `npx tsc --noEmit`, `npm test` (295/295), `npm run build`, pgTAP local (390/390), live smoke production (1/1) và GitHub CI run `31621084519` trên `6772ff5` pass; production health đã xác nhận `mode: production` và revision khớp deployment tại thời điểm kiểm tra; live-smoke của workflow này được thiết kế opt-in qua `workflow_dispatch`.
+- `npm run lint`, `npx tsc --noEmit`, `npm test` (295/295), `npm run build`, pgTAP local (390/390), live smoke production (1/1) và GitHub CI run `31623250915` trên `620d058` pass; production health đã xác nhận `mode: production` và revision khớp deployment tại thời điểm kiểm tra; live-smoke của workflow này được thiết kế opt-in qua `workflow_dispatch`.
 - Luồng UI bị ảnh hưởng được test keyboard và mobile; không có loading/error/empty state giả.
 - Auth/RLS/ownership được kiểm thử bằng ít nhất hai user khác nhau.
 - Payment/points/voucher mutation idempotent, auditable và không log secret/OTP/full PII.
