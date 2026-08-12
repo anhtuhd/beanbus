@@ -274,7 +274,7 @@ export const Header: React.FC = () => {
             {cartCount > 0 && <span className={styles.cartBadge}>{cartCount}</span>}
           </button>
 
-          <NotificationBell isAdmin={isAdmin} isLoggedIn={isLoggedIn} />
+          <NotificationBell isAdmin={isAdmin} isLoggedIn={isLoggedIn} userId={user?.id ?? null} />
 
           {/* ACCOUNT DROPDOWN */}
           <div className={styles.accountDropdownWrapper} onBlur={closeMenuOnBlur} onKeyDown={closeMenuOnEscape}>

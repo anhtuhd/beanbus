@@ -29,4 +29,6 @@ test('customer payment screen exposes a live 15-minute countdown', () => {
   assert.match(confirmation, /setInterval\([^,]+, 1000\)/);
   assert.match(confirmation, /Đếm ngược|countdown/i);
   assert.match(confirmation, /order\.orderCode/);
+  assert.match(confirmation, /visibilitychange/);
+  assert.match(confirmation, /Math\.min\(30_000/);
 });

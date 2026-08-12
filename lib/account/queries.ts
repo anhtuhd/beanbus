@@ -157,7 +157,8 @@ export async function getMemberAccountData(requestedPage = 1, requestedLoyaltyPa
   const profile = await getCurrentProfile();
   if (!profile) return emptyAccountData(page, loyaltyPage, requestPage, voucherPage, 'Phiên đăng nhập đã hết hạn.');
   const supabase = await createServerSupabaseClient();
-  const [ordersResult, loyaltyResult, loyaltyEntriesResult, rewardsResult, requestsResult, requestCountResult] = await Promise.all([
+  const nowIso = new Date().toISOString();
+  const [ordersResult, loyaltyResult, loyaltyEntriesResult, rewardsResult, requestsResult, requestCountResult, vouchersResult] = await Promise.all([
     supabase
     .from('orders')
     .select('id, order_code, status, payment_status, fulfillment, total_vnd, voucher_code, created_at', { count: 'exact' })
@@ -169,6 +170,14 @@ export async function getMemberAccountData(requestedPage = 1, requestedLoyaltyPa
     supabase.from('loyalty_rewards').select('id, name_vi, name_en, points_cost, discount_type, discount_value, minimum_subtotal_vnd, maximum_discount_vnd').eq('is_active', true).order('points_cost'),
     supabase.rpc('get_member_requests', { p_page: requestPage, p_page_size: REQUEST_PAGE_SIZE, p_user_id: profile.id }),
     supabase.rpc('get_member_request_count', { p_user_id: profile.id }),
+    supabase
+      .from('vouchers')
+      .select('code, discount_type, discount_value, minimum_subtotal_vnd, maximum_discount_vnd, starts_at, ends_at', { count: 'exact' })
+      .eq('is_active', true)
+      .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
+      .or(`ends_at.is.null,ends_at.gt.${nowIso}`)
+      .order('created_at', { ascending: false })
+      .range((voucherPage - 1) * VOUCHER_PAGE_SIZE, voucherPage * VOUCHER_PAGE_SIZE - 1),
   ]);
 
   if (ordersResult.error) {
@@ -184,13 +193,6 @@ export async function getMemberAccountData(requestedPage = 1, requestedLoyaltyPa
       .in('order_id', orderIds)
     : { data: [], error: null };
 
-  const vouchersResult = await supabase
-    .from('vouchers')
-    .select('code, discount_type, discount_value, minimum_subtotal_vnd, maximum_discount_vnd, starts_at, ends_at', { count: 'exact' })
-    .eq('is_active', true)
-    .order('created_at', { ascending: false })
-    .range((voucherPage - 1) * VOUCHER_PAGE_SIZE, voucherPage * VOUCHER_PAGE_SIZE - 1);
-
   if (itemsResult.error || vouchersResult.error || loyaltyResult.error || !loyaltyResult.data?.[0] || loyaltyEntriesResult.error || rewardsResult.error || requestsResult.error || requestCountResult.error) {
     return emptyAccountData(page, loyaltyPage, requestPage, voucherPage, 'Không thể tải dữ liệu hội viên lúc này.');
   }
@@ -202,12 +204,7 @@ export async function getMemberAccountData(requestedPage = 1, requestedLoyaltyPa
     itemsByOrder.set(item.order_id, items);
   }
 
-  const now = Date.now();
-  const vouchers: MemberVoucher[] = (vouchersResult.data ?? []).filter((voucher) => {
-    const startsAt = voucher.starts_at ? Date.parse(voucher.starts_at) : null;
-    const endsAt = voucher.ends_at ? Date.parse(voucher.ends_at) : null;
-    return (startsAt === null || startsAt <= now) && (endsAt === null || endsAt > now);
-  });
+  const vouchers: MemberVoucher[] = vouchersResult.data ?? [];
 
   const requests = (requestsResult.data ?? []).map(mapMemberRequest);
   const totalRequests = requestCountResult.data ?? 0;

@@ -109,6 +109,8 @@ test('notification rollback flag gates navigation, dashboard and pages', () => {
 test('header exposes an authenticated notification bell', () => {
   assert.match(header, /NotificationBell/);
   assert.match(header, /isLoggedIn/);
+  assert.match(header, /userId=\{user\?\.id/);
+  assert.doesNotMatch(notificationBell, /auth\.getClaims\(\)/);
 });
 
 test('client notification flag is statically inlined by Next.js', () => {

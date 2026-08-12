@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Bell, CheckCheck, X } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
@@ -18,28 +18,31 @@ type NotificationItem = {
   created_at: string;
 };
 
-type Props = { isAdmin: boolean; isLoggedIn: boolean };
+type Props = { isAdmin: boolean; isLoggedIn: boolean; userId: string | null };
 
 const enabled = process.env.NEXT_PUBLIC_ENABLE_NOTIFICATIONS === 'true';
 
-export function NotificationBell({ isAdmin, isLoggedIn }: Props) {
+export function NotificationBell({ isAdmin, isLoggedIn, userId }: Props) {
   const { lang, t } = useLanguage();
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const unreadIdsRef = useRef<Set<string>>(new Set());
+  const dateFormatter = useMemo(() => new Intl.DateTimeFormat(lang === 'en' ? 'en-US' : 'vi-VN', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'Asia/Ho_Chi_Minh',
+  }), [lang]);
 
   useEffect(() => {
-    if (!enabled || !isLoggedIn) return;
+    if (!enabled || !isLoggedIn || !userId) return;
     const supabase = createBrowserSupabaseClient();
     let active = true;
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
     const load = async () => {
-      const { data: claimsData } = await supabase.auth.getClaims();
-      const userId = typeof claimsData?.claims?.sub === 'string' ? claimsData.claims.sub : null;
-      if (!userId) return;
       const [recent, unread] = await Promise.all([
         supabase.from('notifications')
           .select('id, title_vi, title_en, body_vi, body_en, href, read_at, created_at')
@@ -58,28 +61,28 @@ export function NotificationBell({ isAdmin, isLoggedIn }: Props) {
       }
       setError(false);
       setItems((recent.data ?? []) as NotificationItem[]);
+      unreadIdsRef.current = new Set(
+        ((recent.data ?? []) as NotificationItem[])
+          .filter((item) => !item.read_at)
+          .map((item) => item.id)
+      );
       setUnreadCount(unread.count ?? 0);
     };
 
     void load();
-    void supabase.auth.getClaims().then(({ data }) => {
-      if (!active) return;
-      const userId = typeof data?.claims?.sub === 'string' ? data.claims.sub : null;
-      if (!userId || !active) return;
-      channel = supabase.channel(`notifications:${userId}`)
-        .on('postgres_changes', {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `recipient_user_id=eq.${userId}`,
-        }, () => void load())
-        .subscribe();
-    });
+    channel = supabase.channel(`notifications:${userId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `recipient_user_id=eq.${userId}`,
+      }, () => void load())
+      .subscribe();
     return () => {
       active = false;
       if (channel) void supabase.removeChannel(channel);
     };
-  }, [isLoggedIn]);
+  }, [isLoggedIn, userId]);
 
   useEffect(() => {
     if (!open) return;
@@ -106,8 +109,9 @@ export function NotificationBell({ isAdmin, isLoggedIn }: Props) {
       setError(true);
       return;
     }
+    const wasUnread = unreadIdsRef.current.delete(id);
     setItems((current) => current.map((item) => item.id === id ? { ...item, read_at: item.read_at ?? new Date().toISOString() } : item));
-    setUnreadCount((count) => Math.max(0, count - (items.find((item) => item.id === id)?.read_at ? 0 : 1)));
+    if (wasUnread) setUnreadCount((count) => Math.max(0, count - 1));
   };
 
   const markAllRead = async () => {
@@ -117,6 +121,7 @@ export function NotificationBell({ isAdmin, isLoggedIn }: Props) {
       setError(true);
       return;
     }
+    unreadIdsRef.current.clear();
     setItems((current) => current.map((item) => ({ ...item, read_at: item.read_at ?? new Date().toISOString() })));
     setUnreadCount(0);
   };
@@ -156,11 +161,7 @@ export function NotificationBell({ isAdmin, isLoggedIn }: Props) {
                 >
                   <strong>{lang === 'en' ? item.title_en : item.title_vi}</strong>
                   <span>{lang === 'en' ? item.body_en : item.body_vi}</span>
-                  <time dateTime={item.created_at}>{new Intl.DateTimeFormat(lang === 'en' ? 'en-US' : 'vi-VN', {
-                    dateStyle: 'medium',
-                    timeStyle: 'short',
-                    timeZone: 'Asia/Ho_Chi_Minh',
-                  }).format(new Date(item.created_at))}</time>
+                  <time dateTime={item.created_at}>{dateFormatter.format(new Date(item.created_at))}</time>
                 </Link>
               ))}
             </div>

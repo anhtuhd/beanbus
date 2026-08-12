@@ -69,8 +69,33 @@ export function ProductionConfirmation({
 
   useEffect(() => {
     if (!isPaymentPending || isExpired) return;
-    const timer = window.setInterval(() => router.refresh(), 5_000);
-    return () => window.clearInterval(timer);
+    let timer: number | null = null;
+    let delay = 5_000;
+
+    const scheduleRefresh = () => {
+      if (timer !== null) window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (!document.hidden) {
+          router.refresh();
+          delay = Math.min(30_000, Math.round(delay * 1.5));
+        }
+        scheduleRefresh();
+      }, document.hidden ? 15_000 : delay);
+    };
+    const refreshOnFocus = () => {
+      if (!document.hidden) {
+        delay = 5_000;
+        router.refresh();
+        scheduleRefresh();
+      }
+    };
+
+    scheduleRefresh();
+    document.addEventListener('visibilitychange', refreshOnFocus);
+    return () => {
+      if (timer !== null) window.clearTimeout(timer);
+      document.removeEventListener('visibilitychange', refreshOnFocus);
+    };
   }, [isExpired, isPaymentPending, router]);
 
   const copyValue = async (value: string, key: 'account' | 'code') => {

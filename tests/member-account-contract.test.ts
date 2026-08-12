@@ -88,6 +88,9 @@ test('loyalty summary is ledger-backed and policy-gated', () => {
   assert.match(query, /rpc\('get_member_requests'/);
   assert.match(query, /rpc\('get_member_request_count'/);
   assert.match(query, /requests: MemberRequest\[\]/);
+  assert.match(query, /Promise\.all\(\[[\s\S]*from\('vouchers'\)/);
+  assert.match(query, /starts_at\.is\.null,starts_at\.lte/);
+  assert.match(query, /ends_at\.is\.null,ends_at\.gt/);
 });
 
 test('account date rendering is timezone-stable for hydration', () => {
