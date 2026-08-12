@@ -21,6 +21,8 @@ type Failure = {
 
 type Props = {
   initialNotifications: Notification[];
+  recipientId: string;
+  initialHasMore?: boolean;
   initialPreferences?: Preferences | null;
   initialError?: string;
   failures?: Failure[];
@@ -37,6 +39,8 @@ function displayDate(value: string) {
 
 export default function NotificationCenter({
   initialNotifications,
+  recipientId,
+  initialHasMore = false,
   initialPreferences,
   initialError,
   failures = [],
@@ -44,6 +48,8 @@ export default function NotificationCenter({
 }: Props) {
   const { lang, t } = useLanguage();
   const [notifications, setNotifications] = useState(initialNotifications);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [preferences, setPreferences] = useState({
     ...(initialPreferences ?? {
       user_id: '',
@@ -79,6 +85,29 @@ export default function NotificationCenter({
     }
     const now = new Date().toISOString();
     setNotifications((current) => current.map((notification) => ({ ...notification, read_at: notification.read_at ?? now })));
+  };
+
+  const loadMore = async () => {
+    if (!hasMore || loadingMore) return;
+    setLoadingMore(true);
+    const supabase = createBrowserSupabaseClient();
+    const from = notifications.length;
+    const { data, count, error } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact' })
+      .eq('recipient_user_id', recipientId)
+      .order('created_at', { ascending: false })
+      .range(from, from + 49);
+    setLoadingMore(false);
+    if (error) {
+      setMessage('Không thể tải thêm thông báo.');
+      return;
+    }
+    setNotifications((current) => {
+      const existing = new Set(current.map((notification) => notification.id));
+      return [...current, ...(data ?? []).filter((notification) => !existing.has(notification.id))];
+    });
+    setHasMore(from + (data?.length ?? 0) < (count ?? from + (data?.length ?? 0)));
   };
 
   const savePreferences = async () => {
@@ -129,6 +158,14 @@ export default function NotificationCenter({
           </article>
         ))}
       </section>
+
+      {hasMore && (
+        <div className={styles.loadMore}>
+          <button type="button" className={styles.secondaryButton} onClick={() => void loadMore()} disabled={loadingMore}>
+            {loadingMore ? t('Đang tải...', 'Loading...') : t('Tải thêm thông báo', 'Load more notifications')}
+          </button>
+        </div>
+      )}
 
       {!isAdmin && (
         <section className={styles.preferences}>

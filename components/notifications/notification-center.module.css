@@ -105,6 +105,7 @@
 .feedback { margin: 0; color: var(--green); font-size: 13px; font-weight: 700; }
 .empty { min-height: 180px; display: grid; place-content: center; justify-items: center; gap: 8px; color: var(--brown); }
 .empty p { margin: 0; }
+.loadMore { display: flex; justify-content: center; }
 .failureRow { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; padding: 10px 0; border-top: 1px solid var(--gray-200); color: var(--brown); font-size: 12px; }
 
 @media (max-width: 640px) {

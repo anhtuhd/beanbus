@@ -104,6 +104,8 @@ test('notification rollback flag gates navigation, dashboard and pages', () => {
   assert.match(adminPage, /isNotificationsEnabled/);
   assert.match(accountNotificationsPage, /!isNotificationsEnabled\(\)\) redirect\('\/account'\)/);
   assert.match(adminNotificationsPage, /!isNotificationsEnabled\(\)\) redirect\('\/admin'\)/);
+  assert.match(accountNotificationsPage, /initialHasMore/);
+  assert.match(adminNotificationsPage, /initialHasMore/);
 });
 
 test('header exposes an authenticated notification bell', () => {
@@ -141,6 +143,16 @@ test('unsubscribe HTML escapes the signed email and action URL', () => {
 test('notification timestamps are stable across server and browser timezones', () => {
   assert.match(notificationCenter, /timeZone: 'Asia\/Ho_Chi_Minh'/);
   assert.match(notificationBell, /timeZone: 'Asia\/Ho_Chi_Minh'/);
+});
+
+test('notification history is bounded and supports loading the next page', () => {
+  assert.match(accountNotificationsPage, /range\(0, 49\)/);
+  assert.match(adminNotificationsPage, /range\(0, 49\)/);
+  assert.match(accountNotificationsPage, /select\('\*', \{ count: 'exact' \}\)/);
+  assert.match(adminNotificationsPage, /select\('\*', \{ count: 'exact' \}\)/);
+  assert.match(notificationCenter, /const loadMore = async/);
+  assert.match(notificationCenter, /range\(from, from \+ 49\)/);
+  assert.match(notificationCenter, /Load more notifications/);
 });
 
 test('notification types match the persisted outbox and suppression states', () => {

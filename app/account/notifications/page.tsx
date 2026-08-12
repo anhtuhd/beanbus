@@ -11,12 +11,14 @@ export default async function MemberNotificationsPage() {
   if (profile.role === 'admin') redirect('/admin/notifications');
   const supabase = await createServerSupabaseClient();
   const [notifications, preferences] = await Promise.all([
-    supabase.from('notifications').select('*').eq('recipient_user_id', profile.id).order('created_at', { ascending: false }).range(0, 49),
+    supabase.from('notifications').select('*', { count: 'exact' }).eq('recipient_user_id', profile.id).order('created_at', { ascending: false }).range(0, 49),
     supabase.from('notification_preferences').select('*').eq('user_id', profile.id).maybeSingle(),
   ]);
   return (
     <NotificationCenter
       initialNotifications={notifications.data ?? []}
+      recipientId={profile.id}
+      initialHasMore={(notifications.count ?? 0) > 50}
       initialPreferences={preferences.data}
       initialError={notifications.error || preferences.error ? 'Không thể tải trung tâm thông báo.' : undefined}
     />
