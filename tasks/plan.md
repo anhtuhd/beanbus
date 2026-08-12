@@ -16,7 +16,7 @@
 - [x] Voucher account lọc thời gian ở PostgREST và chạy song song với batch dữ liệu đầu tiên.
 - [x] SePay confirmation giảm polling khi tab ẩn, backoff tối đa 30 giây và refresh ngay khi tab được focus.
 - [x] CSP report-only production không còn `unsafe-eval`; chỉ development mới bật để hỗ trợ Next dev.
-- [x] Production Vercel revision `138feb739acf` đã được xác minh; `/api/health` trả `200`, login Google-only/live smoke pass và production không bật phone auth.
+- [x] Production Vercel deployment đã được xác minh qua `/api/health` trả `200`, login Google-only/live smoke pass và production không bật phone auth; revision được đối chiếu tại mỗi lần release.
 - [x] Provider demo toàn cục nhận `appMode`; production không hydrate/persist orders, bookings, settings hoặc flash-sale fixtures từ `localStorage`.
 - [ ] Chưa bật Cloudflare reverse proxy trước Vercel. Nếu cần CDN ảnh, ưu tiên Cloudflare Images hoặc R2 với `images.beanbus.store`; không chuyển `www.beanbus.store` qua proxy trước khi đo latency/cache.
 - [x] Đã apply migration `20260812050000_staff_request_notifications.sql` trên Supabase remote; migration inventory đạt `44/44`, trigger booking/customer tồn tại và `db lint --level warning --fail-on warning` trả `No schema errors found`.
@@ -57,7 +57,7 @@ Kết quả local tại thời điểm review:
 - E2E customer requests đã pass 4/4 sau khi port RSVP modal ra `document.body`, tránh overlay bị kéo theo card có hiệu ứng hover/transform.
 - E2E accessibility header/menu ban đầu lộ lỗi focus không ổn định; đã sửa và xác nhận 20/20 lần lặp, sau đó full E2E pass.
 - Đã thêm live smoke opt-in `npm run test:e2e:live` với `PLAYWRIGHT_BASE_URL`; Gmail callback/profile/admin role thật vẫn chưa test.
-- Production smoke: revision `138feb739acf`, `https://www.beanbus.store/api/health` trả `200`; live smoke `1/1` pass; login HTML có `phoneEnabled=false` và `googleEnabled=true`; webhook `/hooks/payment` trả `401` khi thiếu HMAC; `/api/cron/sepay-reconciliation` trả `404`. Remote Auth settings cũng xác nhận Google bật, Phone tắt; Send SMS Hook vẫn cần kiểm tra riêng trong Supabase Dashboard.
+- Production smoke: `https://www.beanbus.store/api/health` trả `200` và revision được đối chiếu với commit deploy; live smoke `1/1` pass; login HTML có `phoneEnabled=false` và `googleEnabled=true`; webhook `/hooks/payment` trả `401` khi thiếu HMAC; `/api/cron/sepay-reconciliation` trả `404`. Remote Auth settings cũng xác nhận Google bật, Phone tắt; Send SMS Hook vẫn cần kiểm tra riêng trong Supabase Dashboard.
 - Đã bổ sung `suppressHydrationWarning` cho cả `html` và `body` để không báo lỗi khi extension/browser tooling chèn attribute trước hydration; contract test đã thêm.
 - Cảnh báo React dev `Encountered a script tag while rendering React component` được xác minh là cảnh báo development khi render native JSON-LD; Next.js 16 vẫn khuyến nghị native JSON-LD script cho structured data. Production build đã kiểm tra trực tiếp, không có console warning hoặc page error, nên giữ nguyên cách triển khai hiện tại.
 - `npm audit --omit=dev --audit-level=high`: 0 vulnerability.
@@ -241,7 +241,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 Một task chỉ được đánh dấu hoàn thành khi:
 
 - Có test behavior phù hợp; thay đổi DB có pgTAP và migration forward-only.
-- `npm run lint`, `npx tsc --noEmit`, `npm test` (295/295), `npm run build`, pgTAP local (385/385), live smoke production (1/1) và GitHub CI run `31616758345` trên `acfd2c5` pass; production health hiện xác nhận revision `138feb739acf`; live-smoke của workflow này được thiết kế opt-in qua `workflow_dispatch`.
+- `npm run lint`, `npx tsc --noEmit`, `npm test` (295/295), `npm run build`, pgTAP local (385/385), live smoke production (1/1) và GitHub CI run `31616758345` trên `acfd2c5` pass; production health đã xác nhận `mode: production` và revision khớp deployment tại thời điểm kiểm tra; live-smoke của workflow này được thiết kế opt-in qua `workflow_dispatch`.
 - Luồng UI bị ảnh hưởng được test keyboard và mobile; không có loading/error/empty state giả.
 - Auth/RLS/ownership được kiểm thử bằng ít nhất hai user khác nhau.
 - Payment/points/voucher mutation idempotent, auditable và không log secret/OTP/full PII.
