@@ -16,7 +16,7 @@
 - [x] Voucher account lọc thời gian ở PostgREST và chạy song song với batch dữ liệu đầu tiên.
 - [x] SePay confirmation giảm polling khi tab ẩn, backoff tối đa 30 giây và refresh ngay khi tab được focus.
 - [x] CSP report-only production không còn `unsafe-eval`; chỉ development mới bật để hỗ trợ Next dev.
-- [x] Production Vercel revision `9bfa540ffc03` đã được xác minh; `/api/health` trả `200`, login Google-only/live smoke pass và production không bật phone auth.
+- [x] Production Vercel revision `384f095b3827` đã được xác minh; `/api/health` trả `200`, login Google-only/live smoke pass và production không bật phone auth.
 - [x] Provider demo toàn cục nhận `appMode`; production không hydrate/persist orders, bookings, settings hoặc flash-sale fixtures từ `localStorage`.
 - [ ] Chưa bật Cloudflare reverse proxy trước Vercel. Nếu cần CDN ảnh, ưu tiên Cloudflare Images hoặc R2 với `images.beanbus.store`; không chuyển `www.beanbus.store` qua proxy trước khi đo latency/cache.
 - [x] Đã apply migration `20260812050000_staff_request_notifications.sql` trên Supabase remote; migration inventory đạt `44/44`, trigger booking/customer tồn tại và `db lint --level warning --fail-on warning` trả `No schema errors found`.
@@ -64,7 +64,7 @@ Kết quả local tại thời điểm review:
 - Đã cài Docker CLI, Colima và `libpq`/`psql`; Colima đang cung cấp Docker runtime cho Supabase local. `npx supabase db lint --local --level warning --fail-on warning` trả `No schema errors found`.
 - Đã dùng Supabase CLI với connection string đã cấu hình để apply migration commerce policy, SePay order expiry, notification center, notification lint và fan-out staff request. Remote đã xác minh migration inventory khớp `44/44`, trigger booking/customer, bảng notification/outbox, notification worker cron và Realtime publication; `db lint --level warning --fail-on warning` trả `No schema errors found`.
 - pgTAP local trên schema sạch đã pass `24` file, `385/385` tests; smoke transaction trên remote xác nhận booking/contact tạo notification admin và rollback sạch.
-- GitHub Actions run `31606945090` trên `5a8a6f3` đã xanh trước staff request migration; các run `31610193512`, `31610370426` và `31610579312` của code/docs/test outbox đều `completed / success`. Local hiện pass `npm test` 294/294, pgTAP 385/385 và build. Gmail OAuth/RLS thật vẫn chưa test.
+- GitHub Actions run `31612145530` trên `384f095` đã completed/success ở quality, database và E2E. Local hiện pass `npm test` 294/294, pgTAP 385/385 và build. Gmail OAuth callback thật vẫn chưa test.
 
 Các increment đã triển khai local: Google-only login UI và auth E2E, loyalty reversal forward migration, redemption idempotency key ổn định qua retry, RPC chống collision khác user, RPC phân trang request `UNION ALL` có total count/RLS, first-admin/release runbook, voucher reservation lifecycle, commerce policy có audit và RPC hoàn tiền SePay theo thời hạn, form CAPTCHA feature-gate, RSVP modal ổn định ngoài card hover, SePay API v2 reconciliation feature-gated, và notification fan-out cho admin khi có booking/contact mới. Provider, hosted user smoke, Gmail/Resend delivery và live payment smoke vẫn chưa hoàn tất.
 
@@ -89,8 +89,8 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 
 ### P0 - Chặn phát hành
 
-1. **Loyalty reversal đã có forward fix và remote lint đã pass, nhưng chưa có runtime/pgTAP sign-off.** `apply_loyalty_for_order()` hiện xử lý reversal độc lập với policy hiện tại; pgTAP regression đã thêm cho chuỗi disable policy -> cancel/refund. Chưa coi là đóng trước production cho tới khi chạy trên schema sạch và remote test account.
-2. **Voucher/loyalty/refund policy đã có màn admin và migration remote.** Mặc định consume khi SePay paid/COD completed, release khi cancel/payment failed/refund; admin có thể đổi hành vi release/consume, bật/tắt refund, đặt cửa sổ 1–720 giờ và bật/tắt reversal điểm. Cần pgTAP/runtime sign-off và owner xác nhận bằng văn bản.
+1. **Loyalty reversal đã có forward fix, runtime pgTAP và remote lint sign-off.** `apply_loyalty_for_order()` xử lý reversal độc lập với policy hiện tại; pgTAP regression cho chuỗi disable policy -> cancel/refund đã pass. Hosted user smoke và owner sign-off vẫn còn.
+2. **Voucher/loyalty/refund policy đã có màn admin, migration remote và pgTAP/runtime coverage.** Mặc định consume khi SePay paid/COD completed, release khi cancel/payment failed/refund; admin có thể đổi hành vi release/consume, bật/tắt refund, đặt cửa sổ 1–720 giờ và bật/tắt reversal điểm. Chỉ còn owner xác nhận policy live bằng văn bản.
 3. **Remote inventory đã được reconcile và apply.** Remote đã khớp `44/44` migration tới `20260812050000`; `db lint` ở mức warning không còn schema error/warning. Vẫn cần RLS/runtime smoke bằng tài khoản thật và backup/restore sign-off.
 
 ### P1 - Phải hoàn thành trước mở traffic thật
@@ -105,8 +105,8 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 
 ### P2 - Hardening và maintainability
 
-1. 54/69 file unit test đọc source bằng `readFileSync` và regex. Chúng hữu ích cho contract tĩnh nhưng không thay thế runtime behavior; vùng loyalty/redemption/request pagination/voucher lifecycle đã có regression contract và pgTAP, nhưng vẫn cần chạy Postgres thật.
-2. Account request pagination đã chuyển sang RPC `UNION ALL` với stable ordering, bounded page size, total count và RLS-aware access. Cần chạy pgTAP trên Postgres runtime để xác nhận SQL thực thi đúng.
+1. 54/69 file unit test đọc source bằng `readFileSync` và regex. Chúng hữu ích cho contract tĩnh nhưng không thay thế runtime behavior; vùng loyalty/redemption/request pagination/voucher lifecycle đã có regression contract và pgTAP runtime, nhưng vẫn cần hosted behavior smoke.
+2. Account request pagination đã chuyển sang RPC `UNION ALL` với stable ordering, bounded page size, total count và RLS-aware access; pgTAP trên Postgres runtime đã pass. Hosted two-member ownership smoke vẫn còn.
 3. Phone UI đã được ẩn hoàn toàn khi feature tắt; còn thiếu browser/accessibility check trên staging ở các kích thước màn hình.
 4. Security headers đã có CSP report-only và HSTS conditional cho production HTTPS; cần review browser reports trước khi chuyển CSP sang enforce.
 5. Một số client/UI module quá lớn (`AccountClient.tsx` 742 dòng, `HomeClient.tsx` 542 dòng). Chỉ tách sau khi sửa correctness, theo các tab/workflow hiện có.
@@ -240,7 +240,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 Một task chỉ được đánh dấu hoàn thành khi:
 
 - Có test behavior phù hợp; thay đổi DB có pgTAP và migration forward-only.
-- `npm run lint`, `npx tsc --noEmit`, `npm test` (294/294), `npm run build`, pgTAP local (385/385), live smoke production (1/1) và GitHub CI run `31606945090` pass.
+- `npm run lint`, `npx tsc --noEmit`, `npm test` (294/294), `npm run build`, pgTAP local (385/385), live smoke production (1/1) và GitHub CI run `31612145530` trên `384f095` pass.
 - Luồng UI bị ảnh hưởng được test keyboard và mobile; không có loading/error/empty state giả.
 - Auth/RLS/ownership được kiểm thử bằng ít nhất hai user khác nhau.
 - Payment/points/voucher mutation idempotent, auditable và không log secret/OTP/full PII.

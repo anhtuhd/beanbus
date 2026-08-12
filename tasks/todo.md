@@ -26,7 +26,7 @@
 - [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; remote khớp đủ `44/44` migration tới `20260812050000_staff_request_notifications.sql`, remote lint warning pass.
 - [x] Apply `20260811120000_fix_loyalty_redemption_collision.sql` lên remote sau khi CI database xác nhận xanh.
 - [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration loyalty/content/SePay/flash-sale; advisor multiple-permissive-policy vẫn là backlog maintainability.
-- [x] GitHub run `31606945090` trên `5a8a6f3` completed successfully; quality, database và E2E đều xanh. Lỗi pgTAP notification và production auth E2E đã được sửa.
+- [x] GitHub run `31612145530` trên `384f095` completed successfully; quality, database và E2E đều xanh.
 
 ## 0B. Performance/UX hardening
 
@@ -35,7 +35,7 @@
 - [x] Notification bell bỏ `getClaims()` lặp và account voucher query chạy song song với batch chính.
 - [x] SePay payment confirmation pause/backoff polling khi tab ẩn và refresh khi quay lại.
 - [x] CSP production report-only loại `unsafe-eval`; chưa chuyển sang enforce cho tới khi review browser reports.
-- [x] Notification history có pagination 50 dòng/lần, trạng thái loading/error và RLS theo người nhận; production revision `9bfa540ffc03` đã xác nhận.
+- [x] Notification history có pagination 50 dòng/lần, trạng thái loading/error và RLS theo người nhận; production revision `384f095b3827` đã xác nhận.
 - [x] Provider demo toàn cục nhận `appMode`; production bỏ qua hydrate/persist fixtures orders, bookings, settings và flash-sale khỏi `localStorage`.
 - [ ] Cloudflare Images/R2 là lựa chọn CDN ảnh tương lai; chưa cần cài package. Giữ Vercel làm host app và chỉ thêm `images.beanbus.store` sau khi có Cloudflare account, bucket/Images delivery URL và DNS.
 - [x] Apply `20260812043000_fix_notification_preference_lint.sql` và `20260812050000_staff_request_notifications.sql` lên Supabase remote; remote lint ở mức warning pass không còn schema warning.
@@ -104,7 +104,7 @@
 ## 2. P0 - Sửa loyalty và voucher
 
 - [x] Tạo forward migration để reversal loyalty chạy kể cả policy hiện đã disabled hoặc `earn_bps=0`.
-- [x] Thêm pgTAP: earn -> disable policy -> cancel; duplicate transition không reverse hai lần. GitHub database job đã chạy trên Postgres ephemeral và pass; local Docker runtime vẫn chưa có.
+- [x] Thêm pgTAP: earn -> disable policy -> cancel; duplicate transition không reverse hai lần. GitHub database job và local Docker runtime đều pass.
 - [x] Implement local lifecycle `reserved/consumed/released` với reservation ledger và audit state.
 - [x] Mặc định local: reserve khi tạo đơn; consume khi SePay paid hoặc COD completed; release một lần khi cancel/payment failed/expired.
 - [x] Cleanup pending SePay payment hết hạn nối với order payment failed và voucher release.
@@ -112,7 +112,7 @@
 - [x] Sửa precedence lỗi flash-sale để user đã đạt `max_per_user` nhận `FLASH_SALE_USER_LIMIT` ổn định ngay cả khi campaign đồng thời hết quota; migration forward mới cần được apply lên remote trước khi bật stored-value.
 - [x] Thêm admin `/admin/policies` để cấu hình voucher cancel/refund, loyalty reversal và refund window; thêm `refund_order_payment` cho SePay.
 - [ ] Owner xác nhận mốc consume, timeout COD, và policy release/consume đã chọn trước khi mở checkout production.
-- [ ] Thêm test concurrent usage limit, refund policy và one-time reward voucher trên Postgres runtime; pgTAP policy chưa chạy được do thiếu Docker/psql.
+- [x] Thêm test concurrent usage limit, refund policy và one-time reward voucher trên Postgres runtime; pgTAP local `24` file/`385/385` pass. Owner vẫn cần xác nhận policy live.
 - [ ] Xác nhận `BEANBUS10` và `WELCOMEVIP` có phải promotion live không; read-only remote check cho thấy cả hai đang `is_active=true`, không có `starts_at/ends_at`, giới hạn lần lượt 1000/500.
 - [ ] Nếu chưa phê duyệt, tạo forward migration disable hai voucher seed trước khi mở checkout production.
 
@@ -183,7 +183,7 @@
 - [ ] Không còn finding P0/P1 mở.
 - [ ] Phone/Zalo và stored-value xác nhận vẫn tắt ở UI lẫn remote execution; Zalo cron đã xác nhận `0`, còn Auth Provider/Hook và Vercel flags cần owner kiểm tra.
 - [ ] Google login/logout/profile/admin role smoke pass bằng tài khoản thật.
-- [x] Lint, typecheck, 294/294 unit-contract tests, build và pgTAP local `385/385` pass; GitHub CI runs `31610193512`, `31610370426` và `31610579312` của code/docs/test outbox đều `completed / success`. Hosted Google/RLS smoke và owner sign-off còn thiếu.
+- [x] Lint, typecheck, 294/294 unit-contract tests, build và pgTAP local `385/385` pass; GitHub CI run `31612145530` của commit `384f095` completed/success. Hosted Google OAuth thật và owner sign-off còn thiếu.
 - [ ] Sepay webhook + reconciliation live smoke pass nếu bật payment.
 - [ ] Monitoring, backup, rollback và incident contacts đã được thử.
 - [ ] Owner ký xác nhận staging ở desktop/mobile.
