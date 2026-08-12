@@ -207,6 +207,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 - [x] UI hiển thị lỗi tải notification thay vì biến lỗi thành danh sách rỗng.
 - [x] Contract và pgTAP đã bổ sung kiểm tra gateway, suppression, preference, quyền anon và race webhook/outbox.
 - [x] Migration `20260812050000_staff_request_notifications.sql` bổ sung trigger fan-out booking/contact cho admin; worker dùng sender transactional `RESEND_NOTIFY_FROM`, không gửi nhầm qua sender news.
+- [x] Thêm workflow GitHub `Deploy Supabase Edge Functions` chạy thủ công theo `production` environment; hỗ trợ deploy từng function hoặc cả bộ, không tự chạy theo push.
 
 ### Còn phải làm trước production
 
@@ -214,6 +215,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 - [x] Chạy pgTAP trên schema sạch bằng Supabase local/Colima: `24` file, `385/385` tests pass; smoke transaction remote xác nhận trigger booking/contact và rollback sạch. Hosted RLS/behavior smoke vẫn cần tài khoản thật.
 - [x] Ba Edge Function notification đã được tạo/deploy trước đó với `verify_jwt=false`, Vault, Resend webhook endpoint và DNS sender; bản worker mới đổi sender transactional cần redeploy sau khi CLI có access token.
 - [x] Resend send smoke tới hai Gmail test được provider chấp nhận; worker production trả `disabled=true` đúng feature flag. Delivered/bounced/complained, webhook và unsubscribe thực tế vẫn cần xác minh từ mailbox/provider dashboard.
+- [ ] Cấu hình `SUPABASE_ACCESS_TOKEN` secret và `SUPABASE_PROJECT_REF` variable trong GitHub `production` environment, sau đó chạy workflow deploy worker mới.
 - [x] Xác nhận pg_cron/pg_net gọi worker mỗi phút sau khi secrets Vault đã có; worker production trả HTTP 200; chưa bật `NOTIFICATION_EMAIL_MODE` trước smoke test.
 - [ ] Chạy Playwright bằng admin/member thật cho badge realtime, mark read, announcement, preference và notification booking/contact.
 - [ ] Khi bật password auth, bật Supabase Auth `Require current password when changing password` và smoke password update/recovery trên hosted.
