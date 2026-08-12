@@ -77,7 +77,7 @@ const StoreSettingsContext = createContext<StoreSettingsContextType | undefined>
 export const StoreSettingsProvider: React.FC<{ children: React.ReactNode; mode?: AppMode }> = ({ children, mode = 'demo' }) => {
   const isDemo = mode === 'demo';
   const [settings, setSettings] = useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
-  const [flashSales, setFlashSales] = useState<FlashSalePackage[]>(DEFAULT_FLASH_SALES);
+  const [flashSales, setFlashSales] = useState<FlashSalePackage[]>(() => (isDemo ? DEFAULT_FLASH_SALES : []));
 
   /* eslint-disable react-hooks/set-state-in-effect -- Prototype settings hydrate from browser storage until server persistence lands. */
   useEffect(() => {

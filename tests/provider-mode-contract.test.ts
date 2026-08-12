@@ -19,5 +19,5 @@ test('demo provider defaults remain available for local workflows', () => {
   assert.match(orders, /mode = 'demo'/);
   assert.match(orders, /isDemo \? INITIAL_ORDERS : \[\]/);
   assert.match(settings, /mode = 'demo'/);
-  assert.match(settings, /DEFAULT_FLASH_SALES/);
+  assert.match(settings, /isDemo \? DEFAULT_FLASH_SALES : \[\]/);
 });
