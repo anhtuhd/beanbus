@@ -17,6 +17,7 @@ test('production admin routes share a protected navigation and demo stays on the
     '/admin/loyalty',
     '/admin/vouchers',
     '/admin/rewards',
+    '/admin/notifications',
     '/admin/stored-value',
   ]) {
     assert.match(navigation, new RegExp(`href: '${path.replaceAll('/', '\\/')}'`), path);

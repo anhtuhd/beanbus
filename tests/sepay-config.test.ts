@@ -21,4 +21,5 @@ test('accepts the server-only Sepay payment configuration', () => {
 test('rejects missing or malformed Sepay destination and webhook secrets', () => {
   assert.throws(() => getSepayConfig({}), /SEPAY_WEBHOOK_SECRET/);
   assert.throws(() => getSepayConfig({ ...validConfig, SEPAY_BANK_ACCOUNT: '***' }), /SEPAY_BANK_ACCOUNT/);
+  assert.throws(() => getSepayConfig({ ...validConfig, SEPAY_BANK_ACCOUNT: 'VQRQALCCQ2576' }), /SEPAY_BANK_ACCOUNT/);
 });

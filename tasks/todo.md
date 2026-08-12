@@ -2,15 +2,15 @@
 
 **Plan:** `tasks/plan.md`
 
-**Cập nhật:** 2026-08-11
+**Cập nhật:** 2026-08-12
 
-**Ưu tiên hiện tại:** Google-only auth -> sửa loyalty/voucher correctness -> reconcile Supabase remote -> hosted verification -> SePay hardening.
+**Ưu tiên hiện tại:** notification hardening local -> pgTAP/staging verification -> deploy Resend safely -> hosted member/admin smoke.
 
 ## Trạng thái đã xác minh local
 
 - [x] `npm run lint` pass.
 - [x] `npx tsc --noEmit` pass.
-- [x] `npm test` pass 243/243.
+- [x] `npm test` pass 283/283.
 - [x] `npm run build` pass.
 - [x] `npm run test:e2e:auth` pass 4/4 với Google enabled và phone disabled ở 375/768/1440px.
 - [x] `npm run test:e2e` pass 30/40; 10 suite production/provider được skip đúng khi thiếu credential.
@@ -27,6 +27,32 @@
 - [x] Apply `20260811120000_fix_loyalty_redemption_collision.sql` lên remote sau khi CI database xác nhận xanh.
 - [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration loyalty/content/SePay/flash-sale; advisor multiple-permissive-policy vẫn là backlog maintainability.
 - [x] GitHub run `31462882057` trên `8d55557` completed successfully; quality, database và E2E đều xanh. Lỗi collision của run `31462604288` đã có assertion cụ thể và được sửa.
+
+## 0A. Notification/Resend hardening
+
+- [x] Thêm `verify_jwt=false` cho `dispatch-notification-emails`, `resend-webhook` và `email-unsubscribe`.
+- [x] Tách hard suppression bounce/complaint khỏi marketing unsubscribe.
+- [x] Giữ email đơn hàng luôn bật; chỉ event/store cho phép opt-in/out.
+- [x] Sửa unsubscribe GET/POST và thêm Resend one-click headers.
+- [x] Sửa race delivery webhook đến trước completion worker.
+- [x] Thu hồi PUBLIC/anon execution khỏi notification RPC; giữ authenticated/service_role đúng phạm vi.
+- [x] Gắn notification feature flag vào nav, dashboard, page và bell.
+- [x] Hiển thị trạng thái lỗi cho notification page/bell thay vì im lặng.
+- [x] Bổ sung contract/pgTAP assertions cho các hành vi trên.
+- [x] Inline cờ notification trong client bundle; không dùng dynamic `process.env` lookup ở browser.
+- [x] Re-check suppression/marketing preference khi claim outbox; hủy pending mail khi unsubscribe hoặc bounce/complaint.
+- [x] Worker kiểm tra kết quả completion/failure RPC và retry an toàn khi completion bị lỗi.
+- [x] Giới hạn Resend webhook ở 64 KiB, kiểm tra `Content-Type` và đọc request body theo stream.
+- [x] Escape email/action URL trong HTML unsubscribe.
+- [x] Khóa password recovery bằng `redirectType` do Supabase trả về, cookie HMAC theo user/expiry và xóa đúng cookie path.
+- [x] Cố định timezone notification UI và đồng bộ outbox/suppression types với migration.
+- [x] Sửa format mã đơn demo thành `DH-YYMMDD` + 6 ký tự và thêm regression test; E2E checkout pass.
+- [x] Kiểm tra migration inventory bằng `DATABASE_URL`; apply hai migration SePay retry và notification center lên remote, xác minh bảng, cron và Realtime publication.
+- [ ] Chạy pgTAP trên Docker/Postgres runtime; local hiện không có runtime.
+- [ ] Khi bật password auth, bật Supabase Auth `Require current password when changing password` và smoke mật khẩu sai/đúng trên hosted.
+- [x] Deploy migration/functions, cấu hình Vault, verify_jwt=false và kiểm tra endpoint production; Resend DNS/webhook còn chờ owner hoàn tất/allowlist smoke test.
+- [ ] Smoke accepted/delivered/bounced/complained, unsubscribe và realtime bằng hai email test.
+- [ ] Chỉ bật `NEXT_PUBLIC_ENABLE_NOTIFICATIONS` và `NOTIFICATION_EMAIL_MODE` sau staging sign-off.
 
 ## 0. Tạm dừng Phone OTP/Zalo
 
@@ -119,7 +145,7 @@
 - [ ] Test hosted admin: dashboard, orders, requests, catalog, content, members, role, loyalty, vouchers, rewards.
 - [x] Viết runbook first-admin, revoke role, audit role changes và account recovery; owner execution/sign-off còn chờ hosted access.
 - [x] Chọn Gmail làm kênh tạm thời cho booking/contact/RSVP/B2B.
-- [ ] Implement delivery worker/webhook và update `notification_status` theo kết quả thật.
+- [ ] Booking/contact vẫn chờ email transport riêng; không dùng `notification_status` placeholder làm KPI notification center.
 - [x] Thêm feature-gated Turnstile cho order, booking và contact; server-side Siteverify fail-closed, mặc định vẫn tắt.
 - [ ] Owner chốt booking capacity, COD eligibility, loyalty earn rate, timeout COD, refund window và release/consume policy trong `/admin/policies`.
 
@@ -140,7 +166,7 @@
 - [ ] Không còn finding P0/P1 mở.
 - [ ] Phone/Zalo và stored-value xác nhận vẫn tắt ở UI lẫn remote execution; Zalo cron đã xác nhận `0`, còn Auth Provider/Hook và Vercel flags cần owner kiểm tra.
 - [ ] Google login/logout/profile/admin role smoke pass bằng tài khoản thật.
-- [x] Lint, typecheck, 243/243 unit-contract tests, build và remote db lint đã xanh; pgTAP policy cần Docker/psql runtime, hosted Google/RLS smoke và owner sign-off còn thiếu.
+- [x] Lint, typecheck, 289/289 unit-contract tests, build và full E2E demo (33 pass, 10 production/provider skip) đã xanh; pgTAP policy cần Docker/psql runtime, hosted Google/RLS smoke và owner sign-off còn thiếu.
 - [ ] Sepay webhook + reconciliation live smoke pass nếu bật payment.
 - [ ] Monitoring, backup, rollback và incident contacts đã được thử.
 - [ ] Owner ký xác nhận staging ở desktop/mobile.

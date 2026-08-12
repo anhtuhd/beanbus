@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CartItem } from './CartContext';
+import { createDemoOrderCode } from '@/lib/orders/demo-order-code';
 
 export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled';
 export type PaymentMethod = 'sepay_qr' | 'cod';
@@ -25,12 +26,6 @@ export interface Order {
   status: OrderStatus;
   createdAt: string;
   sepayCode?: string;
-}
-
-function createDemoOrderCode(date = new Date()): string {
-  const datePart = date.toISOString().slice(2, 8);
-  const randomPart = Math.random().toString(36).slice(2, 8).padEnd(6, '0').toUpperCase();
-  return `DH-${datePart}${randomPart}`;
 }
 
 export interface Booking {

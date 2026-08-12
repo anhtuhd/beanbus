@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { safeRedirectPath } from '@/lib/auth/input';
 import { resolveAuthOrigin } from '@/lib/auth/origin';
+import {
+  createRecoveryCapability,
+  PASSWORD_RECOVERY_COOKIE,
+  PASSWORD_RECOVERY_MAX_AGE,
+} from '@/lib/auth/password-recovery';
 import { resolvePostAuthPath } from '@/lib/auth/redirect';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
@@ -19,9 +24,11 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createServerSupabaseClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data: exchangeData, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
+      const redirectType = (exchangeData as { redirectType?: string }).redirectType;
+      const isPasswordRecovery = redirectType === 'recovery';
       const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
       const userId = claimsData?.claims?.sub;
       const { data: profile, error: profileError } = userId
@@ -29,6 +36,21 @@ export async function GET(request: Request) {
         : { data: null, error: claimsError };
 
       if (!claimsError && !profileError && profile) {
+        if (isPasswordRecovery) {
+          if (profile.role === 'admin') {
+            const response = NextResponse.redirect(new URL('/admin/security?recovery=1', siteUrl));
+            response.cookies.set(PASSWORD_RECOVERY_COOKIE, await createRecoveryCapability(exchangeData.user.id), {
+              httpOnly: true,
+              maxAge: PASSWORD_RECOVERY_MAX_AGE,
+              path: '/admin/security',
+              sameSite: 'lax',
+              secure: process.env.NODE_ENV === 'production',
+            });
+            return response;
+          }
+          await supabase.auth.signOut({ scope: 'local' });
+          return NextResponse.redirect(new URL('/login?error=recovery_unavailable', siteUrl));
+        }
         return NextResponse.redirect(new URL(resolvePostAuthPath(profile.role, next), siteUrl));
       }
 

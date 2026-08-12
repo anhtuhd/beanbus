@@ -59,8 +59,6 @@ export const Footer: React.FC = () => {
             <Link href="/account">{t('Trang Hội Viên', 'Member Profile')}</Link>
             <Link href="/account#loyalty">{t('Tích Điểm Ưu Đãi', 'Loyalty Rewards')}</Link>
             <Link href="/order">{t('Đặt Đồ Mang Đi', 'Order Takeaway')}</Link>
-            <Link href="/order/checkout">{t('Thanh Toán Sepay QR', 'Sepay QR Checkout')}</Link>
-            <Link href="/admin">{t('Quản trị Admin', 'Admin Portal')}</Link>
           </div>
 
           <div className={styles.contactCol}>

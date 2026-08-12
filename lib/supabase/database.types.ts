@@ -905,6 +905,94 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      notifications: {
+        Row: {
+          body_en: string;
+          body_vi: string;
+          created_at: string;
+          dedupe_key: string;
+          href: string | null;
+          id: string;
+          kind: 'order_created' | 'order_status_changed' | 'event_published' | 'store_announcement';
+          read_at: string | null;
+          recipient_user_id: string;
+          source_id: string;
+          source_type: 'order' | 'event' | 'store_announcement';
+          title_en: string;
+          title_vi: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      notification_preferences: {
+        Row: {
+          created_at: string;
+          email_event_updates: boolean;
+          email_order_updates: boolean;
+          email_store_updates: boolean;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      store_announcements: {
+        Row: {
+          body_en: string;
+          body_vi: string;
+          created_at: string;
+          created_by: string;
+          href: string | null;
+          id: string;
+          send_email: boolean;
+          title_en: string;
+          title_vi: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      email_outbox: {
+        Row: {
+          attempt_count: number;
+          available_at: string;
+          created_at: string;
+          id: string;
+          last_error_code: string | null;
+          locked_by: string | null;
+          locked_until: string | null;
+          notification_id: string;
+          provider_message_id: string | null;
+          recipient_email: string;
+          recipient_user_id: string;
+          status: 'pending' | 'processing' | 'accepted' | 'delivered' | 'failed' | 'cancelled';
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      email_delivery_events: {
+        Row: {
+          created_at: string;
+          event_type: 'email.sent' | 'email.delivered' | 'email.bounced' | 'email.complained';
+          id: string;
+          occurred_at: string;
+          provider_event_id: string;
+          provider_message_id: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      email_suppressions: {
+        Row: { created_at: string; email: string; reason: 'bounced' | 'complained' };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -1415,6 +1503,48 @@ export type Database = {
       current_user_role: {
         Args: Record<PropertyKey, never>;
         Returns: Database['public']['Enums']['app_role'];
+      };
+      mark_notification_read: {
+        Args: { p_notification_id: string };
+        Returns: boolean;
+      };
+      mark_all_notifications_read: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
+      update_notification_preferences: {
+        Args: {
+          p_email_event_updates: boolean;
+          p_email_order_updates: boolean;
+          p_email_store_updates: boolean;
+        };
+        Returns: Database['public']['Tables']['notification_preferences']['Row'];
+      };
+      publish_store_announcement: {
+        Args: {
+          p_body_en: string;
+          p_body_vi: string;
+          p_href: string | null;
+          p_send_email: boolean;
+          p_title_en: string;
+          p_title_vi: string;
+        };
+        Returns: string;
+      };
+      get_admin_notification_summary: {
+        Args: Record<PropertyKey, never>;
+        Returns: { failed_email_count: number; unread_count: number }[];
+      };
+      get_admin_notification_failures: {
+        Args: { p_limit?: number };
+        Returns: {
+          attempt_count: number;
+          id: string;
+          last_error_code: string | null;
+          notification_id: string;
+          recipient_email: string;
+          updated_at: string;
+        }[];
       };
     };
     Enums: {

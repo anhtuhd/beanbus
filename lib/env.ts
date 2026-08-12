@@ -18,6 +18,7 @@ const SEPAY_RECONCILIATION_KEYS = ['SEPAY_API_KEY', 'CRON_SECRET'] as const;
 
 const PHONE_AUTH_KEYS = ['NEXT_PUBLIC_TURNSTILE_SITE_KEY'] as const;
 const FORM_CAPTCHA_KEYS = ['NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'TURNSTILE_SECRET_KEY'] as const;
+const PASSWORD_AUTH_KEYS = ['PASSWORD_RECOVERY_SECRET'] as const;
 
 export type AppMode = 'demo' | 'production';
 
@@ -28,6 +29,10 @@ export function getAppMode(env: Environment = process.env): AppMode {
 export function getDeploymentRevision(env: Environment = process.env): string | undefined {
   const revision = env.VERCEL_GIT_COMMIT_SHA?.trim();
   return revision && /^[0-9a-f]{7,40}$/i.test(revision) ? revision.slice(0, 12) : undefined;
+}
+
+export function isNotificationsEnabled(env: Environment = process.env): boolean {
+  return env.NEXT_PUBLIC_ENABLE_NOTIFICATIONS === 'true';
 }
 
 export function getSiteUrl(env: Environment = process.env): string {
@@ -49,6 +54,7 @@ export function assertProductionEnv(env: Environment = process.env): void {
     ...(env.NEXT_PUBLIC_ENABLE_SEPAY_RECONCILIATION === 'true' ? SEPAY_RECONCILIATION_KEYS : []),
     ...(env.NEXT_PUBLIC_ENABLE_PHONE_AUTH === 'true' ? PHONE_AUTH_KEYS : []),
     ...(env.NEXT_PUBLIC_ENABLE_FORM_CAPTCHA === 'true' ? FORM_CAPTCHA_KEYS : []),
+    ...(env.NEXT_PUBLIC_ENABLE_PASSWORD_AUTH === 'true' ? PASSWORD_AUTH_KEYS : []),
   ];
   const missing = requiredKeys.filter((key) => !env[key]?.trim());
 

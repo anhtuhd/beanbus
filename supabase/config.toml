@@ -394,6 +394,16 @@ verify_jwt = false
 [functions.refresh-zalo-token]
 verify_jwt = false
 
+# These endpoints authenticate with their own worker/provider signature.
+[functions.dispatch-notification-emails]
+verify_jwt = false
+
+[functions.resend-webhook]
+verify_jwt = false
+
+[functions.email-unsubscribe]
+verify_jwt = false
+
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 

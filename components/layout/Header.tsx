@@ -8,8 +8,10 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { BRAND_ASSETS } from '@/lib/brand/assets';
+import { isNavHrefActive } from './navigation';
+import { NotificationBell } from './NotificationBell';
 import { 
-  ShoppingBag, User, Menu, X, Phone, ChevronDown, Award, ShieldCheck
+  ShoppingBag, User, Menu, X, Phone, ChevronDown, Award
 } from 'lucide-react';
 import styles from './Header.module.css';
 
@@ -29,15 +31,8 @@ interface MobileNavItemProps {
   item: NavItem;
   t: (vi: string, en: string) => string;
   pathname: string;
+  hash: string;
   setMobileOpen: (open: boolean) => void;
-}
-
-function routePath(href: string): string {
-  return href.split('#', 1)[0] || '/';
-}
-
-function isNavHrefActive(href: string, pathname: string): boolean {
-  return routePath(href) === pathname;
 }
 
 const navConfig: NavItem[] = [
@@ -103,11 +98,11 @@ function closeMenuOnEscape(event: React.KeyboardEvent<HTMLDivElement>) {
   trigger?.focus();
 }
 
-const MobileNavItem = ({ item, menuId, t, pathname, setMobileOpen }: MobileNavItemProps) => {
+const MobileNavItem = ({ item, menuId, t, pathname, hash, setMobileOpen }: MobileNavItemProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const isActive = Boolean(
-    (item.href && isNavHrefActive(item.href, pathname))
-      || item.children?.some((child) => isNavHrefActive(child.href, pathname))
+    (item.href && isNavHrefActive(item.href, pathname, hash))
+      || item.children?.some((child) => isNavHrefActive(child.href, pathname, hash))
   );
 
   if (item.children) {
@@ -128,7 +123,7 @@ const MobileNavItem = ({ item, menuId, t, pathname, setMobileOpen }: MobileNavIt
               <Link
                 key={child.href}
                 href={child.href}
-                className={`${styles.mobileNavLink} ${isNavHrefActive(child.href, pathname) ? styles.activeMobile : ''}`}
+                className={`${styles.mobileNavLink} ${isNavHrefActive(child.href, pathname, hash) ? styles.activeMobile : ''}`}
                 onClick={() => setMobileOpen(false)}
               >
                 {t(child.labelVi, child.labelEn)}
@@ -158,10 +153,18 @@ export const Header: React.FC = () => {
   const { user, isLoggedIn } = useAuth();
   const isAdmin = user?.role === 'admin';
   const [mobileMenuPath, setMobileMenuPath] = useState<string | null>(null);
+  const [hash, setHash] = useState('');
   const [scrolled, setScrolled] = useState(false);
   const burgerRef = useRef<HTMLButtonElement>(null);
   const mobileOpen = mobileMenuPath === pathname;
   const setMobileOpen = (open: boolean) => setMobileMenuPath(open ? pathname : null);
+
+  useEffect(() => {
+    const updateHash = () => setHash(window.location.hash);
+    updateHash();
+    window.addEventListener('hashchange', updateHash);
+    return () => window.removeEventListener('hashchange', updateHash);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -183,8 +186,8 @@ export const Header: React.FC = () => {
   }, [mobileOpen]);
 
   const isItemActive = (item: NavItem) => {
-    if (item.href && isNavHrefActive(item.href, pathname)) return true;
-    if (item.children?.some(child => isNavHrefActive(child.href, pathname))) return true;
+    if (item.href && isNavHrefActive(item.href, pathname, hash)) return true;
+    if (item.children?.some(child => isNavHrefActive(child.href, pathname, hash))) return true;
     return false;
   };
 
@@ -219,7 +222,7 @@ export const Header: React.FC = () => {
                       <Link 
                         key={child.href} 
                         href={child.href} 
-                        className={`${styles.dropdownItem} ${isNavHrefActive(child.href, pathname) ? styles.activeDropItem : ''}`}
+                        className={`${styles.dropdownItem} ${isNavHrefActive(child.href, pathname, hash) ? styles.activeDropItem : ''}`}
                       >
                         {t(child.labelVi, child.labelEn)}
                       </Link>
@@ -271,6 +274,8 @@ export const Header: React.FC = () => {
             {cartCount > 0 && <span className={styles.cartBadge}>{cartCount}</span>}
           </button>
 
+          <NotificationBell isAdmin={isAdmin} isLoggedIn={isLoggedIn} />
+
           {/* ACCOUNT DROPDOWN */}
           <div className={styles.accountDropdownWrapper} onBlur={closeMenuOnBlur} onKeyDown={closeMenuOnEscape}>
             <button className={styles.accountBtn} title={isAdmin ? t('Quản trị', 'Admin') : t('Hội viên', 'Member')} aria-haspopup="true" aria-expanded="false" onClick={toggleKeyboardMenu} onKeyDown={focusFirstMenuItem}>
@@ -282,11 +287,11 @@ export const Header: React.FC = () => {
             </button>
 
             <div className={styles.accountDropdown}>
-              {isLoggedIn && (
+              {isLoggedIn && !isAdmin && (
                 <div className={styles.userInfo}>
                   <div className={styles.userTier}>
-                    {isAdmin ? <ShieldCheck size={16} /> : <Award size={16} />}
-                    <span>{isAdmin ? t('Quản trị', 'Admin') : user?.tier || 'Member'}</span>
+                    <Award size={16} />
+                    <span>{user?.tier || 'Member'}</span>
                   </div>
                   {!isAdmin && user?.points !== undefined && (
                     <div className={styles.userPoints}>
@@ -333,6 +338,7 @@ export const Header: React.FC = () => {
                 menuId={`mobile-submenu-${idx}`}
                 t={t} 
                 pathname={pathname} 
+                hash={hash}
                 setMobileOpen={setMobileOpen} 
               />
             ))}

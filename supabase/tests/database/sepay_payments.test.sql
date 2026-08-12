@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(19);
+select plan(22);
 
 select has_table('public', 'payments', 'payments table exists');
 select has_table('public', 'sepay_webhook_events', 'webhook event ledger exists');
@@ -96,6 +96,31 @@ select is(
   'transfer after expiry is rejected'
 );
 select is((select status from public.payments where id = (select payment_id from mismatch_payment)), 'expired', 'late payment moves to expired state');
+
+set local role anon;
+create temporary table replay_order as
+select * from public.create_server_priced_order(
+  '77777777-7777-4777-8777-777777777777', 'Khách Replay', '+84912345670',
+  'pickup', now() + interval '1 hour', null, null, 'sepay_qr', null,
+  '[{"productId":"cd-1","quantity":1,"optionIds":[]}]'::jsonb
+);
+create temporary table replay_receipt as
+select * from public.issue_order_receipt('77777777-7777-4777-8777-777777777777');
+
+reset role;
+create temporary table replay_payment as
+select * from public.create_sepay_payment(
+  (select order_id from replay_receipt), (select receipt_token from replay_receipt), 'MB', '0937936688'
+);
+select is((select outcome from public.process_sepay_webhook(
+  92708, 'MBBank', now(), '0937936688', 'DH260812', 'in', 35000, 'FT26080912349',
+  '{"id":92708,"transferType":"in","transferAmount":35000}'::jsonb
+)), 'rejected', 'unknown payment code is rejected first');
+select is((select outcome from public.process_sepay_webhook(
+  92708, 'MBBank', now(), '0937936688', (select payment_code from replay_payment), 'in', 35000, 'FT26080912349',
+  '{"id":92708,"transferType":"in","transferAmount":35000}'::jsonb
+)), 'processed', 'payment-not-found webhook can be safely replayed after code recovery');
+select is((select payment_status::text from public.orders where id = (select order_id from replay_receipt)), 'paid', 'replayed payment marks order paid');
 
 select * from finish();
 rollback;

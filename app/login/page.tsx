@@ -10,6 +10,7 @@ const AUTH_ERRORS: Record<string, string> = {
   auth_config_error: 'Cấu hình địa chỉ đăng nhập chưa hợp lệ.',
   oauth_start_failed: 'Không thể bắt đầu đăng nhập Google.',
   oauth_callback_failed: 'Phiên đăng nhập Google không hợp lệ hoặc đã hết hạn.',
+  recovery_unavailable: 'Liên kết đặt lại mật khẩu không dành cho tài khoản này.',
   profile_unavailable: 'Không thể tải quyền tài khoản. Vui lòng đăng nhập lại.',
 };
 

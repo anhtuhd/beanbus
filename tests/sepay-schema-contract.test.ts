@@ -10,6 +10,10 @@ const conventionMigration = readFileSync(
   new URL('../supabase/migrations/20260812012522_sepay_order_code_and_expiry.sql', import.meta.url),
   'utf8'
 );
+const replayMigration = readFileSync(
+  new URL('../supabase/migrations/20260812023335_retry_rejected_sepay_payment_events.sql', import.meta.url),
+  'utf8'
+);
 
 test('Sepay ledger deduplicates provider events and protects raw payloads', () => {
   assert.match(migration, /provider_transaction_id bigint primary key/i);
@@ -36,4 +40,12 @@ test('verified payment transition matches code, amount, account, direction, and 
 test('new order payments use the DH invoice code convention', () => {
   assert.match(conventionMigration, /payment_code ~ '\^DH-\[0-9\]\{6\}\[A-Za-z0-9\]\{6\}\$'/i);
   assert.match(conventionMigration, /v_order\.id, v_order\.order_code/i);
+});
+
+test('payment-not-found webhook replays are narrow and service-only', () => {
+  assert.match(replayMigration, /v_existing_status = 'rejected'/i);
+  assert.match(replayMigration, /v_existing_payment_id is null/i);
+  assert.match(replayMigration, /v_existing_reason = 'PAYMENT_NOT_FOUND'/i);
+  assert.match(replayMigration, /for update of events/i);
+  assert.match(replayMigration, /security definer/i);
 });

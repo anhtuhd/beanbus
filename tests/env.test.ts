@@ -40,6 +40,22 @@ test('assertProductionEnv requires Sepay secrets only when Sepay is enabled', ()
   );
 });
 
+test('assertProductionEnv requires a recovery secret when password auth is enabled', () => {
+  const coreEnv = {
+    NEXT_PUBLIC_APP_MODE: 'production',
+    NEXT_PUBLIC_SITE_URL: 'https://beanbus.vn',
+    NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co',
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'public-key',
+    NEXT_PUBLIC_ENABLE_PASSWORD_AUTH: 'true',
+  };
+
+  assert.throws(() => assertProductionEnv(coreEnv), /PASSWORD_RECOVERY_SECRET/);
+  assert.doesNotThrow(() => assertProductionEnv({
+    ...coreEnv,
+    PASSWORD_RECOVERY_SECRET: 'password-recovery-secret-123456',
+  }));
+});
+
 test('assertProductionEnv requires a Turnstile site key when phone auth is enabled', () => {
   const coreEnv = {
     NEXT_PUBLIC_APP_MODE: 'production',

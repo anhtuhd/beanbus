@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { ReactNode } from 'react';
-import { AlertTriangle, CalendarClock, Coffee, FileText, Inbox, ShoppingBag, Users, Coins, Ticket, Gift, Settings2 } from 'lucide-react';
+import { AlertTriangle, Bell, CalendarClock, Coffee, FileText, Inbox, ShoppingBag, Users, Coins, Ticket, Gift, Settings2 } from 'lucide-react';
 import AdminClient from './AdminClient';
 import styles from './admin.module.css';
-import { getAppMode } from '@/lib/env';
+import { getAppMode, isNotificationsEnabled } from '@/lib/env';
 import { requireAdmin } from '@/lib/auth/session';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { isStoredValueConfigured } from '@/lib/stored-value/config';
@@ -31,16 +31,19 @@ export default async function AdminDashboardPage() {
 
   const supabase = await createServerSupabaseClient();
   const storedValueConfigured = isStoredValueConfigured();
-  const [orders, pendingOrders, pendingBookings, pendingLeads, members, failedBookings, failedLeads] = await Promise.all([
+  const notificationsEnabled = isNotificationsEnabled();
+  const [orders, pendingOrders, pendingBookings, pendingLeads, members, notificationSummary] = await Promise.all([
     supabase.from('orders').select('id', { count: 'exact', head: true }),
     supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
     supabase.from('booking_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
     supabase.from('customer_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
     supabase.from('profiles').select('id', { count: 'exact', head: true }),
-    supabase.from('booking_requests').select('id', { count: 'exact', head: true }).eq('notification_status', 'failed'),
-    supabase.from('customer_requests').select('id', { count: 'exact', head: true }).eq('notification_status', 'failed'),
+    notificationsEnabled
+      ? supabase.rpc('get_admin_notification_summary')
+      : Promise.resolve({ data: null, error: null }),
   ]);
-  const dataError = [orders, pendingOrders, pendingBookings, pendingLeads, members, failedBookings, failedLeads].some((result) => result.error);
+  const dataError = [orders, pendingOrders, pendingBookings, pendingLeads, members, notificationSummary].some((result) => result.error);
+  const notificationStats = notificationSummary.data?.[0];
 
   return (
     <div className={`wrap ${styles.adminPage}`}>
@@ -68,6 +71,7 @@ export default async function AdminDashboardPage() {
           <Link href="/admin/vouchers" className="btn btn-dark btn-sm"><Ticket size={16} /> Vouchers</Link>
           <Link href="/admin/rewards" className="btn btn-dark btn-sm"><Gift size={16} /> Rewards</Link>
           <Link href="/admin/policies" className="btn btn-dark btn-sm"><Settings2 size={16} /> Chính sách</Link>
+          {notificationsEnabled && <Link href="/admin/notifications" className="btn btn-dark btn-sm"><Bell size={16} /> Thông báo</Link>}
           {storedValueConfigured && <Link href="/admin/stored-value" className="btn btn-dark btn-sm"><Coins size={16} /> Stored-value</Link>}
         </div>
       </div>
@@ -77,7 +81,8 @@ export default async function AdminDashboardPage() {
         <KpiCard label="Đơn chờ xử lý" value={pendingOrders.count ?? 0} icon={<CalendarClock size={22} />} href="/admin/orders?status=pending" />
         <KpiCard label="Yêu cầu chờ xử lý" value={(pendingBookings.count ?? 0) + (pendingLeads.count ?? 0)} icon={<Inbox size={22} />} href="/admin/requests?view=all&status=pending" />
         <KpiCard label="Hội viên" value={members.count ?? 0} icon={<Users size={22} />} href="/admin/members" />
-        <KpiCard label="Thông báo lỗi" value={(failedBookings.count ?? 0) + (failedLeads.count ?? 0)} icon={<AlertTriangle size={22} />} href="/admin/requests?view=all&notification=failed" />
+        {notificationsEnabled && <KpiCard label="Thông báo chưa đọc" value={notificationStats?.unread_count ?? 0} icon={<Bell size={22} />} href="/admin/notifications" />}
+        {notificationsEnabled && <KpiCard label="Email gửi lỗi" value={notificationStats?.failed_email_count ?? 0} icon={<AlertTriangle size={22} />} href="/admin/notifications" />}
       </div>
     </div>
   );

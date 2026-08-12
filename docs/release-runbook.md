@@ -11,6 +11,7 @@ Set these values in the deployment platform. Never commit them to the repository
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_SECRET_KEY` for server-only admin operations and webhooks
 - `NEXT_PUBLIC_ENABLE_PHONE_AUTH` and `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH`
+- `PASSWORD_RECOVERY_SECRET` when `NEXT_PUBLIC_ENABLE_PASSWORD_AUTH=true`; keep it server-only and generate a random value with `openssl rand -hex 32`
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY` when Zalo phone auth is enabled; the Turnstile secret stays in Supabase Auth
 - `NEXT_PUBLIC_ENABLE_FORM_CAPTCHA=false` by default; when enabled, set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and server-only `TURNSTILE_SECRET_KEY`
 - `NEXT_PUBLIC_ENABLE_SEPAY`, `SEPAY_WEBHOOK_SECRET`, `SEPAY_BANK_CODE`, `SEPAY_BANK_ACCOUNT`, and `SEPAY_ACCOUNT_NAME` when Sepay is enabled
@@ -63,6 +64,7 @@ The database checks require Docker and the Supabase CLI. Hosted database verific
    The application sends SePay API v2 date bounds as `YYYY-MM-DD HH:mm:ss` in `Asia/Ho_Chi_Minh`, matching the [official reconciliation contract](https://developer.sepay.vn/vi/sepay-webhooks/doi-soat-giao-dich). It emits bounded JSON events for `webhook_processed`, `payment_reconciliation_completed`, and `payment_reconciliation_gap`, plus correlated failure events for signature/database/provider errors. Configure production log alerts for rejected outcomes, repeated failures, and gap events; do not alert on or export payloads, payment codes, account numbers, or tokens.
 9. If form CAPTCHA is enabled, verify booking, contact, and checkout reject a missing/expired token and accept one valid token; never expose `TURNSTILE_SECRET_KEY` to the browser.
 10. Keep Phone provider, Send SMS Hook, Zalo refresh cron, and `NEXT_PUBLIC_ENABLE_PHONE_AUTH` disabled in the current Google-only release. Hosted public Auth settings currently show `google: true` and `phone: false`; verify the Send SMS Hook separately in the Supabase Dashboard. Use [`zalo-otp-runbook.md`](zalo-otp-runbook.md) only for a later, separately approved rollout.
+11. When password auth is enabled, turn on Supabase Auth's **Require current password when changing password** setting and test an incorrect current password. This is separate from `secure_password_change`/reauthentication. The admin recovery link must be tested separately and must not allow a different admin session to reuse its capability.
 
 `/api/health` validates application configuration. It is not a substitute for a database readiness probe or provider transaction test.
 
