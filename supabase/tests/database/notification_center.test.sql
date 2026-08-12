@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap;
-select plan(47);
+select plan(51);
 
 select has_table('public', 'notifications', 'notifications table exists');
 select has_table('public', 'notification_preferences', 'notification preferences table exists');
@@ -51,6 +51,14 @@ select ok(
 select ok(
   exists (select 1 from pg_trigger where tgname = 'events_publish_notifications'),
   'event publication notification trigger exists'
+);
+select ok(
+  exists (select 1 from pg_trigger where tgname = 'booking_requests_create_notifications'),
+  'new booking request notification trigger exists'
+);
+select ok(
+  exists (select 1 from pg_trigger where tgname = 'customer_requests_create_notifications'),
+  'new customer request notification trigger exists'
 );
 select ok(
   has_table_privilege('authenticated', 'public.notifications', 'SELECT'),
@@ -127,6 +135,19 @@ values (
   'authenticated', 'authenticated', 'notification-member@beanbus.test', now(), now()
 );
 
+insert into auth.users (
+  instance_id, id, aud, role, email, created_at, updated_at
+)
+values (
+  '00000000-0000-0000-0000-000000000000',
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  'authenticated', 'authenticated', 'notification-admin@beanbus.test', now(), now()
+);
+
+update public.profiles
+set role = 'admin'
+where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+
 insert into public.notifications (
   id, recipient_user_id, kind, title_vi, title_en, body_vi, body_en,
   href, source_type, source_id, dedupe_key
@@ -185,6 +206,40 @@ select is(
   (select reason from public.email_suppressions where email = 'notification-member@beanbus.test'),
   'bounced',
   'early bounce creates a hard suppression'
+);
+
+insert into public.booking_requests (
+  idempotency_key, customer_name, customer_phone, reservation_at, guest_count,
+  seating_area, consent_to_contact
+)
+values (
+  'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'Booking Customer', '+84912345678',
+  now() + interval '1 hour', 4, 'indoor', true
+);
+
+select is(
+  (select count(*) from public.notifications
+   where recipient_user_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+     and kind = 'booking_request_created'),
+  1::bigint,
+  'new booking request notifies admins'
+);
+
+insert into public.customer_requests (
+  idempotency_key, request_type, contact_name, contact_phone, contact_email,
+  message, consent_to_contact
+)
+values (
+  'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'contact', 'Contact Customer',
+  '+84923456789', 'contact-customer@beanbus.test', 'This is a valid customer request.', true
+);
+
+select is(
+  (select count(*) from public.notifications
+   where recipient_user_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+     and kind = 'customer_request_created'),
+  1::bigint,
+  'new customer request notifies admins'
 );
 
 select * from finish();

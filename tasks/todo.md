@@ -4,7 +4,7 @@
 
 **Cập nhật:** 2026-08-12
 
-**Ưu tiên hiện tại:** performance hardening deploy -> apply notification lint migration -> pgTAP/staging verification -> deploy Resend safely -> hosted member/admin smoke.
+**Ưu tiên hiện tại:** performance hardening deploy -> notification fan-out đã apply -> deploy Resend safely -> hosted member/admin smoke.
 
 ## Trạng thái đã xác minh local
 
@@ -22,8 +22,8 @@
 - [x] CI chạy tự động trên `main`, các branch `codex/**` và pull request vào `main`, tránh commit triển khai bị bỏ qua quality gate.
 - [x] `npm audit --omit=dev --audit-level=high` báo 0 vulnerability.
 - [x] Production build đã kiểm tra console/page error: không còn cảnh báo JSON-LD; cảnh báo native script chỉ xuất hiện trong React development overlay và phù hợp với khuyến nghị JSON-LD của Next.js.
-- [x] Cài Docker CLI + Colima + `psql`, khởi động Supabase local và chạy `npm run db:lint`/pgTAP trên schema sạch; lint pass, pgTAP `24` file/`379/379` tests pass.
-- [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; remote khớp đủ `43/43` migration tới `20260812043000_fix_notification_preference_lint.sql`, remote lint warning pass.
+- [x] Cài Docker CLI + Colima + `psql`, khởi động Supabase local và chạy `npm run db:lint`/pgTAP trên schema sạch; lint pass, pgTAP `24` file/`383/383` tests pass.
+- [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; remote khớp đủ `44/44` migration tới `20260812050000_staff_request_notifications.sql`, remote lint warning pass.
 - [x] Apply `20260811120000_fix_loyalty_redemption_collision.sql` lên remote sau khi CI database xác nhận xanh.
 - [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration loyalty/content/SePay/flash-sale; advisor multiple-permissive-policy vẫn là backlog maintainability.
 - [x] GitHub run `31606945090` trên `5a8a6f3` completed successfully; quality, database và E2E đều xanh. Lỗi pgTAP notification và production auth E2E đã được sửa.
@@ -38,7 +38,7 @@
 - [x] Notification history có pagination 50 dòng/lần, trạng thái loading/error và RLS theo người nhận; production revision `5a8a6f31771a` đã xác nhận.
 - [x] Provider demo toàn cục nhận `appMode`; production bỏ qua hydrate/persist fixtures orders, bookings, settings và flash-sale khỏi `localStorage`.
 - [ ] Cloudflare Images/R2 là lựa chọn CDN ảnh tương lai; chưa cần cài package. Giữ Vercel làm host app và chỉ thêm `images.beanbus.store` sau khi có Cloudflare account, bucket/Images delivery URL và DNS.
-- [x] Apply `20260812043000_fix_notification_preference_lint.sql` lên Supabase remote; remote lint ở mức warning pass không còn schema warning.
+- [x] Apply `20260812043000_fix_notification_preference_lint.sql` và `20260812050000_staff_request_notifications.sql` lên Supabase remote; remote lint ở mức warning pass không còn schema warning.
 
 ## 0A. Notification/Resend hardening
 
@@ -59,10 +59,12 @@
 - [x] Khóa password recovery bằng `redirectType` do Supabase trả về, cookie HMAC theo user/expiry và xóa đúng cookie path.
 - [x] Cố định timezone notification UI và đồng bộ outbox/suppression types với migration.
 - [x] Sửa format mã đơn demo thành `DH-YYMMDD` + 6 ký tự và thêm regression test; E2E checkout pass.
-- [x] Kiểm tra migration inventory bằng `DATABASE_URL`; apply hai migration SePay retry và notification center lên remote, xác minh bảng, cron và Realtime publication.
-- [x] Chạy pgTAP trên Docker/Postgres runtime qua Colima; `24` file, `379/379` tests pass. Hosted RLS/behavior smoke vẫn cần tài khoản thật.
+- [x] Kiểm tra migration inventory bằng `DATABASE_URL`; apply migration notification center và staff request fan-out lên remote, xác minh bảng, trigger, cron và Realtime publication.
+- [x] Chạy pgTAP trên Docker/Postgres runtime qua Colima; `24` file, `383/383` tests pass. Hosted RLS/behavior smoke vẫn cần tài khoản thật.
+- [x] Booking/contact tạo in-app notification cho tất cả admin và transactional outbox; dedupe/source/kind có contract và pgTAP.
 - [ ] Khi bật password auth, bật Supabase Auth `Require current password when changing password` và smoke mật khẩu sai/đúng trên hosted.
-- [x] Deploy migration/functions, cấu hình Vault, verify_jwt=false và kiểm tra endpoint production; Resend DNS/webhook còn chờ owner hoàn tất/allowlist smoke test.
+- [x] Migration/functions notification đã được cấu hình với Vault, `verify_jwt=false` và endpoint production; Resend DNS/webhook còn chờ owner hoàn tất/allowlist smoke test.
+- [ ] Redeploy `dispatch-notification-emails` từ source mới sau khi cấu hình `SUPABASE_ACCESS_TOKEN` cục bộ; không bật email mode trước khi hoàn tất.
 - [ ] Smoke accepted/delivered/bounced/complained, unsubscribe và realtime bằng hai email test.
 - [ ] Chỉ bật `NEXT_PUBLIC_ENABLE_NOTIFICATIONS` và `NOTIFICATION_EMAIL_MODE` sau staging sign-off.
 
@@ -123,11 +125,11 @@
 ## 4. Reconcile và kiểm thử Supabase
 
 - [ ] `npx supabase link --project-ref <project-ref>` vẫn chưa lưu link CLI; đã dùng `--db-url` của project được cấu hình local.
-- [x] `npx supabase migration list` xác nhận đủ 43 migration local khớp remote tới `20260812043000`, không có drift chưa giải thích.
+- [x] `npx supabase migration list` xác nhận đủ 44 migration local khớp remote tới `20260812050000`, không có drift chưa giải thích.
 - [x] Review P0 forward migrations và apply theo thứ tự; backup/restore drill vẫn cần owner xác nhận.
-- [x] Apply migration tới `20260811050000_fix_flash_sale_error_precedence.sql`; remote hiện đã có đủ 43 migration tới notification preference lint.
+- [x] Apply migration tới `20260812050000_staff_request_notifications.sql`; remote hiện đã có đủ 44 migration tới staff request fan-out.
 - [x] Sau CI pass, apply và kiểm tra migration `20260811120000_fix_loyalty_redemption_collision.sql`; remote inventory khớp và lint không có schema error.
-- [x] Chạy toàn bộ `npm run db:lint` và `npm run db:test` trên schema sạch qua Colima: lint pass, pgTAP `24` file/`379/379` tests pass.
+- [x] Chạy toàn bộ `npm run db:lint` và `npm run db:test` trên schema sạch qua Colima: lint pass, pgTAP `24` file/`383/383` tests pass.
 - [ ] Chạy lại pgTAP trên staging/remote theo release runbook.
 - [ ] Test RLS bằng hai member và một admin: profiles, orders, requests, ledger, vouchers, history.
 - [x] Read-only hosted RLS smoke với một member, một admin và một UUID không tồn tại: member chỉ thấy profile của mình, admin thấy dữ liệu được cấp, UUID lạ thấy `0` rows trên profiles/orders/requests/notifications; full two-member smoke vẫn còn chờ.
@@ -158,7 +160,7 @@
 - [ ] Test hosted admin: dashboard, orders, requests, catalog, content, members, role, loyalty, vouchers, rewards.
 - [x] Viết runbook first-admin, revoke role, audit role changes và account recovery; owner execution/sign-off còn chờ hosted access.
 - [x] Chọn Gmail làm kênh tạm thời cho booking/contact/RSVP/B2B.
-- [ ] Booking/contact vẫn chờ email transport riêng; không dùng `notification_status` placeholder làm KPI notification center.
+- [x] Booking/contact đã có in-app notification cho admin; email Resend dùng transactional outbox nhưng vẫn giữ feature flag tắt tới khi allowlist/delivery smoke pass. Không dùng `notification_status` placeholder làm KPI notification center.
 - [x] Thêm feature-gated Turnstile cho order, booking và contact; server-side Siteverify fail-closed, mặc định vẫn tắt.
 - [ ] Owner chốt booking capacity, COD eligibility, loyalty earn rate, timeout COD, refund window và release/consume policy trong `/admin/policies`.
 
@@ -179,7 +181,7 @@
 - [ ] Không còn finding P0/P1 mở.
 - [ ] Phone/Zalo và stored-value xác nhận vẫn tắt ở UI lẫn remote execution; Zalo cron đã xác nhận `0`, còn Auth Provider/Hook và Vercel flags cần owner kiểm tra.
 - [ ] Google login/logout/profile/admin role smoke pass bằng tài khoản thật.
-- [x] Lint, typecheck, 293/293 unit-contract tests, build, pgTAP local `379/379`, live smoke `1/1` và GitHub CI `31606945090` đã xanh; hosted Google/RLS smoke và owner sign-off còn thiếu.
+- [x] Lint, typecheck, 293/293 unit-contract tests, build, pgTAP local `383/383`, live smoke `1/1` và GitHub CI `31606945090` đã xanh; hosted Google/RLS smoke và owner sign-off còn thiếu.
 - [ ] Sepay webhook + reconciliation live smoke pass nếu bật payment.
 - [ ] Monitoring, backup, rollback và incident contacts đã được thử.
 - [ ] Owner ký xác nhận staging ở desktop/mobile.
@@ -192,6 +194,6 @@
 - [ ] Email nhận thông báo nhân viên và sender transport: Gmail SMTP App Password hoặc Gmail API OAuth.
 - [ ] Xác nhận hai mã `BEANBUS10`, `WELCOMEVIP`: live hay phải tắt.
 - [ ] Chính sách loyalty/COD/refund/voucher reuse bằng văn bản ngắn hoặc chỉnh trực tiếp trong `/admin/policies` sau khi bootstrap admin.
-- [ ] Kênh nhận thông báo booking/contact của nhân viên.
+- [x] Kênh in-app nhận thông báo booking/contact của admin đã triển khai; email recipient/allowlist Resend vẫn cần owner xác nhận.
 - [x] SePay API v2 token và `CRON_SECRET` đã nhập trực tiếp vào Vercel Production secret store; reconciliation vẫn chờ scheduler phù hợp.
 - [ ] Privacy policy, terms, logo và ảnh có quyền sử dụng.

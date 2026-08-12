@@ -8,7 +8,13 @@ type OutboxRow = {
 };
 
 type NotificationRow = {
-  kind: 'order_created' | 'order_status_changed' | 'event_published' | 'store_announcement';
+  kind:
+    | 'order_created'
+    | 'order_status_changed'
+    | 'event_published'
+    | 'store_announcement'
+    | 'booking_request_created'
+    | 'customer_request_created';
   title_vi: string;
   body_vi: string;
   href: string | null;
@@ -80,6 +86,8 @@ async function sendEmail(outbox: OutboxRow, notification: NotificationRow): Prom
   const href = notification.href ? `${siteUrl}${notification.href}` : siteUrl;
   const title = escapeHtml(notification.title_vi);
   const body = escapeHtml(notification.body_vi);
+  const isMarketingNotification = notification.kind === 'event_published' ||
+    notification.kind === 'store_announcement';
   const link = `<p><a href="${escapeHtml(href)}">Xem trên Beanbus</a></p>`;
   const footer = unsubscribe
     ? `<p style="font-size:12px;color:#756960"><a href="${
@@ -96,9 +104,9 @@ async function sendEmail(outbox: OutboxRow, notification: NotificationRow): Prom
         'Idempotency-Key': `notification/${outbox.notification_id}`,
       },
       body: JSON.stringify({
-        from: notification.kind === 'order_created' || notification.kind === 'order_status_changed'
-          ? requiredEnv('RESEND_NOTIFY_FROM')
-          : requiredEnv('RESEND_NEWS_FROM'),
+        from: isMarketingNotification
+          ? requiredEnv('RESEND_NEWS_FROM')
+          : requiredEnv('RESEND_NOTIFY_FROM'),
         to: [outbox.recipient_email],
         subject: notification.title_vi,
         headers: unsubscribe

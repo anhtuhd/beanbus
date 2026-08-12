@@ -913,11 +913,11 @@ export type Database = {
           dedupe_key: string;
           href: string | null;
           id: string;
-          kind: 'order_created' | 'order_status_changed' | 'event_published' | 'store_announcement';
+          kind: 'order_created' | 'order_status_changed' | 'event_published' | 'store_announcement' | 'booking_request_created' | 'customer_request_created';
           read_at: string | null;
           recipient_user_id: string;
           source_id: string;
-          source_type: 'order' | 'event' | 'store_announcement';
+          source_type: 'order' | 'event' | 'store_announcement' | 'booking_request' | 'customer_request';
           title_en: string;
           title_vi: string;
         };

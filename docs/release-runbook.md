@@ -18,7 +18,7 @@ Set these values in the deployment platform. Never commit them to the repository
 - `NEXT_PUBLIC_ENABLE_SEPAY_RECONCILIATION=false` by default; `SEPAY_API_KEY` and `CRON_SECRET` are required only when reconciliation is explicitly enabled
 - Commerce policy default: reserve at order creation, consume on paid SePay or completed COD, release once on cancellation/payment failure/refund; admin can change voucher release/consume, loyalty reversal, refund enable, and refund window at `/admin/policies`
 - `NEXT_PUBLIC_ENABLE_STORED_VALUE=false` by default; set it to `true` only after the stored-value migration, policy approval, package/campaign review, and Sepay verification
-- Approved provider, Gmail notification transport/recipient, logo, image, privacy, terms, booking-capacity, loyalty, COD, refund, and stored-value settings
+- Approved provider, Resend sender/recipient, logo, image, privacy, terms, booking-capacity, loyalty, COD, refund, and stored-value settings
 
 ## Pre-deploy Gate
 
@@ -53,7 +53,7 @@ The database checks require Docker and the Supabase CLI. Hosted database verific
 
    Stop when the remote history contains drift that is not explained by a reviewed migration.
 3. Apply the reviewed migrations with `npm run db:push` against the linked hosted project.
-   Current hosted record (2026-08-12): the remote inventory matches all `43/43` local migrations through `20260812043000_fix_notification_preference_lint.sql`. Remote `db lint --level warning --fail-on warning` passes with `No schema errors found`; local `db:lint` and pgTAP also pass through Docker/Colima (`379/379`).
+   Current hosted record (2026-08-12): the remote inventory matches all `44/44` local migrations through `20260812050000_staff_request_notifications.sql`. Remote `db lint --level warning --fail-on warning` passes with `No schema errors found`; local `db:lint` and pgTAP also pass through Docker/Colima (`383/383`). Booking/contact trigger smoke was run transactionally on remote and rolled back cleanly.
 4. Verify RLS, role membership, protected RPC transitions, and audit rows with an admin and a non-admin account.
 5. Deploy the application with the production environment variables above. Production provider contexts skip demo fixture hydration and browser persistence; server-owned Supabase data remains authoritative.
    Verified code deployment (2026-08-12, revision `5a8a6f31771a`): login HTML exposes `phoneEnabled=false` and `googleEnabled=true`; stored-value is false and SePay is true. Public live smoke is green.
@@ -112,10 +112,10 @@ Verify the result from a service-role-only session, then sign in again with that
 - COD checkout creates a server-priced order and shows a support reference on failure.
 - Sepay checkout accepts one valid signed callback, rejects invalid signatures, and remains idempotent on replay.
 - Stored-value remains disabled until both the deployment flag and admin policy are enabled; after approval, verify one top-up and one flash-sale payment, including duplicate callback, expiry, sold-out, and amount-mismatch cases.
-- Booking, contact, RSVP, and B2B submissions return a reference that staff can locate.
+- Booking, contact, RSVP, and B2B submissions return a reference that staff can locate; new booking/contact submissions create in-app notifications for admins.
 - An authorized admin can search and transition permitted records; a non-admin receives a forbidden response.
 - An authorized admin can open `/admin/policies`, configure voucher/loyalty/refund behavior, and refund an eligible paid SePay order within the configured window.
-- Gmail notification delivery remains pending until the owner supplies a sender transport and recipient; `notification_status=not_configured` is intentionally honest until then.
+- Resend email delivery remains pending until the owner completes sender/allowlist and accepted/delivered/bounced/complained smoke. Request `notification_status=not_configured` remains a legacy delivery field and is not the notification-center KPI.
 
 ## Rollback and Incidents
 

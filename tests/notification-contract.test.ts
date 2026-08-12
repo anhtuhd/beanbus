@@ -6,6 +6,10 @@ const migration = readFileSync(
   new URL('../supabase/migrations/20260812040545_notification_center.sql', import.meta.url),
   'utf8',
 );
+const staffRequestMigration = readFileSync(
+  new URL('../supabase/migrations/20260812050000_staff_request_notifications.sql', import.meta.url),
+  'utf8',
+);
 const config = readFileSync(new URL('../supabase/config.toml', import.meta.url), 'utf8');
 const header = readFileSync(new URL('../components/layout/Header.tsx', import.meta.url), 'utf8');
 const adminNav = readFileSync(new URL('../app/admin/AdminSectionNav.tsx', import.meta.url), 'utf8');
@@ -49,6 +53,10 @@ test('order and event triggers fan out idempotent notifications', () => {
   assert.match(migration, /new\.status is not distinct from old\.status/i);
   assert.match(migration, /old\.is_published is distinct from false/i);
   assert.match(migration, /prior\.event_type in \('email\.bounced', 'email\.complained'\)/i);
+  assert.match(staffRequestMigration, /create trigger booking_requests_create_notifications/i);
+  assert.match(staffRequestMigration, /create trigger customer_requests_create_notifications/i);
+  assert.match(staffRequestMigration, /booking_request_created/i);
+  assert.match(staffRequestMigration, /customer_request_created/i);
 });
 
 test('email worker and feature flags are wired without public secrets', () => {
@@ -59,6 +67,7 @@ test('email worker and feature flags are wired without public secrets', () => {
   assert.match(worker, /NOTIFICATION_EMAIL_MODE/);
   assert.match(worker, /AbortSignal\.timeout/);
   assert.match(worker, /SUPABASE_URL[\s\S]*email-unsubscribe/);
+  assert.match(worker, /isMarketingNotification/);
   assert.match(webhook, /getReader\(\)/);
   assert.match(webhook, /svix-id/i);
   assert.match(unsubscribe, /crypto\.subtle\.verify/);
