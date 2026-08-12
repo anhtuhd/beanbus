@@ -73,13 +73,13 @@ jobs:
         # The demo suite mutates browser-local fixtures and runs on constrained shared runners.
         run: npm run test:e2e -- --workers=1
       - name: Production auth E2E
-        run: npm run test:e2e:auth
+        run: npm run test:e2e:auth -- --workers=1
       - name: Production checkout E2E
-        run: npm run test:e2e:checkout-production
+        run: npm run test:e2e:checkout-production -- --workers=1
       - name: Sepay checkout contract E2E
-        run: npm run test:e2e:checkout-sepay
+        run: npm run test:e2e:checkout-sepay -- --workers=1
       - name: Customer request E2E
-        run: npm run test:e2e:requests
+        run: npm run test:e2e:requests -- --workers=1
       - name: Upload browser artifacts
         if: failure()
         uses: actions/upload-artifact@v7

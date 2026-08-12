@@ -35,10 +35,10 @@ test('CI E2E job covers demo and production-gated flows', () => {
   assert.match(workflow, /PLAYWRIGHT_USE_WEBPACK: 'true'/);
   assert.match(workflow, /npx playwright install --with-deps chromium/);
   assert.match(workflow, /npm run test:e2e -- --workers=1/);
-  assert.match(workflow, /npm run test:e2e:auth/);
-  assert.match(workflow, /npm run test:e2e:checkout-production/);
-  assert.match(workflow, /npm run test:e2e:checkout-sepay/);
-  assert.match(workflow, /npm run test:e2e:requests/);
+  assert.match(workflow, /npm run test:e2e:auth -- --workers=1/);
+  assert.match(workflow, /npm run test:e2e:checkout-production -- --workers=1/);
+  assert.match(workflow, /npm run test:e2e:checkout-sepay -- --workers=1/);
+  assert.match(workflow, /npm run test:e2e:requests -- --workers=1/);
   assert.match(workflow, /actions\/upload-artifact@v7/);
 });
 
