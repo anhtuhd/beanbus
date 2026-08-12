@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap;
-select plan(45);
+select plan(47);
 
 select has_table('public', 'notifications', 'notifications table exists');
 select has_table('public', 'notification_preferences', 'notification preferences table exists');
@@ -149,13 +149,23 @@ values (
 
 set local role authenticated;
 set local request.jwt.claim.sub = '55555555-5555-4555-8555-555555555555';
+select throws_ok(
+  $$ select public.update_notification_preferences(false, false, false) $$,
+  'ORDER_EMAIL_REQUIRED',
+  'transactional order email cannot be disabled'
+);
 select is(
-  (select email_order_updates from public.update_notification_preferences(false, false, false)),
+  (select email_order_updates from public.update_notification_preferences(true, false, false)),
   true,
-  'transactional order email remains enabled when client asks to disable it'
+  'transactional order email remains enabled'
 );
 
 set local role service_role;
+select is(
+  (select count(*) from public.claim_notification_email_batch(50, '88888888-8888-4888-8888-888888888888')),
+  1::bigint,
+  'worker claims the pending transactional email before completion'
+);
 select is(
   (select public.record_email_delivery_event('notification-event-before-complete', 'notification-message-before-complete', 'email.bounced', now())),
   true,

@@ -61,8 +61,9 @@ Kết quả local tại thời điểm review:
 - Đã bổ sung `suppressHydrationWarning` cho cả `html` và `body` để không báo lỗi khi extension/browser tooling chèn attribute trước hydration; contract test đã thêm.
 - Cảnh báo React dev `Encountered a script tag while rendering React component` được xác minh là cảnh báo development khi render native JSON-LD; Next.js 16 vẫn khuyến nghị native JSON-LD script cho structured data. Production build đã kiểm tra trực tiếp, không có console warning hoặc page error, nên giữ nguyên cách triển khai hiện tại.
 - `npm audit --omit=dev --audit-level=high`: 0 vulnerability.
-- Đã gọi `npm run db:lint` và `npm run db:test`, nhưng cả hai bị chặn: máy không có Docker/Postgres local và Supabase CLI không kết nối được `127.0.0.1:54322`; pgTAP chưa được thực thi runtime.
-- Đã dùng Supabase CLI với connection string đã cấu hình để apply migration commerce policy, SePay order expiry, notification center và `20260812043000_fix_notification_preference_lint.sql`. Remote đã xác minh migration inventory khớp đủ tới migration mới nhất, có bảng notification/outbox, cron worker và Realtime publication; `db lint --level warning --fail-on warning` trả `No schema errors found`. CLI chỉ cảnh báo không có Docker để cache catalog cục bộ; pgTAP runtime local vẫn chờ Docker/Postgres.
+- Đã cài Docker CLI, Colima và `libpq`/`psql`; Colima đang cung cấp Docker runtime cho Supabase local. `npx supabase db lint --local --level warning --fail-on warning` trả `No schema errors found`.
+- Đã dùng Supabase CLI với connection string đã cấu hình để apply migration commerce policy, SePay order expiry, notification center và `20260812043000_fix_notification_preference_lint.sql`. Remote đã xác minh migration inventory khớp đủ tới migration mới nhất, có bảng notification/outbox, cron worker và Realtime publication; `db lint --level warning --fail-on warning` trả `No schema errors found`.
+- pgTAP local trên schema sạch đã pass `24` file, `379/379` tests sau khi đồng bộ contract preference transactional email và trạng thái claim email outbox.
 - GitHub Actions runs `31462882057` và `31463311264` đều `completed successfully`; local `npm test` hiện 293/293 pass và full Playwright E2E 33/43 pass với 10 test production/provider được skip; full hosted OAuth vẫn chưa test.
 
 Các increment đã triển khai local: Google-only login UI và auth E2E, loyalty reversal forward migration, redemption idempotency key ổn định qua retry, RPC chống collision khác user, RPC phân trang request `UNION ALL` có total count/RLS, first-admin/release runbook, voucher reservation lifecycle, commerce policy có audit và RPC hoàn tiền SePay theo thời hạn, form CAPTCHA feature-gate, RSVP modal ổn định ngoài card hover, và SePay API v2 reconciliation feature-gated. Provider, hosted user smoke, Gmail notification transport và live payment smoke vẫn chưa hoàn tất.
@@ -208,7 +209,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 ### Còn phải làm trước production
 
 - [x] Kiểm tra migration inventory remote bằng `DATABASE_URL` và apply `20260812023335_retry_rejected_sepay_payment_events.sql` cùng `20260812040545_notification_center.sql`; CLI chưa link project nhưng `db push --db-url` đã thành công.
-- [ ] Chạy pgTAP trên schema sạch và staging/remote PostgreSQL; local runtime hiện thiếu Docker/Postgres.
+- [x] Chạy pgTAP trên schema sạch bằng Supabase local/Colima: `24` file, `379/379` tests pass. Hosted RLS/behavior smoke vẫn cần tài khoản thật.
 - [x] Deploy migration và ba Edge Function; cấu hình `verify_jwt=false`, Vault, Resend webhook endpoint và DNS sender.
 - [ ] Allowlist hai email test, chạy worker thủ công, kiểm tra accepted/delivered/bounced/complained và unsubscribe GET/POST.
 - [x] Xác nhận pg_cron/pg_net gọi worker mỗi phút sau khi secrets Vault đã có; worker production trả HTTP 200; chưa bật `NOTIFICATION_EMAIL_MODE` trước smoke test.
@@ -234,7 +235,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 Một task chỉ được đánh dấu hoàn thành khi:
 
 - Có test behavior phù hợp; thay đổi DB có pgTAP và migration forward-only.
-- `npm run lint`, `npx tsc --noEmit`, `npm test` (293/293), `npm run build`, Playwright E2E demo (33 pass, 10 production/provider skip) pass; GitHub database/quality/E2E lịch sử vẫn xanh.
+- `npm run lint`, `npx tsc --noEmit`, `npm test` (293/293), `npm run build`, pgTAP local (379/379), Playwright E2E demo (33 pass, 10 production/provider skip) pass; cần chờ GitHub CI rerun sau bản sửa test mới.
 - Luồng UI bị ảnh hưởng được test keyboard và mobile; không có loading/error/empty state giả.
 - Auth/RLS/ownership được kiểm thử bằng ít nhất hai user khác nhau.
 - Payment/points/voucher mutation idempotent, auditable và không log secret/OTP/full PII.

@@ -22,7 +22,7 @@
 - [x] CI chạy tự động trên `main`, các branch `codex/**` và pull request vào `main`, tránh commit triển khai bị bỏ qua quality gate.
 - [x] `npm audit --omit=dev --audit-level=high` báo 0 vulnerability.
 - [x] Production build đã kiểm tra console/page error: không còn cảnh báo JSON-LD; cảnh báo native script chỉ xuất hiện trong React development overlay và phù hợp với khuyến nghị JSON-LD của Next.js.
-- [ ] Chạy `npm run db:lint` và `npm run db:test` trên Docker-compatible Supabase runtime (đã thử local; hiện bị `ECONNREFUSED 127.0.0.1:54322` vì chưa có Docker/Postgres).
+- [x] Cài Docker CLI + Colima + `psql`, khởi động Supabase local và chạy `npm run db:lint`/pgTAP trên schema sạch; lint pass, pgTAP `24` file/`379/379` tests pass.
 - [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; remote đã khớp migration tới `20260812043000_fix_notification_preference_lint.sql`.
 - [x] Apply `20260811120000_fix_loyalty_redemption_collision.sql` lên remote sau khi CI database xác nhận xanh.
 - [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration loyalty/content/SePay/flash-sale; advisor multiple-permissive-policy vẫn là backlog maintainability.
@@ -60,7 +60,7 @@
 - [x] Cố định timezone notification UI và đồng bộ outbox/suppression types với migration.
 - [x] Sửa format mã đơn demo thành `DH-YYMMDD` + 6 ký tự và thêm regression test; E2E checkout pass.
 - [x] Kiểm tra migration inventory bằng `DATABASE_URL`; apply hai migration SePay retry và notification center lên remote, xác minh bảng, cron và Realtime publication.
-- [ ] Chạy pgTAP trên Docker/Postgres runtime; local hiện không có runtime.
+- [x] Chạy pgTAP trên Docker/Postgres runtime qua Colima; `24` file, `379/379` tests pass. Hosted RLS/behavior smoke vẫn cần tài khoản thật.
 - [ ] Khi bật password auth, bật Supabase Auth `Require current password when changing password` và smoke mật khẩu sai/đúng trên hosted.
 - [x] Deploy migration/functions, cấu hình Vault, verify_jwt=false và kiểm tra endpoint production; Resend DNS/webhook còn chờ owner hoàn tất/allowlist smoke test.
 - [ ] Smoke accepted/delivered/bounced/complained, unsubscribe và realtime bằng hai email test.
@@ -178,7 +178,7 @@
 - [ ] Không còn finding P0/P1 mở.
 - [ ] Phone/Zalo và stored-value xác nhận vẫn tắt ở UI lẫn remote execution; Zalo cron đã xác nhận `0`, còn Auth Provider/Hook và Vercel flags cần owner kiểm tra.
 - [ ] Google login/logout/profile/admin role smoke pass bằng tài khoản thật.
-- [x] Lint, typecheck, 293/293 unit-contract tests, build và full E2E demo (33 pass, 10 production/provider skip) đã xanh; pgTAP policy cần Docker/psql runtime, hosted Google/RLS smoke và owner sign-off còn thiếu.
+- [x] Lint, typecheck, 293/293 unit-contract tests, build, pgTAP local `379/379` và full E2E demo (33 pass, 10 production/provider skip) đã xanh; hosted Google/RLS smoke và owner sign-off còn thiếu.
 - [ ] Sepay webhook + reconciliation live smoke pass nếu bật payment.
 - [ ] Monitoring, backup, rollback và incident contacts đã được thử.
 - [ ] Owner ký xác nhận staging ở desktop/mobile.
