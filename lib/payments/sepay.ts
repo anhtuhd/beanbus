@@ -83,7 +83,7 @@ export function parseSepayWebhook(value: unknown): SepayWebhook | null {
   const input = value as Record<string, unknown>;
   const code = input.code === null ? null : input.code;
 
-  if (!Number.isSafeInteger(input.id) || Number(input.id) < 1
+  if (!Number.isSafeInteger(input.id) || Number(input.id) < 0
     || !boundedText(input.gateway, 100)
     || !boundedText(input.transactionDate, 19)
     || !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(input.transactionDate)

@@ -43,6 +43,7 @@ test('parses the documented inbound Sepay transaction shape', () => {
   assert.equal(parseSepayWebhook({ ...payload, transferType: 'out' })?.transferType, 'out');
   assert.equal(parseSepayWebhook({ ...payload, transferAmount: -1 }), null);
   assert.equal(parseSepayWebhook({ ...payload, id: '92704' }), null);
+  assert.equal(parseSepayWebhook({ ...payload, id: 0 })?.id, 0);
 });
 
 test('parses both JSON and URL-encoded webhook bodies', () => {
