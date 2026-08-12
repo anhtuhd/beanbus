@@ -5,7 +5,7 @@ import { EVENTS, type EventItem } from '@/data/events';
 import { getPublishedEvents } from '@/lib/content/queries';
 import { getAppMode } from '@/lib/env';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: 'Sự Kiện & Workshop Cà Phê | Beanbus Coffee Roaster',
@@ -32,11 +32,17 @@ function EventsNoScript({ events }: { events: EventItem[] }) {
 }
 
 function EventsPageView({ events }: { events: EventItem[] }) {
-  return <><EventsClient events={events} /><EventsNoScript events={events} /></>;
+  return <><EventsClient events={events} /><noscript><EventsNoScript events={events} /></noscript></>;
 }
 
 async function ProductionEventsPage() {
-  return <EventsPageView events={await getPublishedEvents()} />;
+  let events: EventItem[] = [];
+  try {
+    events = await getPublishedEvents();
+  } catch {
+    // ISR retries the data source after the route revalidation window.
+  }
+  return <EventsPageView events={events} />;
 }
 
 export default function EventsPage() {

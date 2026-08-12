@@ -6,7 +6,7 @@ import { getAppMode } from '@/lib/env';
 import CatalogUnavailable from '@/components/catalog/CatalogUnavailable';
 import styles from './order.module.css';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 function OrderNoScript({ products }: { products: Product[] }) {
   return (
@@ -32,12 +32,7 @@ function OrderNoScript({ products }: { products: Product[] }) {
 }
 
 function OrderPageView({ categories, products }: { categories: typeof CATEGORIES; products: Product[] }) {
-  return (
-    <>
-      <OrderClient categories={categories} products={products} />
-      <OrderNoScript products={products} />
-    </>
-  );
+  return <><OrderClient categories={categories} products={products} /><noscript><OrderNoScript products={products} /></noscript></>;
 }
 
 function DemoOrderPage() {

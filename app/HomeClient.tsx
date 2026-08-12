@@ -119,9 +119,11 @@ export default function HomeClient({ products }: { products: Product[] }) {
 
   return (
     <>
-      <div className={styles.noScriptNotice}>
-        Trang vẫn có thể xem khi tắt JavaScript. <Link href="/menu">Xem menu</Link> · <Link href="/booking">Đặt bàn</Link> · <Link href="/contact">Liên hệ Beanbus</Link>
-      </div>
+      <noscript>
+        <div className={styles.noScriptNotice}>
+          Trang vẫn có thể xem khi tắt JavaScript. <Link href="/menu">Xem menu</Link> · <Link href="/booking">Đặt bàn</Link> · <Link href="/contact">Liên hệ Beanbus</Link>
+        </div>
+      </noscript>
       {/* ============ HERO SECTION ============ */}
       <section className={styles.hero} id="top">
         <Image

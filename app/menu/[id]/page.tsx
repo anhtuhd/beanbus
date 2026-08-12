@@ -7,7 +7,7 @@ import { CATEGORIES, PRODUCTS, type Category, type Product } from '@/data/produc
 import { getCatalog, getCatalogProduct } from '@/lib/catalog/queries';
 import { getAppMode, getSiteUrl } from '@/lib/env';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 type ProductPageProps = {
   params: Promise<{ id: string }>;
@@ -90,7 +90,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }}
       />
       <ProductDetailClient product={product} category={category} />
-      <ProductDetailNoScript product={product} category={category} />
+      <noscript><ProductDetailNoScript product={product} category={category} /></noscript>
     </>
   );
 }

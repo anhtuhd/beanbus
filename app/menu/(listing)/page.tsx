@@ -8,7 +8,7 @@ import { getAppMode } from '@/lib/env';
 import CatalogUnavailable from '@/components/catalog/CatalogUnavailable';
 import styles from '../page.module.css';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: 'Menu đồ uống và bánh tươi | Beanbus Coffee',
@@ -35,7 +35,7 @@ function MenuNoScript({ products }: { products: Product[] }) {
 }
 
 function MenuPageView({ categories, products }: { categories: typeof CATEGORIES; products: Product[] }) {
-  return <><MenuClient categories={categories} products={products} /><MenuNoScript products={products} /></>;
+  return <><MenuClient categories={categories} products={products} /><noscript><MenuNoScript products={products} /></noscript></>;
 }
 
 async function ProductionMenuPage() {

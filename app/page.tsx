@@ -4,7 +4,7 @@ import { getCatalog } from '@/lib/catalog/queries';
 import { getAppMode } from '@/lib/env';
 import CatalogUnavailable from '@/components/catalog/CatalogUnavailable';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 function DemoHomePage() {
   return <HomeClient products={PRODUCTS} />;

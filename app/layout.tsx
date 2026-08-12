@@ -38,6 +38,7 @@ const poppins = localFont({
 const handwritten = localFont({
   variable: '--font-handwritten',
   display: 'swap',
+  preload: false,
   src: './fonts/Handwritten.ttf',
 });
 

@@ -4,7 +4,7 @@ import { getCatalog } from '@/lib/catalog/queries';
 import { getPublishedBlogPosts, getPublishedEvents } from '@/lib/content/queries';
 import { getAppMode, getSiteUrl } from '@/lib/env';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl();
@@ -12,7 +12,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ? Promise.resolve({ products: PRODUCTS })
     : getCatalog();
   const [catalog, events, posts] = await Promise.all([
-    catalogPromise, getPublishedEvents(), getPublishedBlogPosts(),
+    catalogPromise.catch(() => ({ products: PRODUCTS })),
+    getPublishedEvents().catch(() => []),
+    getPublishedBlogPosts().catch(() => []),
   ]);
   const routes: MetadataRoute.Sitemap = [
     ['', 'weekly', 1],

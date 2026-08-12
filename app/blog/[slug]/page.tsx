@@ -6,7 +6,7 @@ import BlogArticleClient from './BlogArticleClient';
 import type { BlogPost } from '@/data/events';
 import { getPublishedBlogPost } from '@/lib/content/queries';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -74,7 +74,7 @@ export default async function BlogPostPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }}
       />
       <BlogArticleClient post={post} />
-      <BlogArticleNoScript post={post} />
+      <noscript><BlogArticleNoScript post={post} /></noscript>
     </>
   );
 }

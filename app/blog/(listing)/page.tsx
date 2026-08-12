@@ -5,7 +5,7 @@ import { BLOG_POSTS, type BlogPost } from '@/data/events';
 import { getPublishedBlogPosts } from '@/lib/content/queries';
 import { getAppMode } from '@/lib/env';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: 'Kiến Thức Cà Phê & Câu Chuyện Hạt | Beanbus',
@@ -32,11 +32,17 @@ function BlogNoScript({ posts }: { posts: BlogPost[] }) {
 }
 
 function BlogPageView({ posts }: { posts: BlogPost[] }) {
-  return <><BlogListClient posts={posts} /><BlogNoScript posts={posts} /></>;
+  return <><BlogListClient posts={posts} /><noscript><BlogNoScript posts={posts} /></noscript></>;
 }
 
 async function ProductionBlogPage() {
-  return <BlogPageView posts={await getPublishedBlogPosts()} />;
+  let posts: BlogPost[] = [];
+  try {
+    posts = await getPublishedBlogPosts();
+  } catch {
+    // ISR retries the data source after the route revalidation window.
+  }
+  return <BlogPageView posts={posts} />;
 }
 
 export default function BlogPage() {

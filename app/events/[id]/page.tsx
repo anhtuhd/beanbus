@@ -6,7 +6,7 @@ import EventDetailClient from './EventDetailClient';
 import type { EventItem } from '@/data/events';
 import { getPublishedEvent } from '@/lib/content/queries';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -64,7 +64,7 @@ export default async function EventDetailPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }}
       />
       <EventDetailClient event={event} />
-      <EventDetailNoScript event={event} />
+      <noscript><EventDetailNoScript event={event} /></noscript>
     </>
   );
 }
