@@ -13,7 +13,7 @@
 - [x] `npm test` pass 295/295.
 - [x] `npm run build` pass.
 - [x] `npm run test:e2e:auth` pass 4/4 với Google enabled và phone disabled ở 375/768/1440px.
-- [x] `npm run test:e2e` pass 30/40; 10 suite production/provider được skip đúng khi thiếu credential.
+- [x] `npm run test:e2e` pass 33/43; 10 suite production/provider được skip đúng khi thiếu credential.
 - [x] E2E customer requests pass 4/4; RSVP modal đã được port ra `document.body` để không bị ảnh hưởng bởi transform của event card.
 - [x] E2E accessibility header/menu pass ổn định sau khi chuyển focus keyboard bằng `requestAnimationFrame` và chạy lặp 20 lần.
 - [x] Thêm live smoke opt-in `npm run test:e2e:live`; test sẽ kiểm tra health và Google-only login trên `https://www.beanbus.store`.
