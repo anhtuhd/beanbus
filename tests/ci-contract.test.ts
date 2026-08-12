@@ -28,6 +28,7 @@ test('CI E2E job covers demo and production-gated flows', () => {
   assert.match(workflow, /NEXT_PUBLIC_ENABLE_SEPAY: 'false'/);
   assert.match(workflow, /NEXT_PUBLIC_ENABLE_STORED_VALUE: 'false'/);
   assert.match(workflow, /PLAYWRIGHT_REUSE_SERVER: 'false'/);
+  assert.match(workflow, /PLAYWRIGHT_USE_WEBPACK: 'true'/);
   assert.match(workflow, /npx playwright install --with-deps chromium/);
   assert.match(workflow, /npm run test:e2e -- --workers=1/);
   assert.match(workflow, /npm run test:e2e:auth/);
@@ -54,6 +55,7 @@ test('Playwright does not silently reuse a differently configured local server',
   assert.match(playwrightConfig, /PLAYWRIGHT_BASE_URL/);
   assert.match(playwrightConfig, /useExternalServer/);
   assert.match(playwrightConfig, /PLAYWRIGHT_REUSE_SERVER === 'true'/);
+  assert.match(playwrightConfig, /PLAYWRIGHT_USE_WEBPACK === 'true'/);
   assert.match(playwrightConfig, /NEXT_DIST_DIR: '\.next-e2e'/);
   assert.match(packageJson, /PLAYWRIGHT_PORT=3101 NEXT_PUBLIC_APP_MODE=production/);
   assert.match(packageJson, /test:e2e:live/);
