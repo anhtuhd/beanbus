@@ -14,8 +14,6 @@ export type OrderStatusActionState = {
   status: 'idle' | 'success' | 'error';
 };
 
-export const initialOrderStatusState: OrderStatusActionState = { message: '', status: 'idle' };
-
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled'];
 

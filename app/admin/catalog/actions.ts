@@ -12,8 +12,6 @@ export type ProductStatusActionState = {
   status: 'idle' | 'success' | 'error';
 };
 
-export const initialProductStatusState: ProductStatusActionState = { message: '', status: 'idle' };
-
 const PRODUCT_ID = /^[a-z0-9][a-z0-9-]{0,99}$/;
 
 export async function updateAdminProductStatus(

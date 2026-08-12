@@ -8,7 +8,6 @@ import { getRequestCorrelationId } from '@/lib/observability/request';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 export type ContentPublicationState = { message: string; status: 'idle' | 'success' | 'error' };
-export const initialContentPublicationState: ContentPublicationState = { message: '', status: 'idle' };
 
 const CONTENT_ID = /^(event|post)-[a-z0-9][a-z0-9-]{0,93}$/;
 

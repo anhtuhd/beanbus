@@ -4,6 +4,12 @@ import test from 'node:test';
 
 const actionSource = readFileSync(new URL('../app/admin/orders/actions.ts', import.meta.url), 'utf8');
 const pageSource = readFileSync(new URL('../app/admin/orders/page.tsx', import.meta.url), 'utf8');
+const adminActionSources = [
+  'app/admin/orders/actions.ts',
+  'app/admin/requests/actions.ts',
+  'app/admin/catalog/actions.ts',
+  'app/admin/content/actions.ts',
+].map((path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
 
 test('admin order action authorizes and uses only the audited status RPC', () => {
   const authorization = actionSource.indexOf('await requireAdmin()');
@@ -13,6 +19,12 @@ test('admin order action authorizes and uses only the audited status RPC', () =>
   assert.doesNotMatch(actionSource, /\.update\(/);
   assert.doesNotMatch(actionSource, /payment_status\s*:/);
   assert.match(actionSource, /revalidatePath\('\/admin\/orders'\)/);
+});
+
+test('admin use-server modules do not export runtime state objects', () => {
+  for (const source of adminActionSources) {
+    assert.doesNotMatch(source, /export const initial\w+State/);
+  }
 });
 
 test('admin order page has narrow queries, search, filters, and pagination', () => {

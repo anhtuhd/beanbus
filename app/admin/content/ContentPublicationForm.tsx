@@ -2,10 +2,12 @@
 
 import { useActionState } from 'react';
 import { Check, LoaderCircle } from 'lucide-react';
-import { initialContentPublicationState, updateContentPublication } from './actions';
+import { updateContentPublication } from './actions';
 import styles from '../requests/requests.module.css';
 
 type Props = { contentId: string; contentType: 'event' | 'blog'; isPublished: boolean };
+
+const initialContentPublicationState = { message: '', status: 'idle' as const };
 
 export default function ContentPublicationForm({ contentId, contentType, isPublished }: Props) {
   const [state, action, pending] = useActionState(updateContentPublication, initialContentPublicationState);

@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react';
 import { Check, LoaderCircle } from 'lucide-react';
-import { initialOrderStatusState, updateAdminOrderStatus } from './actions';
+import { updateAdminOrderStatus } from './actions';
 import styles from '../requests/requests.module.css';
 import type { Database } from '@/lib/supabase/database.types';
 
@@ -34,6 +34,8 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
   completed: 'Hoàn tất',
   cancelled: 'Đã hủy',
 };
+
+const initialOrderStatusState = { message: '', status: 'idle' as const };
 
 export default function OrderStatusForm({ currentStatus, orderId, paymentMethod, paymentStatus }: Props) {
   const [state, formAction, pending] = useActionState(updateAdminOrderStatus, initialOrderStatusState);

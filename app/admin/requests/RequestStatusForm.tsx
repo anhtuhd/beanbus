@@ -3,7 +3,6 @@
 import { useActionState } from 'react';
 import { Check, LoaderCircle } from 'lucide-react';
 import {
-  initialRequestStatusState,
   updateBookingRequestStatus,
   updateCustomerRequestStatus,
 } from './actions';
@@ -39,6 +38,8 @@ const STATUS_LABEL: Record<string, string> = {
   in_progress: 'Đang xử lý',
   resolved: 'Đã giải quyết',
 };
+
+const initialRequestStatusState = { message: '', status: 'idle' as const };
 
 export default function RequestStatusForm({ currentStatus, kind, requestId }: Props) {
   const action = kind === 'booking' ? updateBookingRequestStatus : updateCustomerRequestStatus;

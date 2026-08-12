@@ -11,8 +11,6 @@ export type RequestStatusActionState = {
   status: 'idle' | 'success' | 'error';
 };
 
-export const initialRequestStatusState: RequestStatusActionState = { message: '', status: 'idle' };
-
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const BOOKING_STATUSES = ['pending', 'confirmed', 'completed', 'cancelled', 'rejected'];
 const CUSTOMER_STATUSES = ['pending', 'in_progress', 'resolved', 'rejected'];

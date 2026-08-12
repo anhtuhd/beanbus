@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react';
 import { Archive, Check, LoaderCircle } from 'lucide-react';
-import { initialProductStatusState, updateAdminProductStatus } from './actions';
+import { updateAdminProductStatus } from './actions';
 import styles from '../requests/requests.module.css';
 
 type Props = {
@@ -10,6 +10,8 @@ type Props = {
   isPublished: boolean;
   productId: string;
 };
+
+const initialProductStatusState = { message: '', status: 'idle' as const };
 
 export default function ProductStatusForm({ isAvailable, isPublished, productId }: Props) {
   const [state, formAction, pending] = useActionState(updateAdminProductStatus, initialProductStatusState);
