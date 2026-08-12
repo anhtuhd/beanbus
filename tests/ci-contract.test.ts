@@ -24,6 +24,10 @@ test('CI quality job runs the committed quality gates', () => {
 });
 
 test('CI E2E job covers demo and production-gated flows', () => {
+  assert.match(workflow, /NEXT_PUBLIC_APP_MODE: demo/);
+  assert.match(workflow, /NEXT_PUBLIC_ENABLE_SEPAY: 'false'/);
+  assert.match(workflow, /NEXT_PUBLIC_ENABLE_STORED_VALUE: 'false'/);
+  assert.match(workflow, /PLAYWRIGHT_REUSE_SERVER: 'false'/);
   assert.match(workflow, /npx playwright install --with-deps chromium/);
   assert.match(workflow, /npm run test:e2e -- --workers=1/);
   assert.match(workflow, /npm run test:e2e:auth/);

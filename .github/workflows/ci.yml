@@ -47,6 +47,11 @@ jobs:
   e2e:
     needs: quality
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_APP_MODE: demo
+      NEXT_PUBLIC_ENABLE_SEPAY: 'false'
+      NEXT_PUBLIC_ENABLE_STORED_VALUE: 'false'
+      PLAYWRIGHT_REUSE_SERVER: 'false'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
