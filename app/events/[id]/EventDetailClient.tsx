@@ -7,6 +7,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import type { EventItem } from '@/data/events';
 import RsvpButton from '../RsvpButton';
 import styles from '../events.module.css';
+import { isNextOptimizedImage } from '@/lib/media/image';
 
 export default function EventDetailClient({ event }: { event: EventItem }) {
   const { t, lang } = useLanguage();
@@ -15,7 +16,7 @@ export default function EventDetailClient({ event }: { event: EventItem }) {
       <Link href="/events" className={styles.backLink}><ArrowLeft size={17} /> {t('Tất cả sự kiện', 'All events')}</Link>
       <article className={styles.detailLayout}>
         <div className={styles.detailImage}>
-          <Image src={event.image} alt={event.titleVi} fill unoptimized loading="eager" sizes="(max-width: 800px) 100vw, 55vw" />
+          <Image src={event.image} alt={event.titleVi} fill unoptimized={!isNextOptimizedImage(event.image)} loading="eager" sizes="(max-width: 800px) 100vw, 55vw" />
         </div>
         <div className={styles.detailContent}>
           <span className={styles.detailStatus}>{event.status === 'upcoming' ? t('Sắp diễn ra', 'Upcoming') : event.status}</span>

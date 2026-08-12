@@ -7,6 +7,7 @@ import type { EventItem } from '@/data/events';
 import { ArrowRight, Calendar, Clock, MapPin, Star, Users } from 'lucide-react';
 import RsvpButton from './RsvpButton';
 import styles from './events.module.css';
+import { isNextOptimizedImage } from '@/lib/media/image';
 
 const isProduction = process.env.NEXT_PUBLIC_APP_MODE === 'production';
 
@@ -42,7 +43,7 @@ export default function EventsClient({ events }: { events: EventItem[] }) {
           {events.map((item, index) => (
             <article key={item.id} className={styles.eventCard}>
               <div className={styles.imgBox}>
-                <Image src={item.image} alt={item.titleVi} fill unoptimized loading={index === 0 ? 'eager' : 'lazy'} sizes="(max-width: 900px) 100vw, 50vw" className={styles.cardImg} />
+                <Image src={item.image} alt={item.titleVi} fill unoptimized={!isNextOptimizedImage(item.image)} loading={index === 0 ? 'eager' : 'lazy'} sizes="(max-width: 900px) 100vw, 50vw" className={styles.cardImg} />
                 {item.isFeatured && (
                   <span className={styles.featuredBadge}><Star size={13} /> Featured Event</span>
                 )}

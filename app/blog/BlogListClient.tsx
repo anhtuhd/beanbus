@@ -7,6 +7,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import type { BlogPost } from '@/data/events';
 import { ArrowRight, CalendarDays, Clock, User } from 'lucide-react';
 import styles from './blog.module.css';
+import { isNextOptimizedImage } from '@/lib/media/image';
 
 export default function BlogListClient({ posts }: { posts: BlogPost[] }) {
   const { t, lang } = useLanguage();
@@ -39,7 +40,7 @@ export default function BlogListClient({ posts }: { posts: BlogPost[] }) {
           {posts.map((post, index) => (
             <article key={post.id} className={styles.postCard}>
               <div className={styles.imgBox}>
-                <Image src={post.coverImage} alt={post.titleVi} fill unoptimized loading={index === 0 ? 'eager' : 'lazy'} sizes="(max-width: 768px) 100vw, 50vw" className={styles.postImg} />
+                <Image src={post.coverImage} alt={post.titleVi} fill unoptimized={!isNextOptimizedImage(post.coverImage)} loading={index === 0 ? 'eager' : 'lazy'} sizes="(max-width: 768px) 100vw, 50vw" className={styles.postImg} />
                 <span className={styles.categoryBadge}>
                   {lang === 'en' ? post.categoryEn : post.categoryVi}
                 </span>

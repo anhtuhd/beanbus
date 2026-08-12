@@ -8,6 +8,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useDialogFocus } from '@/lib/ui/use-dialog-focus';
 import { X, ShoppingBag, Plus, Minus, Trash2, Tag, ArrowRight } from 'lucide-react';
 import styles from './CartDrawer.module.css';
+import { isNextOptimizedImage } from '@/lib/media/image';
 
 export const CartDrawer: React.FC = () => {
   const {
@@ -88,7 +89,7 @@ export const CartDrawer: React.FC = () => {
                     alt={lang === 'en' ? item.product.nameEn : item.product.nameVi}
                     width={72}
                     height={72}
-                    unoptimized
+                    unoptimized={!isNextOptimizedImage(item.product.image)}
                     className={styles.itemImg}
                   />
                   <div className={styles.itemDetails}>

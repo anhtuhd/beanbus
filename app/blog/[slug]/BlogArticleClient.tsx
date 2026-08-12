@@ -7,6 +7,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import type { BlogPost } from '@/data/events';
 import { ArrowLeft, CalendarDays, Check, Clock, Share2, User } from 'lucide-react';
 import styles from '../blog.module.css';
+import { isNextOptimizedImage } from '@/lib/media/image';
 
 function inlineText(value: string) {
   return value.split(/(\*\*[^*]+\*\*)/g).filter(Boolean).map((part, index) =>
@@ -64,7 +65,7 @@ export default function BlogArticleClient({ post }: { post: BlogPost }) {
         </div>
 
         <div className={styles.coverBox}>
-          <Image src={post.coverImage} alt={post.titleVi} fill unoptimized loading="eager" sizes="(max-width: 800px) 100vw, 760px" className={styles.coverImg} />
+          <Image src={post.coverImage} alt={post.titleVi} fill unoptimized={!isNextOptimizedImage(post.coverImage)} loading="eager" sizes="(max-width: 800px) 100vw, 760px" className={styles.coverImg} />
         </div>
 
         <div className={styles.articleBody}><ArticleContent content={lang === 'en' ? post.contentEn : post.contentVi} /></div>

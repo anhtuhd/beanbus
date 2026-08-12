@@ -30,7 +30,7 @@ test('order route exposes honest empty, loading, error, and no-JavaScript states
 });
 
 test('order summary reports subtotal instead of the post-discount total', () => {
-  assert.match(client, /const \{ cart, cartCount, subtotal \} = useCart\(\)/);
+  assert.match(client, /const \{ cart, cartCount, subtotal, syncCatalog \} = useCart\(\)/);
   assert.match(client, /Tạm tính/);
   assert.match(client, /formatVnd\(subtotal\)/);
 });

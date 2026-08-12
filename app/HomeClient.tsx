@@ -11,6 +11,7 @@ import { ProductCustomizerModal } from '@/components/ui/ProductCustomizerModal';
 import { useDialogFocus } from '@/lib/ui/use-dialog-focus';
 import { withSupportReference } from '@/lib/observability/support-reference';
 import { BRAND_ASSETS } from '@/lib/brand/assets';
+import { isNextOptimizedImage } from '@/lib/media/image';
 import {
   Coffee,
   Sparkles,
@@ -311,7 +312,7 @@ export default function HomeClient({ products }: { products: Product[] }) {
                     alt={lang === 'en' ? item.nameEn : item.nameVi}
                     width={640}
                     height={400}
-                    unoptimized
+                    unoptimized={!isNextOptimizedImage(item.image)}
                     loading={index === 0 ? 'eager' : 'lazy'}
                     sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 25vw"
                     className={styles.dishImg}

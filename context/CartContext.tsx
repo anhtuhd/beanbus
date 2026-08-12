@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useCallback, useContext, useState, useEffect } from 'react';
 import { Product, ProductOption } from '@/data/products';
 import { calculateDiscount } from '@/lib/commerce/pricing';
 
@@ -38,9 +38,11 @@ interface CartContextType {
   applyVoucher: (code: string) => { success: boolean; message: string };
   applyVoucherDetails: (voucher: AppliedVoucher) => void;
   removeVoucher: () => void;
+  syncCatalog: (products: Product[]) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
+const CART_STORAGE_VERSION = 2;
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -54,7 +56,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const savedCart = localStorage.getItem('beanbus_cart');
       if (savedCart) {
-        setCart(JSON.parse(savedCart));
+        const parsed = JSON.parse(savedCart) as CartItem[] | { version: number; items: CartItem[] };
+        setCart(Array.isArray(parsed) ? parsed : parsed.version === CART_STORAGE_VERSION ? parsed.items : []);
       }
     } catch (e) {
       console.error(e);
@@ -68,7 +71,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (!hasHydrated) return;
     try {
-      localStorage.setItem('beanbus_cart', JSON.stringify(cart));
+      localStorage.setItem('beanbus_cart', JSON.stringify({ version: CART_STORAGE_VERSION, items: cart }));
     } catch (e) {
       console.error(e);
     }
@@ -115,6 +118,23 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setIsCartOpen(true);
   };
+
+  const syncCatalog = useCallback((products: Product[]) => {
+    if (products.length === 0) return;
+    setCart((current) => current.flatMap((item) => {
+      const product = products.find((candidate) => candidate.id === item.product.id);
+      if (!product) return [];
+      const selectedOptions = product.options
+        ? item.selectedOptions
+          .map((option) => product.options?.find((candidate) => candidate.id === option.id))
+          .filter((option): option is ProductOption => Boolean(option))
+        : item.selectedOptions;
+      const optionIds = selectedOptions.map((option) => option.id).sort().join('-');
+      const cartItemId = `${product.id}-${optionIds}-${item.specialNote ?? ''}`;
+      const unitPrice = product.price + selectedOptions.reduce((sum, option) => sum + option.extraPrice, 0);
+      return [{ ...item, cartItemId, product, selectedOptions, unitPrice, itemTotal: item.quantity * unitPrice }];
+    }));
+  }, []);
 
   const removeFromCart = (cartItemId: string) => {
     setCart((prev) => prev.filter((item) => item.cartItemId !== cartItemId));
@@ -209,6 +229,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         applyVoucher,
         applyVoucherDetails,
         removeVoucher,
+        syncCatalog,
       }}
     >
       {children}

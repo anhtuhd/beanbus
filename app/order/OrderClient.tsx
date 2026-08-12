@@ -2,19 +2,21 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, ChevronRight, ShoppingBag, SlidersHorizontal } from 'lucide-react';
 import { ProductCustomizerModal } from '@/components/ui/ProductCustomizerModal';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
 import type { Category, Product } from '@/data/products';
+import { isNextOptimizedImage } from '@/lib/media/image';
 import styles from './order.module.css';
 
 const formatVnd = (amount: number) => `${amount.toLocaleString('vi-VN')}d`;
 
 export default function OrderClient({ categories, products: catalogProducts }: { categories: Category[]; products: Product[] }) {
   const { t, lang } = useLanguage();
-  const { cart, cartCount, subtotal } = useCart();
+  const { cart, cartCount, subtotal, syncCatalog } = useCart();
+  useEffect(() => syncCatalog(catalogProducts), [catalogProducts, syncCatalog]);
   const [categoryId, setCategoryId] = useState('all');
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
 
@@ -70,7 +72,7 @@ export default function OrderClient({ categories, products: catalogProducts }: {
                     alt={lang === 'en' ? product.nameEn : product.nameVi}
                     width={116}
                     height={116}
-                    unoptimized
+                    unoptimized={!isNextOptimizedImage(product.image)}
                     loading={index === 0 ? 'eager' : 'lazy'}
                     className={styles.productImage}
                   />

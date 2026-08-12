@@ -2,11 +2,13 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
+import { useCart } from '@/context/CartContext';
 import type { Category, Product } from '@/data/products';
 import { ProductCustomizerModal } from '@/components/ui/ProductCustomizerModal';
 import { Search, SlidersHorizontal, ShoppingBag } from 'lucide-react';
+import { isNextOptimizedImage } from '@/lib/media/image';
 import styles from './page.module.css';
 
 type MenuClientProps = {
@@ -16,6 +18,8 @@ type MenuClientProps = {
 
 export default function MenuClient({ categories, products }: MenuClientProps) {
   const { t, lang } = useLanguage();
+  const { syncCatalog } = useCart();
+  useEffect(() => syncCatalog(products), [products, syncCatalog]);
   const [selectedCat, setSelectedCat] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc'>('default');
@@ -115,7 +119,7 @@ export default function MenuClient({ categories, products }: MenuClientProps) {
                     alt={lang === 'en' ? product.nameEn : product.nameVi}
                     width={640}
                     height={440}
-                    unoptimized
+                    unoptimized={!isNextOptimizedImage(product.image)}
                     loading={index === 0 ? 'eager' : 'lazy'}
                     sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw"
                     className={styles.productImg}

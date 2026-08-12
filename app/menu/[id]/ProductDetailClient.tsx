@@ -7,6 +7,7 @@ import { ArrowLeft, CheckCircle2, Leaf, ShoppingBag, XCircle } from 'lucide-reac
 import { ProductCustomizerModal } from '@/components/ui/ProductCustomizerModal';
 import { useLanguage } from '@/context/LanguageContext';
 import type { Category, Product } from '@/data/products';
+import { isNextOptimizedImage } from '@/lib/media/image';
 import styles from './product.module.css';
 
 type ProductDetailClientProps = {
@@ -34,7 +35,7 @@ export default function ProductDetailClient({ category, product }: ProductDetail
               src={product.image}
               alt={product.nameVi}
               fill
-              unoptimized
+              unoptimized={!isNextOptimizedImage(product.image)}
               loading="eager"
               sizes="(max-width: 800px) 100vw, 52vw"
               className={styles.image}

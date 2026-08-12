@@ -12,7 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ? Promise.resolve({ products: PRODUCTS })
     : getCatalog();
   const [catalog, events, posts] = await Promise.all([
-    catalogPromise.catch(() => ({ products: PRODUCTS })),
+    catalogPromise.catch(() => ({ products: getAppMode() === 'demo' ? PRODUCTS : [] })),
     getPublishedEvents().catch(() => []),
     getPublishedBlogPosts().catch(() => []),
   ]);

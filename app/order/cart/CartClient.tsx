@@ -2,17 +2,20 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, Minus, Plus, ShoppingBag, Tag, Trash2, X } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
+import type { Product } from '@/data/products';
+import { isNextOptimizedImage } from '@/lib/media/image';
 import styles from './cart.module.css';
 
 const formatVnd = (amount: number) => `${amount.toLocaleString('vi-VN')}d`;
 
-export default function CartClient() {
+export default function CartClient({ catalogProducts = [] }: { catalogProducts?: Product[] }) {
   const { t, lang } = useLanguage();
-  const { cart, cartCount, subtotal, discountAmount, finalTotal, appliedVoucher, applyVoucher, removeFromCart, removeVoucher, updateQuantity } = useCart();
+  const { cart, cartCount, subtotal, discountAmount, finalTotal, appliedVoucher, applyVoucher, removeFromCart, removeVoucher, updateQuantity, syncCatalog } = useCart();
+  useEffect(() => syncCatalog(catalogProducts), [catalogProducts, syncCatalog]);
   const [voucherCode, setVoucherCode] = useState('');
   const [voucherMessage, setVoucherMessage] = useState<{ success: boolean; text: string } | null>(null);
 
@@ -59,7 +62,7 @@ export default function CartClient() {
                 alt={lang === 'en' ? item.product.nameEn : item.product.nameVi}
                 width={112}
                 height={112}
-                unoptimized
+                unoptimized={!isNextOptimizedImage(item.product.image)}
               />
               <div className={styles.itemInfo}>
                 <div className={styles.itemTitle}>

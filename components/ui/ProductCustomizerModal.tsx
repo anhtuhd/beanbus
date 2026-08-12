@@ -8,6 +8,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useDialogFocus } from '@/lib/ui/use-dialog-focus';
 import { X, Plus, Minus } from 'lucide-react';
 import styles from './ProductCustomizerModal.module.css';
+import { isNextOptimizedImage } from '@/lib/media/image';
 
 interface Props {
   product: Product;
@@ -81,7 +82,7 @@ export const ProductCustomizerModal: React.FC<Props> = ({ product, onClose }) =>
               alt={lang === 'en' ? product.nameEn : product.nameVi}
               width={90}
               height={90}
-              unoptimized
+              unoptimized={!isNextOptimizedImage(product.image)}
               className={styles.image}
             />
             <div className={styles.bannerInfo}>

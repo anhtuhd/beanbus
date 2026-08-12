@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createProductionOrder } from '@/app/order/actions';
@@ -9,6 +9,8 @@ import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useOrders, PaymentMethod, OrderType } from '@/context/OrderContext';
 import { useAuth } from '@/context/AuthContext';
+import { isNextOptimizedImage } from '@/lib/media/image';
+import type { Product } from '@/data/products';
 import { SepayQRModal } from '@/components/ui/SepayQRModal';
 import TurnstileWidget from '@/app/login/TurnstileWidget';
 import { Bike, ShoppingBag, Clock, MapPin, QrCode, DollarSign, ShieldCheck, Store, Tag, LoaderCircle } from 'lucide-react';
@@ -28,9 +30,10 @@ function getOrderErrorMessage(error: string, t: (vi: string, en: string) => stri
   return t('Chưa thể tạo đơn lúc này. Vui lòng thử lại.', 'We could not place your order. Please try again.');
 }
 
-export default function CheckoutClient() {
+export default function CheckoutClient({ catalogProducts = [] }: { catalogProducts?: Product[] }) {
   const router = useRouter();
-  const { cart, subtotal, discountAmount, finalTotal, appliedVoucher, clearCart } = useCart();
+  const { cart, subtotal, discountAmount, finalTotal, appliedVoucher, clearCart, syncCatalog } = useCart();
+  useEffect(() => syncCatalog(catalogProducts), [catalogProducts, syncCatalog]);
   const { t, lang } = useLanguage();
   const { createOrder } = useOrders();
   const { user, addPoints } = useAuth();
@@ -312,7 +315,7 @@ export default function CheckoutClient() {
                     alt={lang === 'en' ? item.product.nameEn : item.product.nameVi}
                     width={56}
                     height={56}
-                    unoptimized
+                    unoptimized={!isNextOptimizedImage(item.product.image)}
                   />
                   <div className={styles.itemMeta}>
                     <strong>{lang === 'en' ? item.product.nameEn : item.product.nameVi}</strong>
