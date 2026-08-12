@@ -16,7 +16,7 @@
 - [x] Voucher account lọc thời gian ở PostgREST và chạy song song với batch dữ liệu đầu tiên.
 - [x] SePay confirmation giảm polling khi tab ẩn, backoff tối đa 30 giây và refresh ngay khi tab được focus.
 - [x] CSP report-only production không còn `unsafe-eval`; chỉ development mới bật để hỗ trợ Next dev.
-- [x] Production Vercel revision `5a8a6f31771a` đã được xác minh sau code deploy; `/menu` trả `x-nextjs-prerender: 1`, stale-time `300` và CSP production đúng policy.
+- [x] Production Vercel revision `9bfa540ffc03` đã được xác minh; `/api/health` trả `200`, login Google-only/live smoke pass và production không bật phone auth.
 - [x] Provider demo toàn cục nhận `appMode`; production không hydrate/persist orders, bookings, settings hoặc flash-sale fixtures từ `localStorage`.
 - [ ] Chưa bật Cloudflare reverse proxy trước Vercel. Nếu cần CDN ảnh, ưu tiên Cloudflare Images hoặc R2 với `images.beanbus.store`; không chuyển `www.beanbus.store` qua proxy trước khi đo latency/cache.
 - [x] Đã apply migration `20260812050000_staff_request_notifications.sql` trên Supabase remote; migration inventory đạt `44/44`, trigger booking/customer tồn tại và `db lint --level warning --fail-on warning` trả `No schema errors found`.
