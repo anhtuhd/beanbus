@@ -99,7 +99,7 @@
 - [ ] Smoke logout, login lại và expired-session redirect.
 - [ ] Xác nhận member thường vào `/admin` nhận forbidden/redirect đúng.
 - [x] Supabase remote read-only check xác nhận hai Auth/Profile row đã có role `admin` và `member`; không lưu email/PII vào repository. OAuth callback/session smoke bằng browser thật vẫn chờ.
-- [ ] Thử cấp/revoke role qua server/SQL có audit; hiện admin đã được bootstrap và chỉ cần smoke test quyền.
+- [x] Hosted transaction smoke cấp/revoke role qua `update_member_role`: `member -> staff -> member`, audit history ghi `2` dòng và self-demotion bị chặn; rollback sạch.
 
 ## 2. P0 - Sửa loyalty và voucher
 
