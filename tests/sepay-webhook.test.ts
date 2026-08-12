@@ -64,7 +64,9 @@ test('parses both JSON and URL-encoded webhook bodies', () => {
 test('resolves the Beanbus payment code from the authenticated content fallback', () => {
   assert.equal(resolveSepayPaymentCode(null, 'Thanh toan dh-260809abc123'), 'DH-260809ABC123');
   assert.equal(resolveSepayPaymentCode('DH-260809def456', 'unrelated content'), 'DH-260809DEF456');
-  assert.equal(resolveSepayPaymentCode(null, 'Thanh toan DH260809ABC123'), null);
+  assert.equal(resolveSepayPaymentCode('DH260812', 'Qalccq2576 SEPAY21089 DH260812DABBA5 I2CMKBYI/258984'), 'DH-260812DABBA5');
+  assert.equal(resolveSepayPaymentCode('DH260812', 'only the short extracted code'), null);
+  assert.equal(resolveSepayPaymentCode(null, 'Thanh toan DH260809ABC123'), 'DH-260809ABC123');
 });
 
 test('builds a VietQR URL from server-owned payment instructions', () => {

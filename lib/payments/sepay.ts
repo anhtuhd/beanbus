@@ -77,12 +77,25 @@ export function verifySepayHmac({
   return expectedBytes.length === signatureBytes.length && timingSafeEqual(expectedBytes, signatureBytes);
 }
 
-const BEANBUS_PAYMENT_CODE_PATTERN = /\bDH-[0-9]{6}[A-Za-z0-9]{6}\b/i;
+const BEANBUS_PAYMENT_CODE_PATTERNS = [
+  /\bDH-[0-9]{6}[A-Za-z0-9]{6}\b/i,
+  /\bDH[0-9]{6}[A-Za-z0-9]{6}\b/i,
+];
+
+function normalizeBeanbusPaymentCode(value: string): string | null {
+  for (const pattern of BEANBUS_PAYMENT_CODE_PATTERNS) {
+    const match = value.match(pattern)?.[0];
+    if (!match) continue;
+    const normalized = match.toUpperCase();
+    return normalized.includes('-')
+      ? normalized
+      : `DH-${normalized.slice(2, 8)}${normalized.slice(8)}`;
+  }
+  return null;
+}
 
 export function resolveSepayPaymentCode(code: string | null, content: string): string | null {
-  const explicitCode = code?.match(BEANBUS_PAYMENT_CODE_PATTERN)?.[0];
-  const contentCode = content.match(BEANBUS_PAYMENT_CODE_PATTERN)?.[0];
-  return (explicitCode ?? contentCode)?.toUpperCase() ?? null;
+  return normalizeBeanbusPaymentCode(code ?? '') ?? normalizeBeanbusPaymentCode(content);
 }
 
 export function parseSepayWebhook(value: unknown): SepayWebhook | null {
