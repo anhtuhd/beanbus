@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap;
-select plan(51);
+select plan(53);
 
 select has_table('public', 'notifications', 'notifications table exists');
 select has_table('public', 'notification_preferences', 'notification preferences table exists');
@@ -224,6 +224,15 @@ select is(
   1::bigint,
   'new booking request notifies admins'
 );
+select is(
+  (select count(*)
+   from public.email_outbox as outbox
+   join public.notifications as notification on notification.id = outbox.notification_id
+   where outbox.recipient_user_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+     and notification.kind = 'booking_request_created'),
+  1::bigint,
+  'new booking request queues transactional admin email'
+);
 
 insert into public.customer_requests (
   idempotency_key, request_type, contact_name, contact_phone, contact_email,
@@ -240,6 +249,15 @@ select is(
      and kind = 'customer_request_created'),
   1::bigint,
   'new customer request notifies admins'
+);
+select is(
+  (select count(*)
+   from public.email_outbox as outbox
+   join public.notifications as notification on notification.id = outbox.notification_id
+   where outbox.recipient_user_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+     and notification.kind = 'customer_request_created'),
+  1::bigint,
+  'new customer request queues transactional admin email'
 );
 
 select * from finish();

@@ -53,7 +53,7 @@ The database checks require Docker and the Supabase CLI. Hosted database verific
 
    Stop when the remote history contains drift that is not explained by a reviewed migration.
 3. Apply the reviewed migrations with `npm run db:push` against the linked hosted project.
-   Current hosted record (2026-08-12): the remote inventory matches all `44/44` local migrations through `20260812050000_staff_request_notifications.sql`. Remote `db lint --level warning --fail-on warning` passes with `No schema errors found`; local `db:lint` and pgTAP also pass through Docker/Colima (`383/383`). Booking/contact trigger smoke was run transactionally on remote and rolled back cleanly.
+   Current hosted record (2026-08-12): the remote inventory matches all `44/44` local migrations through `20260812050000_staff_request_notifications.sql`. Remote `db lint --level warning --fail-on warning` passes with `No schema errors found`; local `db:lint` and pgTAP also pass through Docker/Colima (`385/385`). Booking/contact trigger smoke was run transactionally on remote and rolled back cleanly.
 4. Verify RLS, role membership, protected RPC transitions, and audit rows with an admin and a non-admin account.
 5. Deploy the application with the production environment variables above. Production provider contexts skip demo fixture hydration and browser persistence; server-owned Supabase data remains authoritative.
    Verified code deployment (2026-08-12, revision `5a8a6f31771a`): login HTML exposes `phoneEnabled=false` and `googleEnabled=true`; stored-value is false and SePay is true. Public live smoke is green.

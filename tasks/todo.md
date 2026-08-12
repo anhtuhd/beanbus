@@ -22,7 +22,7 @@
 - [x] CI chạy tự động trên `main`, các branch `codex/**` và pull request vào `main`, tránh commit triển khai bị bỏ qua quality gate.
 - [x] `npm audit --omit=dev --audit-level=high` báo 0 vulnerability.
 - [x] Production build đã kiểm tra console/page error: không còn cảnh báo JSON-LD; cảnh báo native script chỉ xuất hiện trong React development overlay và phù hợp với khuyến nghị JSON-LD của Next.js.
-- [x] Cài Docker CLI + Colima + `psql`, khởi động Supabase local và chạy `npm run db:lint`/pgTAP trên schema sạch; lint pass, pgTAP `24` file/`383/383` tests pass.
+- [x] Cài Docker CLI + Colima + `psql`, khởi động Supabase local và chạy `npm run db:lint`/pgTAP trên schema sạch; lint pass, pgTAP `24` file/`385/385` tests pass.
 - [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; remote khớp đủ `44/44` migration tới `20260812050000_staff_request_notifications.sql`, remote lint warning pass.
 - [x] Apply `20260811120000_fix_loyalty_redemption_collision.sql` lên remote sau khi CI database xác nhận xanh.
 - [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration loyalty/content/SePay/flash-sale; advisor multiple-permissive-policy vẫn là backlog maintainability.
@@ -60,7 +60,7 @@
 - [x] Cố định timezone notification UI và đồng bộ outbox/suppression types với migration.
 - [x] Sửa format mã đơn demo thành `DH-YYMMDD` + 6 ký tự và thêm regression test; E2E checkout pass.
 - [x] Kiểm tra migration inventory bằng `DATABASE_URL`; apply migration notification center và staff request fan-out lên remote, xác minh bảng, trigger, cron và Realtime publication.
-- [x] Chạy pgTAP trên Docker/Postgres runtime qua Colima; `24` file, `383/383` tests pass. Hosted RLS/behavior smoke vẫn cần tài khoản thật.
+- [x] Chạy pgTAP trên Docker/Postgres runtime qua Colima; `24` file, `385/385` tests pass. Hosted RLS/behavior smoke vẫn cần tài khoản thật.
 - [x] Booking/contact tạo in-app notification cho tất cả admin và transactional outbox; dedupe/source/kind có contract và pgTAP.
 - [ ] Khi bật password auth, bật Supabase Auth `Require current password when changing password` và smoke mật khẩu sai/đúng trên hosted.
 - [x] Migration/functions notification đã được cấu hình với Vault, `verify_jwt=false` và endpoint production; Resend DNS/webhook còn chờ owner hoàn tất/allowlist smoke test.
@@ -129,7 +129,7 @@
 - [x] Review P0 forward migrations và apply theo thứ tự; backup/restore drill vẫn cần owner xác nhận.
 - [x] Apply migration tới `20260812050000_staff_request_notifications.sql`; remote hiện đã có đủ 44 migration tới staff request fan-out.
 - [x] Sau CI pass, apply và kiểm tra migration `20260811120000_fix_loyalty_redemption_collision.sql`; remote inventory khớp và lint không có schema error.
-- [x] Chạy toàn bộ `npm run db:lint` và `npm run db:test` trên schema sạch qua Colima: lint pass, pgTAP `24` file/`383/383` tests pass.
+- [x] Chạy toàn bộ `npm run db:lint` và `npm run db:test` trên schema sạch qua Colima: lint pass, pgTAP `24` file/`385/385` tests pass.
 - [ ] Chạy lại pgTAP trên staging/remote theo release runbook.
 - [ ] Test RLS bằng hai member và một admin: profiles, orders, requests, ledger, vouchers, history.
 - [x] Read-only hosted RLS smoke với một member, một admin và một UUID không tồn tại: member chỉ thấy profile của mình, admin thấy dữ liệu được cấp, UUID lạ thấy `0` rows trên profiles/orders/requests/notifications; full two-member smoke vẫn còn chờ.
@@ -181,7 +181,7 @@
 - [ ] Không còn finding P0/P1 mở.
 - [ ] Phone/Zalo và stored-value xác nhận vẫn tắt ở UI lẫn remote execution; Zalo cron đã xác nhận `0`, còn Auth Provider/Hook và Vercel flags cần owner kiểm tra.
 - [ ] Google login/logout/profile/admin role smoke pass bằng tài khoản thật.
-- [x] Lint, typecheck, 293/293 unit-contract tests, build và pgTAP local `383/383` pass; GitHub CI `31606945090` của baseline trước staff request migration xanh, còn run `31610193512` của commit hiện tại đang chờ kết quả. Hosted Google/RLS smoke và owner sign-off còn thiếu.
+- [x] Lint, typecheck, 293/293 unit-contract tests, build và pgTAP local `385/385` pass; GitHub CI `31606945090` của baseline trước staff request migration xanh, còn run `31610193512` của commit hiện tại đang chờ kết quả. Hosted Google/RLS smoke và owner sign-off còn thiếu.
 - [ ] Sepay webhook + reconciliation live smoke pass nếu bật payment.
 - [ ] Monitoring, backup, rollback và incident contacts đã được thử.
 - [ ] Owner ký xác nhận staging ở desktop/mobile.
@@ -191,7 +191,7 @@
 - [x] Đã có quyền truy vấn/apply Supabase remote qua secret store local; không gửi secret qua chat.
 - [ ] Quyền Vercel để kiểm tra Production/Preview env và redeploy.
 - [x] Đã nhận Gmail admin và Gmail member test; admin đã tồn tại trong Auth/profile, member cần đăng nhập Google lần đầu để tự tạo account/profile.
-- [ ] Email nhận thông báo nhân viên và sender transport: Gmail SMTP App Password hoặc Gmail API OAuth.
+- [ ] Email nhận thông báo nhân viên và Resend sender/allowlist; không lưu API key trong repository.
 - [ ] Xác nhận hai mã `BEANBUS10`, `WELCOMEVIP`: live hay phải tắt.
 - [ ] Chính sách loyalty/COD/refund/voucher reuse bằng văn bản ngắn hoặc chỉnh trực tiếp trong `/admin/policies` sau khi bootstrap admin.
 - [x] Kênh in-app nhận thông báo booking/contact của admin đã triển khai; email recipient/allowlist Resend vẫn cần owner xác nhận.
