@@ -150,6 +150,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 **Mục tiêu:** Role/RLS đúng với user thật và nhân viên có quy trình vận hành lặp lại được.
 
 - Chạy hosted RLS/behavior smoke trên schema remote đã reconcile; pgTAP đã pass trong GitHub CI trên database ephemeral.
+- Read-only smoke remote đã xác nhận member chỉ thấy dữ liệu sở hữu, admin thấy dữ liệu được cấp và UUID lạ không thấy profiles/orders/requests/notifications; cần thêm member thứ hai và mutation/ownership smoke thật trước khi đóng gate.
 - Tạo runbook cấp admin bằng thao tác server/SQL được audit; không có UI tự nâng quyền.
 - Test hai Gmail: member thường và admin; kiểm tra profile, orders, requests, loyalty, voucher ownership, forbidden routes và logout/expired session.
 - Tách Google E2E thành test cấu hình giả trong CI và smoke checklist thật trên staging, vì OAuth thật không nên phụ thuộc vào CI thông thường.

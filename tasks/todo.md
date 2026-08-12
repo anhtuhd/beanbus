@@ -130,6 +130,7 @@
 - [x] Chạy toàn bộ `npm run db:lint` và `npm run db:test` trên schema sạch qua Colima: lint pass, pgTAP `24` file/`379/379` tests pass.
 - [ ] Chạy lại pgTAP trên staging/remote theo release runbook.
 - [ ] Test RLS bằng hai member và một admin: profiles, orders, requests, ledger, vouchers, history.
+- [x] Read-only hosted RLS smoke với một member, một admin và một UUID không tồn tại: member chỉ thấy profile của mình, admin thấy dữ liệu được cấp, UUID lạ thấy `0` rows trên profiles/orders/requests/notifications; full two-member smoke vẫn còn chờ.
 - [x] Cập nhật `README.md` và `docs/release-runbook.md` bằng trạng thái remote đã kiểm chứng.
 
 ## 5. Commerce và SePay
