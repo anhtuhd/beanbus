@@ -34,10 +34,17 @@ export async function updateAdminOrderStatus(
 
   const correlationId = await getRequestCorrelationId();
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase.rpc('update_order_status', {
-    p_order_id: orderId,
-    p_status: status,
-  });
+  let data;
+  let error;
+  try {
+    ({ data, error } = await supabase.rpc('update_order_status', {
+      p_order_id: orderId,
+      p_status: status,
+    }));
+  } catch {
+    logOperationalFailure({ correlationId, event: 'admin_operation_failed', operation: 'update_order_status', reason: 'database_error' });
+    return actionError('Không thể cập nhật trạng thái đơn hàng.', correlationId);
+  }
   if (error?.message.includes('PAYMENT_REQUIRED')) {
     logOperationalFailure({ correlationId, event: 'admin_operation_failed', level: 'warn', operation: 'update_order_status', reason: 'payment_required' });
     return actionError('Đơn Sepay đang chờ thanh toán được xác minh.', correlationId);

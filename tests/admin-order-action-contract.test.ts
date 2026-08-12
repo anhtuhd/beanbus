@@ -9,6 +9,7 @@ test('admin order action authorizes and uses only the audited status RPC', () =>
   const authorization = actionSource.indexOf('await requireAdmin()');
   const rpc = actionSource.indexOf("supabase.rpc('update_order_status'");
   assert.ok(authorization >= 0 && authorization < rpc);
+  assert.match(actionSource, /try \{[\s\S]*supabase\.rpc\('update_order_status'[\s\S]*catch \{/);
   assert.doesNotMatch(actionSource, /\.update\(/);
   assert.doesNotMatch(actionSource, /payment_status\s*:/);
   assert.match(actionSource, /revalidatePath\('\/admin\/orders'\)/);
