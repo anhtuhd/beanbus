@@ -65,7 +65,7 @@
 - [ ] Khi bật password auth, bật Supabase Auth `Require current password when changing password` và smoke mật khẩu sai/đúng trên hosted.
 - [x] Migration/functions notification đã được cấu hình với Vault, `verify_jwt=false` và endpoint production; Resend DNS/webhook còn chờ owner hoàn tất/allowlist smoke test.
 - [ ] Redeploy `dispatch-notification-emails` từ source mới sau khi cấu hình `SUPABASE_ACCESS_TOKEN` cục bộ; không bật email mode trước khi hoàn tất.
-- [ ] Smoke accepted/delivered/bounced/complained, unsubscribe và realtime bằng hai email test.
+- [x] Resend accepted smoke tới hai email test và worker production `disabled=true` đã xác nhận; delivered/bounced/complained, unsubscribe và realtime vẫn chờ mailbox/provider dashboard.
 - [ ] Chỉ bật `NEXT_PUBLIC_ENABLE_NOTIFICATIONS` và `NOTIFICATION_EMAIL_MODE` sau staging sign-off.
 
 ## 0. Tạm dừng Phone OTP/Zalo

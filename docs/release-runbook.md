@@ -115,7 +115,7 @@ Verify the result from a service-role-only session, then sign in again with that
 - Booking, contact, RSVP, and B2B submissions return a reference that staff can locate; new booking/contact submissions create in-app notifications for admins.
 - An authorized admin can search and transition permitted records; a non-admin receives a forbidden response.
 - An authorized admin can open `/admin/policies`, configure voucher/loyalty/refund behavior, and refund an eligible paid SePay order within the configured window.
-- Resend email delivery remains pending until the owner completes sender/allowlist and accepted/delivered/bounced/complained smoke. Request `notification_status=not_configured` remains a legacy delivery field and is not the notification-center KPI.
+- Resend API đã chấp nhận smoke send tới hai Gmail test; worker vẫn trả `disabled=true` khi feature flag tắt. Email delivery vẫn pending cho tới khi owner xác minh mailbox, accepted/delivered/bounced/complained, webhook và unsubscribe. Request `notification_status=not_configured` remains a legacy delivery field and is not the notification-center KPI.
 
 ## Rollback and Incidents
 
