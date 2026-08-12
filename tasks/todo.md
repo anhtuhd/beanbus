@@ -26,7 +26,7 @@
 - [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; remote khớp đủ `44/44` migration tới `20260812050000_staff_request_notifications.sql`, remote lint warning pass.
 - [x] Apply `20260811120000_fix_loyalty_redemption_collision.sql` lên remote sau khi CI database xác nhận xanh.
 - [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration loyalty/content/SePay/flash-sale; advisor multiple-permissive-policy vẫn là backlog maintainability.
-- [x] GitHub run `31612145530` trên `384f095` completed successfully; quality, database và E2E đều xanh.
+- [x] GitHub run `31616758345` trên `acfd2c5` completed successfully; quality, database và toàn bộ E2E đều xanh. Demo E2E dùng webpack/webpack-only CI server và assertion redirect chịu cold start.
 
 ## 0B. Performance/UX hardening
 
@@ -184,7 +184,7 @@
 - [ ] Không còn finding P0/P1 mở.
 - [ ] Phone/Zalo và stored-value xác nhận vẫn tắt ở UI lẫn remote execution; Zalo cron đã xác nhận `0`, còn Auth Provider/Hook và Vercel flags cần owner kiểm tra.
 - [ ] Google login/logout/profile/admin role smoke pass bằng tài khoản thật.
-- [x] Lint, typecheck, 295/295 unit-contract tests, build và pgTAP local `385/385` pass; GitHub CI run `31612145530` của commit `384f095` completed/success. Hosted Google OAuth thật và owner sign-off còn thiếu.
+- [x] Lint, typecheck, 295/295 unit-contract tests, build và pgTAP local `385/385` pass; GitHub CI run `31616758345` của commit `acfd2c5` completed/success ở quality, database và E2E. Hosted Google OAuth thật và owner sign-off còn thiếu.
 - [ ] Sepay webhook + reconciliation live smoke pass nếu bật payment.
 - [ ] Monitoring, backup, rollback và incident contacts đã được thử.
 - [ ] Owner ký xác nhận staging ở desktop/mobile.
