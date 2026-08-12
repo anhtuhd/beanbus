@@ -17,7 +17,7 @@
 - [x] SePay confirmation giảm polling khi tab ẩn, backoff tối đa 30 giây và refresh ngay khi tab được focus.
 - [x] CSP report-only production không còn `unsafe-eval`; chỉ development mới bật để hỗ trợ Next dev.
 - [ ] Chưa bật Cloudflare reverse proxy trước Vercel. Nếu cần CDN ảnh, ưu tiên Cloudflare Images hoặc R2 với `images.beanbus.store`; không chuyển `www.beanbus.store` qua proxy trước khi đo latency/cache.
-- [ ] Cần apply migration `20260812043000_fix_notification_preference_lint.sql` trên Supabase remote, sau đó chạy lại `db lint`.
+- [x] Đã apply migration `20260812043000_fix_notification_preference_lint.sql` trên Supabase remote; migration list khớp và `db lint --level warning --fail-on warning` trả `No schema errors found`.
 
 ## 1. Mục tiêu gần nhất
 
@@ -60,7 +60,7 @@ Kết quả local tại thời điểm review:
 - Cảnh báo React dev `Encountered a script tag while rendering React component` được xác minh là cảnh báo development khi render native JSON-LD; Next.js 16 vẫn khuyến nghị native JSON-LD script cho structured data. Production build đã kiểm tra trực tiếp, không có console warning hoặc page error, nên giữ nguyên cách triển khai hiện tại.
 - `npm audit --omit=dev --audit-level=high`: 0 vulnerability.
 - Đã gọi `npm run db:lint` và `npm run db:test`, nhưng cả hai bị chặn: máy không có Docker/Postgres local và Supabase CLI không kết nối được `127.0.0.1:54322`; pgTAP chưa được thực thi runtime.
-- Đã dùng Supabase CLI với connection string đã cấu hình để apply migration commerce policy, SePay order expiry và hai migration mới `20260812023335_retry_rejected_sepay_payment_events.sql`, `20260812040545_notification_center.sql`. Remote đã xác minh có đủ bảng notification/outbox, cron worker và Realtime publication; CLI chỉ cảnh báo không có Docker để cache catalog cục bộ. Remote `db lint --fail-on error` trước đó trả `No schema errors found`; pgTAP policy chưa chạy được trên máy vì thiếu Docker/psql.
+- Đã dùng Supabase CLI với connection string đã cấu hình để apply migration commerce policy, SePay order expiry, notification center và `20260812043000_fix_notification_preference_lint.sql`. Remote đã xác minh migration inventory khớp đủ tới migration mới nhất, có bảng notification/outbox, cron worker và Realtime publication; `db lint --level warning --fail-on warning` trả `No schema errors found`. CLI chỉ cảnh báo không có Docker để cache catalog cục bộ; pgTAP runtime local vẫn chờ Docker/Postgres.
 - GitHub Actions runs `31462882057` và `31463311264` đều `completed successfully`; local `npm test` hiện 289/289 pass và full Playwright E2E 33/43 pass với 10 test production/provider được skip; full hosted OAuth vẫn chưa test.
 
 Các increment đã triển khai local: Google-only login UI và auth E2E, loyalty reversal forward migration, redemption idempotency key ổn định qua retry, RPC chống collision khác user, RPC phân trang request `UNION ALL` có total count/RLS, first-admin/release runbook, voucher reservation lifecycle, commerce policy có audit và RPC hoàn tiền SePay theo thời hạn, form CAPTCHA feature-gate, RSVP modal ổn định ngoài card hover, và SePay API v2 reconciliation feature-gated. Provider, hosted user smoke, Gmail notification transport và live payment smoke vẫn chưa hoàn tất.
@@ -88,7 +88,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 
 1. **Loyalty reversal đã có forward fix và remote lint đã pass, nhưng chưa có runtime/pgTAP sign-off.** `apply_loyalty_for_order()` hiện xử lý reversal độc lập với policy hiện tại; pgTAP regression đã thêm cho chuỗi disable policy -> cancel/refund. Chưa coi là đóng trước production cho tới khi chạy trên schema sạch và remote test account.
 2. **Voucher/loyalty/refund policy đã có màn admin và migration remote.** Mặc định consume khi SePay paid/COD completed, release khi cancel/payment failed/refund; admin có thể đổi hành vi release/consume, bật/tắt refund, đặt cửa sổ 1–720 giờ và bật/tắt reversal điểm. Cần pgTAP/runtime sign-off và owner xác nhận bằng văn bản.
-3. **Remote inventory đã được reconcile và apply.** 38 migration đã khớp remote tới `20260811120000`; `db lint` sau migration không có schema error. Vẫn cần RLS/runtime smoke bằng tài khoản thật và backup/restore sign-off.
+3. **Remote inventory đã được reconcile và apply.** Remote đã khớp migration tới `20260812043000`; `db lint` ở mức warning không còn schema error/warning. Vẫn cần RLS/runtime smoke bằng tài khoản thật và backup/restore sign-off.
 
 ### P1 - Phải hoàn thành trước mở traffic thật
 
@@ -124,7 +124,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 - Google Console dùng Supabase callback `https://<project-ref>.supabase.co/auth/v1/callback`; Supabase Redirect URLs cho phép `https://www.beanbus.store/auth/callback` và URL preview được duyệt.
 - [x] Ẩn phone form khi feature bị tắt; thêm test cho login Google-only.
 - Test Gmail mới: login, profile auto-create, account access, logout, login lại; test member bị chặn admin.
-- [x] Dùng Supabase CLI với connection string được cấp, so sánh đủ 38 migration và apply các forward migration đã review; migration cuối sửa collision loyalty; `db lint` remote pass và hai Zalo cron vẫn được pause.
+- [x] Dùng Supabase CLI với connection string được cấp, so sánh migration inventory và apply các forward migration đã review tới `20260812043000`; `db lint` remote pass và hai Zalo cron vẫn được pause.
 
 **Exit criteria:** Một tài khoản Gmail thật hoàn thành account flow; phone/Zalo không còn UI hay remote execution; có migration inventory được lưu trong checklist phát hành.
 

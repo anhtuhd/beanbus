@@ -53,7 +53,7 @@ The database checks require Docker and the Supabase CLI. Hosted database verific
 
    Stop when the remote history contains drift that is not explained by a reviewed migration.
 3. Apply the reviewed migrations with `npm run db:push` against the linked hosted project.
-   Current hosted record (2026-08-11): the remote inventory contains 39 applied migrations through `20260811133000_commerce_policy.sql`. GitHub runs `31462882057` and `31463311264` passed quality, database, E2E and live-smoke checks. Remote `db lint --fail-on error` passes with no schema errors. The latest policy migration adds audited admin configuration for voucher lifecycle, loyalty reversal, refund window/enablement, and a protected SePay refund RPC. The CLI emitted a Docker catalog-cache warning after the successful remote apply; it does not invalidate the migration result.
+   Current hosted record (2026-08-12): the remote inventory matches local migrations through `20260812043000_fix_notification_preference_lint.sql`. Remote `db lint --level warning --fail-on warning` passes with `No schema errors found`. The CLI emitted only a Docker catalog-cache warning after the successful remote apply; it does not invalidate the migration result. Local pgTAP still requires Docker/Postgres.
 4. Verify RLS, role membership, protected RPC transitions, and audit rows with an admin and a non-admin account.
 5. Deploy the application with the production environment variables above.
    Current check (2026-08-11): Vercel redeployed production from `origin/main` without merging the current branch's Zalo changes. Login HTML exposes `phoneEnabled=false` and `googleEnabled=true`; stored-value is false and SePay is true.

@@ -23,7 +23,7 @@
 - [x] `npm audit --omit=dev --audit-level=high` báo 0 vulnerability.
 - [x] Production build đã kiểm tra console/page error: không còn cảnh báo JSON-LD; cảnh báo native script chỉ xuất hiện trong React development overlay và phù hợp với khuyến nghị JSON-LD của Next.js.
 - [ ] Chạy `npm run db:lint` và `npm run db:test` trên Docker-compatible Supabase runtime (đã thử local; hiện bị `ECONNREFUSED 127.0.0.1:54322` vì chưa có Docker/Postgres).
-- [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; remote đã có 39 migration tới `20260811133000_commerce_policy.sql`.
+- [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; remote đã khớp migration tới `20260812043000_fix_notification_preference_lint.sql`.
 - [x] Apply `20260811120000_fix_loyalty_redemption_collision.sql` lên remote sau khi CI database xác nhận xanh.
 - [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration loyalty/content/SePay/flash-sale; advisor multiple-permissive-policy vẫn là backlog maintainability.
 - [x] GitHub run `31462882057` trên `8d55557` completed successfully; quality, database và E2E đều xanh. Lỗi collision của run `31462604288` đã có assertion cụ thể và được sửa.
@@ -36,7 +36,7 @@
 - [x] SePay payment confirmation pause/backoff polling khi tab ẩn và refresh khi quay lại.
 - [x] CSP production report-only loại `unsafe-eval`; chưa chuyển sang enforce cho tới khi review browser reports.
 - [ ] Cloudflare Images/R2 là lựa chọn CDN ảnh tương lai; chưa cần cài package. Giữ Vercel làm host app và chỉ thêm `images.beanbus.store` sau khi có Cloudflare account, bucket/Images delivery URL và DNS.
-- [ ] Apply `20260812043000_fix_notification_preference_lint.sql` lên Supabase remote và chạy lại remote lint.
+- [x] Apply `20260812043000_fix_notification_preference_lint.sql` lên Supabase remote; remote lint ở mức warning pass không còn schema warning.
 
 ## 0A. Notification/Resend hardening
 
