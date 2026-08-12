@@ -5,6 +5,10 @@ on:
     branches: [main]
   push:
     branches: [main, 'codex/**']
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'tasks/**'
   workflow_dispatch:
     inputs:
       production_base_url:

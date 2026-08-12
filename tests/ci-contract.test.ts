@@ -12,6 +12,10 @@ const productionLiveE2e = fs.readFileSync('tests/e2e/production-live.spec.ts', '
 
 test('CI quality job runs the committed quality gates', () => {
   assert.match(workflow, /push:\n    branches: \[main, 'codex\/\*\*'\]/);
+  assert.match(workflow, /paths-ignore:/);
+  assert.match(workflow, /- '\*\*\/\*\.md'/);
+  assert.match(workflow, /- 'docs\/\*\*'/);
+  assert.match(workflow, /- 'tasks\/\*\*'/);
   assert.match(workflow, /actions\/checkout@v6/);
   assert.match(workflow, /actions\/setup-node@v6/);
   assert.match(workflow, /npm ci/);
