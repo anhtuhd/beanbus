@@ -10,7 +10,7 @@
 
 - [x] `npm run lint` pass.
 - [x] `npx tsc --noEmit` pass.
-- [x] `npm test` pass 294/294.
+- [x] `npm test` pass 295/295.
 - [x] `npm run build` pass.
 - [x] `npm run test:e2e:auth` pass 4/4 với Google enabled và phone disabled ở 375/768/1440px.
 - [x] `npm run test:e2e` pass 30/40; 10 suite production/provider được skip đúng khi thiếu credential.
@@ -149,6 +149,7 @@
 - [ ] Cấu hình IP allowlist cho webhook ở lớp edge/firewall phù hợp.
 - [x] Cấp SePay API v2 token và tạo `CRON_SECRET` dạng Hidden trong Vercel Production; không ghi secret vào repository.
 - [x] Thêm job reconciliation mỗi 15 phút với API v2, text provider key, lease, cursor/checkpoint, idempotent replay và structured event counters; migration hosted đã áp dụng.
+- [x] Thêm workflow GitHub external scheduler `*/15 * * * *`, guarded bởi `SEPAY_RECONCILIATION_ENABLED`; nhận `BEANBUS_CRON_SECRET` qua production Environment và không tự bật.
 - [ ] Nâng Vercel lên Pro hoặc cấu hình external scheduler tương đương; Hobby không cho cron `*/15 * * * *`, nên giữ reconciliation flag tắt để không bỏ sót giao dịch.
 - [x] Reconciliation không tiến checkpoint qua transaction mang mã Beanbus nhưng malformed; giao dịch ngân hàng không liên quan vẫn được bỏ qua an toàn.
 - [x] Cleanup pending SePay payment hết hạn và nối với voucher release; pending COD timeout còn chờ policy.
@@ -183,7 +184,7 @@
 - [ ] Không còn finding P0/P1 mở.
 - [ ] Phone/Zalo và stored-value xác nhận vẫn tắt ở UI lẫn remote execution; Zalo cron đã xác nhận `0`, còn Auth Provider/Hook và Vercel flags cần owner kiểm tra.
 - [ ] Google login/logout/profile/admin role smoke pass bằng tài khoản thật.
-- [x] Lint, typecheck, 294/294 unit-contract tests, build và pgTAP local `385/385` pass; GitHub CI run `31612145530` của commit `384f095` completed/success. Hosted Google OAuth thật và owner sign-off còn thiếu.
+- [x] Lint, typecheck, 295/295 unit-contract tests, build và pgTAP local `385/385` pass; GitHub CI run `31612145530` của commit `384f095` completed/success. Hosted Google OAuth thật và owner sign-off còn thiếu.
 - [ ] Sepay webhook + reconciliation live smoke pass nếu bật payment.
 - [ ] Monitoring, backup, rollback và incident contacts đã được thử.
 - [ ] Owner ký xác nhận staging ở desktop/mobile.

@@ -1,0 +1,57 @@
+name: SePay reconciliation
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      run:
+        description: 'Run one reconciliation now'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sepay-reconciliation-production
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    if: ${{ (github.event_name == 'schedule' && vars.SEPAY_RECONCILIATION_ENABLED == 'true') || (github.event_name == 'workflow_dispatch' && inputs.run == true) }}
+    environment: production
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate production endpoint and secret
+        env:
+          RECONCILIATION_URL: ${{ vars.SEPAY_RECONCILIATION_URL || 'https://www.beanbus.store/api/cron/sepay-reconciliation' }}
+          CRON_SECRET: ${{ secrets.BEANBUS_CRON_SECRET }}
+        run: |
+          set -eu
+          case "$RECONCILIATION_URL" in
+            https://*) ;;
+            *) echo 'SEPAY_RECONCILIATION_URL must use HTTPS' >&2; exit 1 ;;
+          esac
+          test -n "$CRON_SECRET"
+
+      - name: Run reconciliation
+        env:
+          RECONCILIATION_URL: ${{ vars.SEPAY_RECONCILIATION_URL || 'https://www.beanbus.store/api/cron/sepay-reconciliation' }}
+          CRON_SECRET: ${{ secrets.BEANBUS_CRON_SECRET }}
+        run: |
+          set -eu
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"' EXIT
+          status="$(curl --silent --show-error --max-time 20 --retry 2 --retry-delay 2 \
+            --output "$response_file" --write-out '%{http_code}' \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H 'Cache-Control: no-store' \
+            "$RECONCILIATION_URL")"
+          cat "$response_file"
+          case "$status" in
+            200|409) ;;
+            *) echo "reconciliation returned HTTP $status" >&2; exit 1 ;;
+          esac

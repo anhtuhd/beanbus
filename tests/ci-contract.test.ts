@@ -4,6 +4,7 @@ import fs from 'node:fs';
 
 const workflow = fs.readFileSync('.github/workflows/ci.yml', 'utf8');
 const functionDeployWorkflow = fs.readFileSync('.github/workflows/deploy-supabase-functions.yml', 'utf8');
+const sepayReconciliationWorkflow = fs.readFileSync('.github/workflows/sepay-reconciliation.yml', 'utf8');
 const playwrightConfig = fs.readFileSync('playwright.config.ts', 'utf8');
 const packageJson = fs.readFileSync('package.json', 'utf8');
 const productionRequestsE2e = fs.readFileSync('tests/e2e/customer-requests-production.spec.ts', 'utf8');
@@ -80,4 +81,14 @@ test('Supabase function deployment is manual, scoped, and secret-backed', () => 
   assert.match(functionDeployWorkflow, /resend-webhook/);
   assert.match(functionDeployWorkflow, /email-unsubscribe/);
   assert.match(functionDeployWorkflow, /environment: production/);
+});
+
+test('SePay reconciliation has a disabled-by-default external scheduler', () => {
+  assert.match(sepayReconciliationWorkflow, /schedule:\n    - cron: ['"]\*\/15 \* \* \* \*['"]/);
+  assert.match(sepayReconciliationWorkflow, /workflow_dispatch:/);
+  assert.match(sepayReconciliationWorkflow, /SEPAY_RECONCILIATION_ENABLED == ['"]true['"]/);
+  assert.match(sepayReconciliationWorkflow, /BEANBUS_CRON_SECRET/);
+  assert.match(sepayReconciliationWorkflow, /Authorization: Bearer \$CRON_SECRET/);
+  assert.match(sepayReconciliationWorkflow, /https:\/\/www\.beanbus\.store\/api\/cron\/sepay-reconciliation/);
+  assert.doesNotMatch(sepayReconciliationWorkflow, /NEXT_PUBLIC_ENABLE_SEPAY.*true/);
 });

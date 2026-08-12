@@ -48,7 +48,7 @@ Kết quả local tại thời điểm review:
 
 - `npm run lint`: pass.
 - `npx tsc --noEmit`: pass.
-- `npm test`: 294/294 pass.
+- `npm test`: 295/295 pass.
 - `npm run build`: pass.
 - `npm run test:e2e:auth`: 4/4 pass với Google enabled và phone disabled ở 375/768/1440px; chưa thực hiện OAuth Gmail thật.
 - `npm run test:e2e`: 33/43 pass; 10 production/provider tests skipped vì chưa có hosted credentials, trong đó live smoke được chạy riêng khi có `PLAYWRIGHT_LIVE=true`.
@@ -64,7 +64,7 @@ Kết quả local tại thời điểm review:
 - Đã cài Docker CLI, Colima và `libpq`/`psql`; Colima đang cung cấp Docker runtime cho Supabase local. `npx supabase db lint --local --level warning --fail-on warning` trả `No schema errors found`.
 - Đã dùng Supabase CLI với connection string đã cấu hình để apply migration commerce policy, SePay order expiry, notification center, notification lint và fan-out staff request. Remote đã xác minh migration inventory khớp `44/44`, trigger booking/customer, bảng notification/outbox, notification worker cron và Realtime publication; `db lint --level warning --fail-on warning` trả `No schema errors found`.
 - pgTAP local trên schema sạch đã pass `24` file, `385/385` tests; smoke transaction trên remote xác nhận booking/contact tạo notification admin và rollback sạch.
-- GitHub Actions run `31612145530` trên `384f095` đã completed/success ở quality, database và E2E. Local hiện pass `npm test` 294/294, pgTAP 385/385 và build. Gmail OAuth callback thật vẫn chưa test.
+- GitHub Actions run `31612145530` trên `384f095` đã completed/success ở quality, database và E2E. Local hiện pass `npm test` 295/295, pgTAP 385/385 và build. Gmail OAuth callback thật vẫn chưa test.
 
 Các increment đã triển khai local: Google-only login UI và auth E2E, loyalty reversal forward migration, redemption idempotency key ổn định qua retry, RPC chống collision khác user, RPC phân trang request `UNION ALL` có total count/RLS, first-admin/release runbook, voucher reservation lifecycle, commerce policy có audit và RPC hoàn tiền SePay theo thời hạn, form CAPTCHA feature-gate, RSVP modal ổn định ngoài card hover, SePay API v2 reconciliation feature-gated, và notification fan-out cho admin khi có booking/contact mới. Provider, hosted user smoke, Gmail/Resend delivery và live payment smoke vẫn chưa hoàn tất.
 
@@ -99,7 +99,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 2. **Hai voucher seed đang active không thời hạn.** Read-only remote check xác nhận `BEANBUS10` (limit 1000) và `WELCOMEVIP` (limit 500) đều `is_active=true` và không có cửa sổ thời gian; chúng có thể trở thành khuyến mãi production ngoài ý muốn. Chủ dự án phải phê duyệt hoặc tắt bằng forward migration.
 3. **Google happy path chưa được kiểm thử bằng Gmail thật.** E2E local và production HTML đã xác nhận Google-only UI; vẫn chưa chứng minh Gmail mới tạo `auth.users`, `profiles`, session và logout đúng.
 4. **Tắt flag phone chưa đủ để dừng toàn bộ Zalo remote.** Hai cron đã được xác nhận không active sau migration pause, nhưng owner vẫn phải kiểm tra Phone provider và Send SMS Hook trên Supabase Dashboard.
-5. **SePay webhook production đang bật nhưng reconciliation cron đang tắt.** Vercel Hobby từ chối lịch `*/15 * * * *`; không đổi thành lịch mỗi ngày vì có thể bỏ sót cửa sổ thanh toán. `SEPAY_API_KEY` và `CRON_SECRET` đã nằm trong Vercel secret store, còn chờ Vercel Pro hoặc external scheduler trước khi deploy route reconciliation. SePay khuyến nghị đối soát 15-30 phút/lần: [bảo mật webhook](https://developer.sepay.vn/vi/sepay-webhooks/bao-mat), [API giao dịch v2](https://developer.sepay.vn/vi/sepay-api/v2/giao-dich/danh-sach).
+5. **SePay webhook production đang bật nhưng reconciliation cron đang tắt.** Vercel Hobby từ chối lịch `*/15 * * * *`; không đổi thành lịch mỗi ngày vì có thể bỏ sót cửa sổ thanh toán. `SEPAY_API_KEY` và `CRON_SECRET` đã nằm trong Vercel secret store; route và workflow external scheduler đã có, còn chờ cấu hình/enable có chủ ý. SePay khuyến nghị đối soát 15-30 phút/lần: [bảo mật webhook](https://developer.sepay.vn/vi/sepay-webhooks/bao-mat), [API giao dịch v2](https://developer.sepay.vn/vi/sepay-api/v2/giao-dich/danh-sach).
 6. **Anonymous mutation đã có Turnstile feature-gate ở local.** Booking/contact/order gọi Cloudflare Siteverify trước khi ghi khi `NEXT_PUBLIC_ENABLE_FORM_CAPTCHA=true`; production vẫn cần owner cấp key, bật flag và kiểm tra abuse/alert.
 7. **In-app notification cho staff request đã hoàn tất.** Trigger booking/contact fan-out notification và email outbox transactional cho admin; email chưa gửi khi feature flag tắt, còn cần Resend sender/allowlist và delivery smoke. `notification_status` của request vẫn là trạng thái delivery legacy, không dùng làm KPI notification center.
 
@@ -165,6 +165,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 - Chạy pgTAP order/payment và E2E pickup, delivery, COD, SePay trên hosted Supabase.
 - Live smoke với số tiền nhỏ: đúng `DH_<mã hóa đơn>`, đúng account/amount/direction, duplicate webhook không tạo side effect.
 - [x] Thêm SePay API v2 reconciliation 15 phút/lần, cursor/checkpoint, lease, idempotent replay, secret server-only, đúng định dạng ngày giờ Việt Nam và structured log counters cho completion/gap. Hosted migration đã áp dụng; còn cần token, dashboard/alert wiring và live verification.
+- [x] Chuẩn bị GitHub Actions external scheduler `*/15 * * * *` với HTTPS endpoint, cron secret qua production Environment và feature gate; workflow không chạy khi `SEPAY_RECONCILIATION_ENABLED` chưa bật.
 - Thêm IP allowlist ở edge/firewall khi hạ tầng hỗ trợ, vẫn giữ HMAC/timestamp/data validation là bắt buộc.
 - [x] Thêm cleanup pending SePay payment hết hạn và nối với voucher release trigger; pending COD vẫn cần owner chốt timeout vận hành.
 
@@ -240,7 +241,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 Một task chỉ được đánh dấu hoàn thành khi:
 
 - Có test behavior phù hợp; thay đổi DB có pgTAP và migration forward-only.
-- `npm run lint`, `npx tsc --noEmit`, `npm test` (294/294), `npm run build`, pgTAP local (385/385), live smoke production (1/1) và GitHub CI run `31612145530` trên `384f095` pass.
+- `npm run lint`, `npx tsc --noEmit`, `npm test` (295/295), `npm run build`, pgTAP local (385/385), live smoke production (1/1) và GitHub CI run `31612145530` trên `384f095` pass.
 - Luồng UI bị ảnh hưởng được test keyboard và mobile; không có loading/error/empty state giả.
 - Auth/RLS/ownership được kiểm thử bằng ít nhất hai user khác nhau.
 - Payment/points/voucher mutation idempotent, auditable và không log secret/OTP/full PII.
