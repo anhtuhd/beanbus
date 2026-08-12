@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { AppMode } from '@/lib/env';
 
 export interface StoreSettings {
   address: string;
@@ -73,12 +74,14 @@ const DEFAULT_FLASH_SALES: FlashSalePackage[] = [
 
 const StoreSettingsContext = createContext<StoreSettingsContextType | undefined>(undefined);
 
-export const StoreSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const StoreSettingsProvider: React.FC<{ children: React.ReactNode; mode?: AppMode }> = ({ children, mode = 'demo' }) => {
+  const isDemo = mode === 'demo';
   const [settings, setSettings] = useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
   const [flashSales, setFlashSales] = useState<FlashSalePackage[]>(DEFAULT_FLASH_SALES);
 
   /* eslint-disable react-hooks/set-state-in-effect -- Prototype settings hydrate from browser storage until server persistence lands. */
   useEffect(() => {
+    if (!isDemo) return;
     try {
       const savedSettings = localStorage.getItem('beanbus_store_settings');
       if (savedSettings) {
@@ -96,10 +99,11 @@ export const StoreSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
     } catch (e) {
       console.error('Error loading store settings or flash sales from localStorage:', e);
     }
-  }, []);
+  }, [isDemo]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const updateSettings = (partial: Partial<StoreSettings & { cashbackPercent: number }>) => {
+    if (!isDemo) return;
     setSettings((prev) => {
       const updated = { ...prev, ...partial };
       try {
@@ -117,6 +121,7 @@ export const StoreSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
       id: `flash-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       soldQuantity: 0,
     };
+    if (!isDemo) return newPackage;
 
     setFlashSales((prev) => {
       const updated = [...prev, newPackage];
@@ -132,6 +137,7 @@ export const StoreSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const updateFlashSale = (id: string, updates: Partial<FlashSalePackage>) => {
+    if (!isDemo) return;
     setFlashSales((prev) => {
       const updated = prev.map((item) => (item.id === id ? { ...item, ...updates } : item));
       try {
@@ -144,6 +150,7 @@ export const StoreSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const deleteFlashSale = (id: string) => {
+    if (!isDemo) return;
     setFlashSales((prev) => {
       const updated = prev.filter((item) => item.id !== id);
       try {

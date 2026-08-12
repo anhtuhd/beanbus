@@ -10,7 +10,7 @@
 
 - [x] `npm run lint` pass.
 - [x] `npx tsc --noEmit` pass.
-- [x] `npm test` pass 290/290.
+- [x] `npm test` pass 293/293.
 - [x] `npm run build` pass.
 - [x] `npm run test:e2e:auth` pass 4/4 với Google enabled và phone disabled ở 375/768/1440px.
 - [x] `npm run test:e2e` pass 30/40; 10 suite production/provider được skip đúng khi thiếu credential.
@@ -36,6 +36,7 @@
 - [x] SePay payment confirmation pause/backoff polling khi tab ẩn và refresh khi quay lại.
 - [x] CSP production report-only loại `unsafe-eval`; chưa chuyển sang enforce cho tới khi review browser reports.
 - [x] Notification history có pagination 50 dòng/lần, trạng thái loading/error và RLS theo người nhận; production revision `c7643fd379ec` đã xác nhận.
+- [x] Provider demo toàn cục nhận `appMode`; production bỏ qua hydrate/persist fixtures orders, bookings, settings và flash-sale khỏi `localStorage`.
 - [ ] Cloudflare Images/R2 là lựa chọn CDN ảnh tương lai; chưa cần cài package. Giữ Vercel làm host app và chỉ thêm `images.beanbus.store` sau khi có Cloudflare account, bucket/Images delivery URL và DNS.
 - [x] Apply `20260812043000_fix_notification_preference_lint.sql` lên Supabase remote; remote lint ở mức warning pass không còn schema warning.
 
@@ -177,7 +178,7 @@
 - [ ] Không còn finding P0/P1 mở.
 - [ ] Phone/Zalo và stored-value xác nhận vẫn tắt ở UI lẫn remote execution; Zalo cron đã xác nhận `0`, còn Auth Provider/Hook và Vercel flags cần owner kiểm tra.
 - [ ] Google login/logout/profile/admin role smoke pass bằng tài khoản thật.
-- [x] Lint, typecheck, 289/289 unit-contract tests, build và full E2E demo (33 pass, 10 production/provider skip) đã xanh; pgTAP policy cần Docker/psql runtime, hosted Google/RLS smoke và owner sign-off còn thiếu.
+- [x] Lint, typecheck, 293/293 unit-contract tests, build và full E2E demo (33 pass, 10 production/provider skip) đã xanh; pgTAP policy cần Docker/psql runtime, hosted Google/RLS smoke và owner sign-off còn thiếu.
 - [ ] Sepay webhook + reconciliation live smoke pass nếu bật payment.
 - [ ] Monitoring, backup, rollback và incident contacts đã được thử.
 - [ ] Owner ký xác nhận staging ở desktop/mobile.

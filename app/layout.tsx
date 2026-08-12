@@ -112,8 +112,8 @@ export default function RootLayout({
         />
         <LanguageProvider>
           <AuthProvider mode={appMode}>
-            <StoreSettingsProvider>
-              <OrderProvider>
+            <StoreSettingsProvider mode={appMode}>
+              <OrderProvider mode={appMode}>
                 <CartProvider>
                   <Header />
                   <main style={{ paddingTop: '78px' }}>

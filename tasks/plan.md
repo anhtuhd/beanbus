@@ -2,7 +2,7 @@
 
 **Cập nhật:** 2026-08-12
 
-**Trạng thái:** Performance hardening đã triển khai local và đang chờ push/deploy; notification/Resend vẫn giữ email tắt chờ smoke test
+**Trạng thái:** Performance hardening đã triển khai và kiểm thử local; notification/Resend vẫn giữ email tắt chờ smoke test
 
 **Phạm vi hiện tại:** Dùng Google OAuth để tạo/đăng nhập tài khoản hội viên; tạm dừng Phone OTP/Zalo; bật SePay webhook đơn hàng; giữ reconciliation, stored-value và flash-sale ở trạng thái tắt. Cloudflare CDN/R2/Images chưa bật; giữ domain chính đi thẳng Vercel.
 
@@ -17,6 +17,7 @@
 - [x] SePay confirmation giảm polling khi tab ẩn, backoff tối đa 30 giây và refresh ngay khi tab được focus.
 - [x] CSP report-only production không còn `unsafe-eval`; chỉ development mới bật để hỗ trợ Next dev.
 - [x] Production Vercel revision `c7643fd379ec` đã nhận pagination commit; `/menu` trả `x-nextjs-prerender: 1`, stale-time `300` và CSP production đúng policy.
+- [x] Provider demo toàn cục nhận `appMode`; production không hydrate/persist orders, bookings, settings hoặc flash-sale fixtures từ `localStorage`.
 - [ ] Chưa bật Cloudflare reverse proxy trước Vercel. Nếu cần CDN ảnh, ưu tiên Cloudflare Images hoặc R2 với `images.beanbus.store`; không chuyển `www.beanbus.store` qua proxy trước khi đo latency/cache.
 - [x] Đã apply migration `20260812043000_fix_notification_preference_lint.sql` trên Supabase remote; migration list khớp và `db lint --level warning --fail-on warning` trả `No schema errors found`.
 
@@ -47,7 +48,7 @@ Kết quả local tại thời điểm review:
 
 - `npm run lint`: pass.
 - `npx tsc --noEmit`: pass.
-- `npm test`: 290/290 pass.
+- `npm test`: 293/293 pass.
 - `npm run build`: pass.
 - `npm run test:e2e:auth`: 4/4 pass với Google enabled và phone disabled ở 375/768/1440px; chưa thực hiện OAuth Gmail thật.
 - `npm run test:e2e`: 33/43 pass; 10 production/provider tests skipped vì chưa có hosted credentials, trong đó live smoke được chạy riêng khi có `PLAYWRIGHT_LIVE=true`.
@@ -62,7 +63,7 @@ Kết quả local tại thời điểm review:
 - `npm audit --omit=dev --audit-level=high`: 0 vulnerability.
 - Đã gọi `npm run db:lint` và `npm run db:test`, nhưng cả hai bị chặn: máy không có Docker/Postgres local và Supabase CLI không kết nối được `127.0.0.1:54322`; pgTAP chưa được thực thi runtime.
 - Đã dùng Supabase CLI với connection string đã cấu hình để apply migration commerce policy, SePay order expiry, notification center và `20260812043000_fix_notification_preference_lint.sql`. Remote đã xác minh migration inventory khớp đủ tới migration mới nhất, có bảng notification/outbox, cron worker và Realtime publication; `db lint --level warning --fail-on warning` trả `No schema errors found`. CLI chỉ cảnh báo không có Docker để cache catalog cục bộ; pgTAP runtime local vẫn chờ Docker/Postgres.
-- GitHub Actions runs `31462882057` và `31463311264` đều `completed successfully`; local `npm test` hiện 289/289 pass và full Playwright E2E 33/43 pass với 10 test production/provider được skip; full hosted OAuth vẫn chưa test.
+- GitHub Actions runs `31462882057` và `31463311264` đều `completed successfully`; local `npm test` hiện 293/293 pass và full Playwright E2E 33/43 pass với 10 test production/provider được skip; full hosted OAuth vẫn chưa test.
 
 Các increment đã triển khai local: Google-only login UI và auth E2E, loyalty reversal forward migration, redemption idempotency key ổn định qua retry, RPC chống collision khác user, RPC phân trang request `UNION ALL` có total count/RLS, first-admin/release runbook, voucher reservation lifecycle, commerce policy có audit và RPC hoàn tiền SePay theo thời hạn, form CAPTCHA feature-gate, RSVP modal ổn định ngoài card hover, và SePay API v2 reconciliation feature-gated. Provider, hosted user smoke, Gmail notification transport và live payment smoke vẫn chưa hoàn tất.
 
@@ -233,7 +234,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 Một task chỉ được đánh dấu hoàn thành khi:
 
 - Có test behavior phù hợp; thay đổi DB có pgTAP và migration forward-only.
-- `npm run lint`, `npx tsc --noEmit`, `npm test` (289/289), `npm run build`, Playwright E2E demo (33 pass, 10 production/provider skip) pass; GitHub database/quality/E2E lịch sử vẫn xanh.
+- `npm run lint`, `npx tsc --noEmit`, `npm test` (293/293), `npm run build`, Playwright E2E demo (33 pass, 10 production/provider skip) pass; GitHub database/quality/E2E lịch sử vẫn xanh.
 - Luồng UI bị ảnh hưởng được test keyboard và mobile; không có loading/error/empty state giả.
 - Auth/RLS/ownership được kiểm thử bằng ít nhất hai user khác nhau.
 - Payment/points/voucher mutation idempotent, auditable và không log secret/OTP/full PII.

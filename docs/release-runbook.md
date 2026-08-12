@@ -55,7 +55,7 @@ The database checks require Docker and the Supabase CLI. Hosted database verific
 3. Apply the reviewed migrations with `npm run db:push` against the linked hosted project.
    Current hosted record (2026-08-12): the remote inventory matches local migrations through `20260812043000_fix_notification_preference_lint.sql`. Remote `db lint --level warning --fail-on warning` passes with `No schema errors found`. The CLI emitted only a Docker catalog-cache warning after the successful remote apply; it does not invalidate the migration result. Local pgTAP still requires Docker/Postgres.
 4. Verify RLS, role membership, protected RPC transitions, and audit rows with an admin and a non-admin account.
-5. Deploy the application with the production environment variables above.
+5. Deploy the application with the production environment variables above. Production provider contexts skip demo fixture hydration and browser persistence; server-owned Supabase data remains authoritative.
    Current check (2026-08-11): Vercel redeployed production from `origin/main` without merging the current branch's Zalo changes. Login HTML exposes `phoneEnabled=false` and `googleEnabled=true`; stored-value is false and SePay is true.
 6. Verify `GET /api/health` returns `200` with `{"status":"ok"}`, a usable `x-request-id`, and (on Vercel) a 12-character `revision` matching the deployed commit SHA prefix. Current production check passed on 2026-08-11 and returned `mode: production`.
 7. Configure the Sepay webhook URL and secret only after the deployed endpoint is reachable over HTTPS.

@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CartItem } from './CartContext';
 import { createDemoOrderCode } from '@/lib/orders/demo-order-code';
+import type { AppMode } from '@/lib/env';
 
 export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled';
 export type PaymentMethod = 'sepay_qr' | 'cod';
@@ -162,12 +163,14 @@ const INITIAL_BOOKINGS: Booking[] = [
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
-export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
-  const [bookings, setBookings] = useState<Booking[]>(INITIAL_BOOKINGS);
+export const OrderProvider: React.FC<{ children: React.ReactNode; mode?: AppMode }> = ({ children, mode = 'demo' }) => {
+  const isDemo = mode === 'demo';
+  const [orders, setOrders] = useState<Order[]>(() => (isDemo ? INITIAL_ORDERS : []));
+  const [bookings, setBookings] = useState<Booking[]>(() => (isDemo ? INITIAL_BOOKINGS : []));
 
   /* eslint-disable react-hooks/set-state-in-effect -- Prototype orders hydrate from browser storage until server persistence lands. */
   useEffect(() => {
+    if (!isDemo) return;
     try {
       const savedOrders = localStorage.getItem('beanbus_orders');
       if (savedOrders) setOrders(JSON.parse(savedOrders));
@@ -177,15 +180,17 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch (e) {
       console.error(e);
     }
-  }, []);
+  }, [isDemo]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const saveOrders = (newOrders: Order[]) => {
+    if (!isDemo) return;
     setOrders(newOrders);
     localStorage.setItem('beanbus_orders', JSON.stringify(newOrders));
   };
 
   const saveBookings = (newBookings: Booking[]) => {
+    if (!isDemo) return;
     setBookings(newBookings);
     localStorage.setItem('beanbus_bookings', JSON.stringify(newBookings));
   };
