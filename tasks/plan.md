@@ -1,6 +1,6 @@
 # Kế hoạch hoàn thiện Beanbus
 
-**Cập nhật:** 2026-08-12
+**Cập nhật:** 2026-08-13
 
 **Trạng thái:** Performance hardening và in-app notification đã triển khai, kiểm thử local/remote; email Resend vẫn giữ tắt chờ smoke test
 

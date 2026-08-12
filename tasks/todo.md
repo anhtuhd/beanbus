@@ -2,7 +2,7 @@
 
 **Plan:** `tasks/plan.md`
 
-**Cập nhật:** 2026-08-12
+**Cập nhật:** 2026-08-13
 
 **Ưu tiên hiện tại:** performance hardening deploy -> notification fan-out đã apply -> deploy Resend safely -> hosted member/admin smoke.
 
@@ -184,7 +184,7 @@
 - [ ] Không còn finding P0/P1 mở.
 - [ ] Phone/Zalo và stored-value xác nhận vẫn tắt ở UI lẫn remote execution; Zalo cron đã xác nhận `0`, còn Auth Provider/Hook và Vercel flags cần owner kiểm tra.
 - [ ] Google login/logout/profile/admin role smoke pass bằng tài khoản thật.
-- [x] Lint, typecheck, 295/295 unit-contract tests, build và pgTAP local `385/385` pass; GitHub CI run `31616758345` của commit `acfd2c5` completed/success ở quality, database và E2E. Hosted Google OAuth thật và owner sign-off còn thiếu.
+- [x] Lint, typecheck, 295/295 unit-contract tests, build và pgTAP local `385/385` pass; GitHub CI run `31621084519` của commit `6772ff5` completed/success ở quality, database và toàn bộ E2E. Hosted Google OAuth thật và owner sign-off còn thiếu.
 - [ ] Sepay webhook + reconciliation live smoke pass nếu bật payment.
 - [ ] Monitoring, backup, rollback và incident contacts đã được thử.
 - [ ] Owner ký xác nhận staging ở desktop/mobile.
