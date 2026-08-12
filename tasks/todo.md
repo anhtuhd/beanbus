@@ -38,7 +38,7 @@
 - [x] Notification history có pagination 50 dòng/lần, trạng thái loading/error và production deployment đã xác nhận qua health endpoint; RLS theo người nhận.
 - [x] Provider demo toàn cục nhận `appMode`; production bỏ qua hydrate/persist fixtures orders, bookings, settings và flash-sale khỏi `localStorage`.
 - [ ] Cloudflare Images/R2 là lựa chọn CDN ảnh tương lai; chưa cần cài package. Giữ Vercel làm host app và chỉ thêm `images.beanbus.store` sau khi có Cloudflare account, bucket/Images delivery URL và DNS.
-- [x] Apply `20260812043000_fix_notification_preference_lint.sql`, `20260812050000_staff_request_notifications.sql` và `20260813010000_notification_set_based_fanout.sql` lên Supabase remote; local lint warning pass, remote function/trigger/privilege smoke pass.
+- [x] Apply `20260812043000_fix_notification_preference_lint.sql`, `20260812050000_staff_request_notifications.sql` và `20260813010000_notification_set_based_fanout.sql` lên Supabase remote; local lint và remote `db lint --schema public` warning pass, function/trigger/privilege smoke pass.
 
 ## 0A. Notification/Resend hardening
 
@@ -173,7 +173,7 @@
 - [x] Thêm CSP dạng report-only với Cloudflare/Google/Supabase origins cần thiết; chuyển enforce sau browser report review.
 - [x] HSTS chỉ bật khi production site URL là HTTPS; hosted owner vẫn cần xác nhận subdomain policy.
 - [ ] Thay dần source-regex tests ở auth/payment/loyalty/voucher bằng behavior tests.
-- [x] Remote `db lint` trước migration fan-out không còn lỗi schema hoặc warning; migration fan-out mới đã qua local lint và remote helper/trigger/privilege smoke. Advisor multiple-permissive-policy để tối ưu sau khi correctness/runtime gate hoàn tất.
+- [x] Remote `db lint --schema public` không còn lỗi schema hoặc warning sau migration fan-out; advisor multiple-permissive-policy để tối ưu sau khi correctness/runtime gate hoàn tất.
 - [ ] Tách `AccountClient.tsx` theo tab sau khi correctness fixes đã merge.
 - [ ] Tách `HomeClient.tsx` và CSS lớn theo workflow khi có thay đổi chức năng liên quan.
 - [ ] Kiểm tra accessibility, Core Web Vitals và console/network errors trên staging (production build local đã sạch console; hosted staging vẫn cần kiểm tra).

@@ -62,7 +62,7 @@ Kết quả local tại thời điểm review:
 - Cảnh báo React dev `Encountered a script tag while rendering React component` được xác minh là cảnh báo development khi render native JSON-LD; Next.js 16 vẫn khuyến nghị native JSON-LD script cho structured data. Production build đã kiểm tra trực tiếp, không có console warning hoặc page error, nên giữ nguyên cách triển khai hiện tại.
 - `npm audit --omit=dev --audit-level=high`: 0 vulnerability.
 - Đã cài Docker CLI, Colima và `libpq`/`psql`; Colima đang cung cấp Docker runtime cho Supabase local. `npx supabase db lint --local --level warning --fail-on warning` trả `No schema errors found`.
-- Đã dùng Supabase CLI với connection string đã cấu hình để apply migration commerce policy, SePay order expiry, notification center, notification lint, staff request fan-out và set-based fan-out. Remote đã xác minh migration inventory khớp `45/45`, trigger booking/customer/order/event, bảng notification/outbox, notification worker cron và Realtime publication; local `db lint --level warning --fail-on warning` trả `No schema errors found`.
+- Đã dùng Supabase CLI với connection string đã cấu hình để apply migration commerce policy, SePay order expiry, notification center, notification lint, staff request fan-out và set-based fan-out. Remote đã xác minh migration inventory khớp `45/45`, trigger booking/customer/order/event, bảng notification/outbox, notification worker cron và Realtime publication; `db lint --db-url ... --schema public --level warning --fail-on warning` và local lint đều trả `No schema errors found`.
 - pgTAP local trên schema sạch đã pass `24` file, `390/390` tests; smoke transaction trên remote xác nhận booking/contact tạo notification admin và rollback sạch.
 - GitHub Actions run `31621084519` trên commit `6772ff5` đã completed/success ở quality, database và toàn bộ E2E (Demo, Auth, checkout thường, SePay contract, customer requests). Local hiện pass `npm test` 295/295, pgTAP 390/390 và build. Live smoke workflow không chạy trong push event; Gmail OAuth callback thật vẫn chưa test.
 
@@ -91,7 +91,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 
 1. **Loyalty reversal đã có forward fix, runtime pgTAP và remote lint sign-off.** `apply_loyalty_for_order()` xử lý reversal độc lập với policy hiện tại; pgTAP regression cho chuỗi disable policy -> cancel/refund đã pass. Hosted user smoke và owner sign-off vẫn còn.
 2. **Voucher/loyalty/refund policy đã có màn admin, migration remote và pgTAP/runtime coverage.** Mặc định consume khi SePay paid/COD completed, release khi cancel/payment failed/refund; admin có thể đổi hành vi release/consume, bật/tắt refund, đặt cửa sổ 1–720 giờ và bật/tắt reversal điểm. Chỉ còn owner xác nhận policy live bằng văn bản.
-3. **Remote inventory đã được reconcile và apply.** Remote đã khớp `45/45` migration tới `20260813010000`; helper/trigger/quyền fan-out đã được kiểm tra read-only, còn local lint không có schema warning. Vẫn cần hosted lint schema-specific, RLS/runtime smoke bằng tài khoản thật và backup/restore sign-off.
+3. **Remote inventory đã được reconcile và apply.** Remote đã khớp `45/45` migration tới `20260813010000`; helper/trigger/quyền fan-out và hosted `db lint` schema `public` đã được kiểm tra, không có schema warning. Vẫn cần RLS/runtime smoke bằng tài khoản thật và backup/restore sign-off.
 
 ### P1 - Phải hoàn thành trước mở traffic thật
 
@@ -127,7 +127,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 - Google Console dùng Supabase callback `https://<project-ref>.supabase.co/auth/v1/callback`; Supabase Redirect URLs cho phép `https://www.beanbus.store/auth/callback` và URL preview được duyệt.
 - [x] Ẩn phone form khi feature bị tắt; thêm test cho login Google-only.
 - Test Gmail mới: login, profile auto-create, account access, logout, login lại; test member bị chặn admin.
-- [x] Dùng Supabase CLI với connection string được cấp, so sánh migration inventory và apply các forward migration đã review tới `20260813010000`; remote helper/trigger/privilege smoke pass và hai Zalo cron vẫn được pause.
+- [x] Dùng Supabase CLI với connection string được cấp, so sánh migration inventory và apply các forward migration đã review tới `20260813010000`; remote helper/trigger/privilege smoke và `db lint --schema public` pass, hai Zalo cron vẫn được pause.
 
 **Exit criteria:** Một tài khoản Gmail thật hoàn thành account flow; phone/Zalo không còn UI hay remote execution; có migration inventory được lưu trong checklist phát hành.
 
