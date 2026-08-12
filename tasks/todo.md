@@ -64,7 +64,7 @@
 - [x] Booking/contact tạo in-app notification cho tất cả admin và transactional outbox; dedupe/source/kind có contract và pgTAP.
 - [x] Trang danh sách/chi tiết booking và contact của admin không còn dùng `notification_status` legacy; liên kết thống nhất về `/admin/notifications`.
 - [ ] Khi bật password auth, bật Supabase Auth `Require current password when changing password` và smoke mật khẩu sai/đúng trên hosted.
-- [x] Migration/functions notification đã được cấu hình với Vault, `verify_jwt=false` và endpoint production; Resend DNS/webhook còn chờ owner hoàn tất/allowlist smoke test.
+- [x] Migration/functions notification đã được cấu hình với Vault, `verify_jwt=false` và endpoint production; Resend DNS/webhook còn chờ owner hoàn tất/allowlist smoke test. API key hiện tại là send-only nên không đọc được domain/webhook qua API; kiểm tra các mục này trong Resend Dashboard.
 - [x] Thêm workflow GitHub deploy Edge Functions thủ công, chọn từng function hoặc `all`, dùng `production` environment secrets.
 - [ ] Cấu hình `SUPABASE_ACCESS_TOKEN` secret và `SUPABASE_PROJECT_REF` variable trong GitHub `production`, rồi redeploy `dispatch-notification-emails`; không bật email mode trước khi hoàn tất.
 - [x] Resend accepted smoke tới hai email test và worker production `disabled=true` đã xác nhận; delivered/bounced/complained, unsubscribe và realtime vẫn chờ mailbox/provider dashboard.
