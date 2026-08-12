@@ -102,13 +102,14 @@ export function parseSepayWebhook(value: unknown): SepayWebhook | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   const input = value as Record<string, unknown>;
   const code = input.code === null ? null : input.code;
+  const subAccount = input.subAccount == null ? '' : input.subAccount;
 
   if (!Number.isSafeInteger(input.id) || Number(input.id) < 0
     || !boundedText(input.gateway, 100)
     || !boundedText(input.transactionDate, 19)
     || !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(input.transactionDate)
     || !boundedText(input.accountNumber, 64)
-    || !boundedText(input.subAccount, 100, true)
+    || !boundedText(subAccount, 100, true)
     || !(code === null || boundedText(code, 64))
     || !boundedText(input.content, 1000)
     || !['in', 'out'].includes(String(input.transferType))
@@ -126,7 +127,7 @@ export function parseSepayWebhook(value: unknown): SepayWebhook | null {
     transactionDate: input.transactionDate,
     transactionAt: transactionAt.toISOString(),
     accountNumber: input.accountNumber,
-    subAccount: input.subAccount,
+    subAccount,
     code: code as string | null,
     content: input.content,
     transferType: input.transferType as SepayWebhook['transferType'],

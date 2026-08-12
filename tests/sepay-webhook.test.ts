@@ -49,6 +49,20 @@ test('parses the documented inbound Sepay transaction shape', () => {
   assert.equal(isSepayTestPayload({ id: 1 }), false);
 });
 
+test('accepts a null sub-account and resolves the full compact code from content', () => {
+  const livePayload = {
+    ...payload,
+    id: 73112436,
+    transactionDate: '2026-08-12 10:07:00',
+    subAccount: null,
+    code: 'DH2608128',
+    content: 'DH2608128DFFE9 I2CMXT6A/576810',
+  };
+
+  assert.equal(parseSepayWebhook(livePayload)?.subAccount, '');
+  assert.equal(resolveSepayPaymentCode(livePayload.code, livePayload.content), 'DH-2608128DFFE9');
+});
+
 test('parses both JSON and URL-encoded webhook bodies', () => {
   assert.deepEqual(parseSepayWebhookBody(JSON.stringify(payload), 'application/json'), payload);
   const formBody = new URLSearchParams({
