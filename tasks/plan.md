@@ -76,7 +76,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 | Google Auth và session guards | Đã có | Bật provider/flag, smoke test tài khoản Gmail thật, xác minh profile trigger và logout |
 | Phone OTP/Zalo | Đã code nhưng tạm dừng | Giữ flag false; vô hiệu Auth Hook/cron/provider remote nếu đã bật |
 | Hội viên | Đã có profile, đơn, request, voucher, loyalty và policy reversal | Gmail/UI smoke bằng tài khoản thật; owner xác nhận voucher seed và Resend notification; hosted RLS transaction smoke đã pass |
-| Admin | Đã có route guard, catalog/voucher/loyalty/rewards và màn `Chính sách` | Bootstrap admin bằng Gmail thật; test policy/refund trên hosted runtime |
+| Admin | Đã có route guard, catalog/voucher/loyalty/rewards và màn `Chính sách`; Auth/Profile đã có admin Gmail | OAuth/session browser smoke và test policy/refund trên hosted runtime |
 | Order/checkout | Server-priced, idempotent, reservation/release voucher và admin refund policy/RPC | Hosted E2E; live refund test nhỏ và xác nhận expiry |
 | SePay đơn hàng | HMAC webhook production đã bật; reconciliation API v2 đang tắt | Live smoke, IP allowlist, alert; API v2 token chỉ cần khi bật reconciliation |
 | Booking/contact/RSVP/B2B | Đã lưu server, có admin workflow và in-app notification cho admin | Email Resend/recipient allowlist và chống abuse theo IP/CAPTCHA |
