@@ -17,16 +17,16 @@
 - [x] E2E customer requests pass 4/4; RSVP modal đã được port ra `document.body` để không bị ảnh hưởng bởi transform của event card.
 - [x] E2E accessibility header/menu pass ổn định sau khi chuyển focus keyboard bằng `requestAnimationFrame` và chạy lặp 20 lần.
 - [x] Thêm live smoke opt-in `npm run test:e2e:live`; test sẽ kiểm tra health và Google-only login trên `https://www.beanbus.store`.
-- [x] Đã chạy live smoke với quyền browser phù hợp; health pass nhưng assertion Google-only fail vì deployment production vẫn render nút `Nhận mã qua Zalo`.
+- [x] Đã chạy live smoke production sau redeploy; health và assertion Google-only đều pass `1/1`.
 - [x] Thêm GitHub Actions manual live smoke (`workflow_dispatch`) với `production_base_url`, bắt buộc HTTPS, không yêu cầu Gmail session hay production secret.
 - [x] CI chạy tự động trên `main`, các branch `codex/**` và pull request vào `main`, tránh commit triển khai bị bỏ qua quality gate.
 - [x] `npm audit --omit=dev --audit-level=high` báo 0 vulnerability.
 - [x] Production build đã kiểm tra console/page error: không còn cảnh báo JSON-LD; cảnh báo native script chỉ xuất hiện trong React development overlay và phù hợp với khuyến nghị JSON-LD của Next.js.
 - [x] Cài Docker CLI + Colima + `psql`, khởi động Supabase local và chạy `npm run db:lint`/pgTAP trên schema sạch; lint pass, pgTAP `24` file/`379/379` tests pass.
-- [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; remote đã khớp migration tới `20260812043000_fix_notification_preference_lint.sql`.
+- [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; remote khớp đủ `43/43` migration tới `20260812043000_fix_notification_preference_lint.sql`, remote lint warning pass.
 - [x] Apply `20260811120000_fix_loyalty_redemption_collision.sql` lên remote sau khi CI database xác nhận xanh.
 - [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration loyalty/content/SePay/flash-sale; advisor multiple-permissive-policy vẫn là backlog maintainability.
-- [x] GitHub run `31462882057` trên `8d55557` completed successfully; quality, database và E2E đều xanh. Lỗi collision của run `31462604288` đã có assertion cụ thể và được sửa.
+- [x] GitHub run `31606945090` trên `5a8a6f3` completed successfully; quality, database và E2E đều xanh. Lỗi pgTAP notification và production auth E2E đã được sửa.
 
 ## 0B. Performance/UX hardening
 
@@ -35,7 +35,7 @@
 - [x] Notification bell bỏ `getClaims()` lặp và account voucher query chạy song song với batch chính.
 - [x] SePay payment confirmation pause/backoff polling khi tab ẩn và refresh khi quay lại.
 - [x] CSP production report-only loại `unsafe-eval`; chưa chuyển sang enforce cho tới khi review browser reports.
-- [x] Notification history có pagination 50 dòng/lần, trạng thái loading/error và RLS theo người nhận; production revision `c7643fd379ec` đã xác nhận.
+- [x] Notification history có pagination 50 dòng/lần, trạng thái loading/error và RLS theo người nhận; production revision `5a8a6f31771a` đã xác nhận.
 - [x] Provider demo toàn cục nhận `appMode`; production bỏ qua hydrate/persist fixtures orders, bookings, settings và flash-sale khỏi `localStorage`.
 - [ ] Cloudflare Images/R2 là lựa chọn CDN ảnh tương lai; chưa cần cài package. Giữ Vercel làm host app và chỉ thêm `images.beanbus.store` sau khi có Cloudflare account, bucket/Images delivery URL và DNS.
 - [x] Apply `20260812043000_fix_notification_preference_lint.sql` lên Supabase remote; remote lint ở mức warning pass không còn schema warning.
@@ -87,7 +87,7 @@
 - [x] Vercel Production: `/api/health` trả `200`, mode `production`; production login render `googleEnabled=true`, `phoneEnabled=false`.
 - [x] Commit/push source Google-only và các milestone plan tới `8d55557` trên `codex/zalo-otp-integration`.
 - [x] Vercel Production: redeploy từ `origin/main`, không merge Zalo changes của branch hiện tại; login production hiện có `phoneEnabled=false` và `googleEnabled=true`.
-- [ ] Chạy `npm run test:e2e:live` sau khi có session/hosted assertion phù hợp; curl production đã xác nhận Google-only HTML.
+- [x] Chạy live smoke trên `https://www.beanbus.store`: health và Google-only login pass `1/1`.
 - [x] Vercel Preview: set `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=true`, giữ phone/stored-value false.
 - [x] Sửa login UI: khi phone disabled, không render phone form/divider; Google là primary action.
 - [x] Cập nhật E2E để kiểm tra Google-only login screen thay vì hai provider đều disabled.
@@ -123,11 +123,11 @@
 ## 4. Reconcile và kiểm thử Supabase
 
 - [ ] `npx supabase link --project-ref <project-ref>` vẫn chưa lưu link CLI; đã dùng `--db-url` của project được cấu hình local.
-- [x] `npx supabase migration list` xác nhận đủ 38 migration local khớp remote tới `20260811120000`, không có drift chưa giải thích.
+- [x] `npx supabase migration list` xác nhận đủ 43 migration local khớp remote tới `20260812043000`, không có drift chưa giải thích.
 - [x] Review P0 forward migrations và apply theo thứ tự; backup/restore drill vẫn cần owner xác nhận.
-- [x] Apply migration tới `20260811050000_fix_flash_sale_error_precedence.sql`; đây là mốc trước khi migration loyalty collision được thêm, remote hiện đã có đủ 38 migration.
+- [x] Apply migration tới `20260811050000_fix_flash_sale_error_precedence.sql`; remote hiện đã có đủ 43 migration tới notification preference lint.
 - [x] Sau CI pass, apply và kiểm tra migration `20260811120000_fix_loyalty_redemption_collision.sql`; remote inventory khớp và lint không có schema error.
-- [ ] Chạy toàn bộ `npm run db:lint` và `npm run db:test` trên schema sạch.
+- [x] Chạy toàn bộ `npm run db:lint` và `npm run db:test` trên schema sạch qua Colima: lint pass, pgTAP `24` file/`379/379` tests pass.
 - [ ] Chạy lại pgTAP trên staging/remote theo release runbook.
 - [ ] Test RLS bằng hai member và một admin: profiles, orders, requests, ledger, vouchers, history.
 - [x] Cập nhật `README.md` và `docs/release-runbook.md` bằng trạng thái remote đã kiểm chứng.
@@ -178,7 +178,7 @@
 - [ ] Không còn finding P0/P1 mở.
 - [ ] Phone/Zalo và stored-value xác nhận vẫn tắt ở UI lẫn remote execution; Zalo cron đã xác nhận `0`, còn Auth Provider/Hook và Vercel flags cần owner kiểm tra.
 - [ ] Google login/logout/profile/admin role smoke pass bằng tài khoản thật.
-- [x] Lint, typecheck, 293/293 unit-contract tests, build, pgTAP local `379/379` và full E2E demo (33 pass, 10 production/provider skip) đã xanh; hosted Google/RLS smoke và owner sign-off còn thiếu.
+- [x] Lint, typecheck, 293/293 unit-contract tests, build, pgTAP local `379/379`, live smoke `1/1` và GitHub CI `31606945090` đã xanh; hosted Google/RLS smoke và owner sign-off còn thiếu.
 - [ ] Sepay webhook + reconciliation live smoke pass nếu bật payment.
 - [ ] Monitoring, backup, rollback và incident contacts đã được thử.
 - [ ] Owner ký xác nhận staging ở desktop/mobile.

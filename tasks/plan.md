@@ -16,7 +16,7 @@
 - [x] Voucher account lọc thời gian ở PostgREST và chạy song song với batch dữ liệu đầu tiên.
 - [x] SePay confirmation giảm polling khi tab ẩn, backoff tối đa 30 giây và refresh ngay khi tab được focus.
 - [x] CSP report-only production không còn `unsafe-eval`; chỉ development mới bật để hỗ trợ Next dev.
-- [x] Production Vercel revision `c7643fd379ec` đã nhận pagination commit; `/menu` trả `x-nextjs-prerender: 1`, stale-time `300` và CSP production đúng policy.
+- [x] Production Vercel revision `5a8a6f31771a` đã được xác minh sau code deploy; `/menu` trả `x-nextjs-prerender: 1`, stale-time `300` và CSP production đúng policy.
 - [x] Provider demo toàn cục nhận `appMode`; production không hydrate/persist orders, bookings, settings hoặc flash-sale fixtures từ `localStorage`.
 - [ ] Chưa bật Cloudflare reverse proxy trước Vercel. Nếu cần CDN ảnh, ưu tiên Cloudflare Images hoặc R2 với `images.beanbus.store`; không chuyển `www.beanbus.store` qua proxy trước khi đo latency/cache.
 - [x] Đã apply migration `20260812043000_fix_notification_preference_lint.sql` trên Supabase remote; migration list khớp và `db lint --level warning --fail-on warning` trả `No schema errors found`.
@@ -57,14 +57,14 @@ Kết quả local tại thời điểm review:
 - E2E customer requests đã pass 4/4 sau khi port RSVP modal ra `document.body`, tránh overlay bị kéo theo card có hiệu ứng hover/transform.
 - E2E accessibility header/menu ban đầu lộ lỗi focus không ổn định; đã sửa và xác nhận 20/20 lần lặp, sau đó full E2E pass.
 - Đã thêm live smoke opt-in `npm run test:e2e:live` với `PLAYWRIGHT_BASE_URL`; Gmail callback/profile/admin role thật vẫn chưa test.
-- Production smoke: `https://www.beanbus.store/api/health` trả `200`; login HTML có `phoneEnabled=false` và `googleEnabled=true`; webhook `/hooks/payment` trả `401` khi thiếu HMAC; `/api/cron/sepay-reconciliation` trả `404`. Send SMS Hook vẫn cần kiểm tra riêng trong Supabase Dashboard.
+- Production smoke: `https://www.beanbus.store/api/health` trả `200`; live smoke `1/1` pass; login HTML có `phoneEnabled=false` và `googleEnabled=true`; webhook `/hooks/payment` trả `401` khi thiếu HMAC; `/api/cron/sepay-reconciliation` trả `404`. Remote Auth settings cũng xác nhận Google bật, Phone tắt; Send SMS Hook vẫn cần kiểm tra riêng trong Supabase Dashboard.
 - Đã bổ sung `suppressHydrationWarning` cho cả `html` và `body` để không báo lỗi khi extension/browser tooling chèn attribute trước hydration; contract test đã thêm.
 - Cảnh báo React dev `Encountered a script tag while rendering React component` được xác minh là cảnh báo development khi render native JSON-LD; Next.js 16 vẫn khuyến nghị native JSON-LD script cho structured data. Production build đã kiểm tra trực tiếp, không có console warning hoặc page error, nên giữ nguyên cách triển khai hiện tại.
 - `npm audit --omit=dev --audit-level=high`: 0 vulnerability.
 - Đã cài Docker CLI, Colima và `libpq`/`psql`; Colima đang cung cấp Docker runtime cho Supabase local. `npx supabase db lint --local --level warning --fail-on warning` trả `No schema errors found`.
-- Đã dùng Supabase CLI với connection string đã cấu hình để apply migration commerce policy, SePay order expiry, notification center và `20260812043000_fix_notification_preference_lint.sql`. Remote đã xác minh migration inventory khớp đủ tới migration mới nhất, có bảng notification/outbox, cron worker và Realtime publication; `db lint --level warning --fail-on warning` trả `No schema errors found`.
+- Đã dùng Supabase CLI với connection string đã cấu hình để apply migration commerce policy, SePay order expiry, notification center và `20260812043000_fix_notification_preference_lint.sql`. Remote đã xác minh migration inventory khớp `43/43`, có bảng notification/outbox, notification worker cron và Realtime publication; `db lint --level warning --fail-on warning` trả `No schema errors found`.
 - pgTAP local trên schema sạch đã pass `24` file, `379/379` tests sau khi đồng bộ contract preference transactional email và trạng thái claim email outbox.
-- GitHub Actions runs `31462882057` và `31463311264` đều `completed successfully`; local `npm test` hiện 293/293 pass và full Playwright E2E 33/43 pass với 10 test production/provider được skip; full hosted OAuth vẫn chưa test.
+- GitHub Actions run `31606945090` trên `5a8a6f3` đã `completed successfully` với quality, database và E2E đều xanh; local `npm test` 293/293, pgTAP 379/379 và live smoke production 1/1 pass. Gmail OAuth/RLS thật vẫn chưa test.
 
 Các increment đã triển khai local: Google-only login UI và auth E2E, loyalty reversal forward migration, redemption idempotency key ổn định qua retry, RPC chống collision khác user, RPC phân trang request `UNION ALL` có total count/RLS, first-admin/release runbook, voucher reservation lifecycle, commerce policy có audit và RPC hoàn tiền SePay theo thời hạn, form CAPTCHA feature-gate, RSVP modal ổn định ngoài card hover, và SePay API v2 reconciliation feature-gated. Provider, hosted user smoke, Gmail notification transport và live payment smoke vẫn chưa hoàn tất.
 
@@ -208,7 +208,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 
 ### Còn phải làm trước production
 
-- [x] Kiểm tra migration inventory remote bằng `DATABASE_URL` và apply `20260812023335_retry_rejected_sepay_payment_events.sql` cùng `20260812040545_notification_center.sql`; CLI chưa link project nhưng `db push --db-url` đã thành công.
+- [x] Kiểm tra migration inventory remote bằng `DATABASE_URL` và apply `20260812023335_retry_rejected_sepay_payment_events.sql` cùng `20260812040545_notification_center.sql`; remote inventory khớp `43/43`, CLI chưa link project nhưng `db push --db-url` đã thành công.
 - [x] Chạy pgTAP trên schema sạch bằng Supabase local/Colima: `24` file, `379/379` tests pass. Hosted RLS/behavior smoke vẫn cần tài khoản thật.
 - [x] Deploy migration và ba Edge Function; cấu hình `verify_jwt=false`, Vault, Resend webhook endpoint và DNS sender.
 - [ ] Allowlist hai email test, chạy worker thủ công, kiểm tra accepted/delivered/bounced/complained và unsubscribe GET/POST.
@@ -235,7 +235,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 Một task chỉ được đánh dấu hoàn thành khi:
 
 - Có test behavior phù hợp; thay đổi DB có pgTAP và migration forward-only.
-- `npm run lint`, `npx tsc --noEmit`, `npm test` (293/293), `npm run build`, pgTAP local (379/379), Playwright E2E demo (33 pass, 10 production/provider skip) pass; cần chờ GitHub CI rerun sau bản sửa test mới.
+- `npm run lint`, `npx tsc --noEmit`, `npm test` (293/293), `npm run build`, pgTAP local (379/379), live smoke production (1/1) và GitHub CI run `31606945090` pass.
 - Luồng UI bị ảnh hưởng được test keyboard và mobile; không có loading/error/empty state giả.
 - Auth/RLS/ownership được kiểm thử bằng ít nhất hai user khác nhau.
 - Payment/points/voucher mutation idempotent, auditable và không log secret/OTP/full PII.
