@@ -22,8 +22,8 @@
 - [x] CI chạy tự động trên `main`, các branch `codex/**` và pull request vào `main`, tránh commit triển khai bị bỏ qua quality gate.
 - [x] `npm audit --omit=dev --audit-level=high` báo 0 vulnerability.
 - [x] Production build đã kiểm tra console/page error: không còn cảnh báo JSON-LD; cảnh báo native script chỉ xuất hiện trong React development overlay và phù hợp với khuyến nghị JSON-LD của Next.js.
-- [x] Cài Docker CLI + Colima + `psql`, khởi động Supabase local và chạy `npm run db:lint`/pgTAP trên schema sạch; lint pass, pgTAP `24` file/`385/385` tests pass.
-- [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; remote khớp đủ `44/44` migration tới `20260812050000_staff_request_notifications.sql`, remote lint warning pass.
+- [x] Cài Docker CLI + Colima + `psql`, khởi động Supabase local và chạy `npm run db:lint`/pgTAP trên schema sạch; lint pass, pgTAP `24` file/`390/390` tests pass.
+- [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; remote khớp đủ `45/45` migration tới `20260813010000_notification_set_based_fanout.sql`; helper/trigger/quyền fan-out đã được smoke read-only.
 - [x] Apply `20260811120000_fix_loyalty_redemption_collision.sql` lên remote sau khi CI database xác nhận xanh.
 - [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration loyalty/content/SePay/flash-sale; advisor multiple-permissive-policy vẫn là backlog maintainability.
 - [x] GitHub run `31621084519` trên `6772ff5` completed successfully; quality, database và toàn bộ E2E đều xanh. Demo và các production E2E dùng webpack/webpack-only CI server, env tường minh và một worker để tránh runner contention.
@@ -38,7 +38,7 @@
 - [x] Notification history có pagination 50 dòng/lần, trạng thái loading/error và production deployment đã xác nhận qua health endpoint; RLS theo người nhận.
 - [x] Provider demo toàn cục nhận `appMode`; production bỏ qua hydrate/persist fixtures orders, bookings, settings và flash-sale khỏi `localStorage`.
 - [ ] Cloudflare Images/R2 là lựa chọn CDN ảnh tương lai; chưa cần cài package. Giữ Vercel làm host app và chỉ thêm `images.beanbus.store` sau khi có Cloudflare account, bucket/Images delivery URL và DNS.
-- [x] Apply `20260812043000_fix_notification_preference_lint.sql` và `20260812050000_staff_request_notifications.sql` lên Supabase remote; remote lint ở mức warning pass không còn schema warning.
+- [x] Apply `20260812043000_fix_notification_preference_lint.sql`, `20260812050000_staff_request_notifications.sql` và `20260813010000_notification_set_based_fanout.sql` lên Supabase remote; local lint warning pass, remote function/trigger/privilege smoke pass.
 
 ## 0A. Notification/Resend hardening
 
@@ -60,7 +60,7 @@
 - [x] Cố định timezone notification UI và đồng bộ outbox/suppression types với migration.
 - [x] Sửa format mã đơn demo thành `DH-YYMMDD` + 6 ký tự và thêm regression test; E2E checkout pass.
 - [x] Kiểm tra migration inventory bằng `DATABASE_URL`; apply migration notification center và staff request fan-out lên remote, xác minh bảng, trigger, cron và Realtime publication.
-- [x] Chạy pgTAP trên Docker/Postgres runtime qua Colima; `24` file, `385/385` tests pass. Hosted RLS/behavior smoke vẫn cần tài khoản thật.
+- [x] Chạy pgTAP trên Docker/Postgres runtime qua Colima; `24` file, `390/390` tests pass. Hosted RLS/behavior smoke vẫn cần tài khoản thật.
 - [x] Booking/contact tạo in-app notification cho tất cả admin và transactional outbox; dedupe/source/kind có contract và pgTAP.
 - [x] Trang danh sách/chi tiết booking và contact của admin không còn dùng `notification_status` legacy; liên kết thống nhất về `/admin/notifications`.
 - [ ] Khi bật password auth, bật Supabase Auth `Require current password when changing password` và smoke mật khẩu sai/đúng trên hosted.
@@ -112,7 +112,7 @@
 - [x] Sửa precedence lỗi flash-sale để user đã đạt `max_per_user` nhận `FLASH_SALE_USER_LIMIT` ổn định ngay cả khi campaign đồng thời hết quota; migration forward mới cần được apply lên remote trước khi bật stored-value.
 - [x] Thêm admin `/admin/policies` để cấu hình voucher cancel/refund, loyalty reversal và refund window; thêm `refund_order_payment` cho SePay.
 - [ ] Owner xác nhận mốc consume, timeout COD, và policy release/consume đã chọn trước khi mở checkout production.
-- [x] Thêm test concurrent usage limit, refund policy và one-time reward voucher trên Postgres runtime; pgTAP local `24` file/`385/385` pass. Owner vẫn cần xác nhận policy live.
+- [x] Thêm test concurrent usage limit, refund policy và one-time reward voucher trên Postgres runtime; pgTAP local `24` file/`390/390` pass. Owner vẫn cần xác nhận policy live.
 - [ ] Xác nhận `BEANBUS10` và `WELCOMEVIP` có phải promotion live không; read-only remote check cho thấy cả hai đang `is_active=true`, không có `starts_at/ends_at`, giới hạn lần lượt 1000/500.
 - [ ] Nếu chưa phê duyệt, tạo forward migration disable hai voucher seed trước khi mở checkout production.
 
@@ -127,11 +127,11 @@
 ## 4. Reconcile và kiểm thử Supabase
 
 - [ ] `npx supabase link --project-ref <project-ref>` vẫn chưa lưu link CLI; đã dùng `--db-url` của project được cấu hình local.
-- [x] `npx supabase migration list` xác nhận đủ 44 migration local khớp remote tới `20260812050000`, không có drift chưa giải thích.
+- [x] `npx supabase migration list` xác nhận đủ 45 migration local khớp remote tới `20260813010000`, không có drift chưa giải thích.
 - [x] Review P0 forward migrations và apply theo thứ tự; backup/restore drill vẫn cần owner xác nhận.
-- [x] Apply migration tới `20260812050000_staff_request_notifications.sql`; remote hiện đã có đủ 44 migration tới staff request fan-out.
+- [x] Apply migration tới `20260813010000_notification_set_based_fanout.sql`; remote hiện đã có đủ 45 migration và set-based fan-out.
 - [x] Sau CI pass, apply và kiểm tra migration `20260811120000_fix_loyalty_redemption_collision.sql`; remote inventory khớp và lint không có schema error.
-- [x] Chạy toàn bộ `npm run db:lint` và `npm run db:test` trên schema sạch qua Colima: lint pass, pgTAP `24` file/`385/385` tests pass.
+- [x] Chạy toàn bộ `npm run db:lint` và `npm run db:test` trên schema sạch qua Colima: lint pass, pgTAP `24` file/`390/390` tests pass.
 - [ ] Chạy lại pgTAP trên staging/remote theo release runbook.
 - [ ] Test RLS bằng hai member và một admin: profiles, orders, requests, ledger, vouchers, history.
 - [x] Read-only hosted RLS smoke với một member, một admin và một UUID không tồn tại: member chỉ thấy profile của mình, admin thấy dữ liệu được cấp, UUID lạ thấy `0` rows trên profiles/orders/requests/notifications; full two-member smoke vẫn còn chờ.
@@ -173,7 +173,7 @@
 - [x] Thêm CSP dạng report-only với Cloudflare/Google/Supabase origins cần thiết; chuyển enforce sau browser report review.
 - [x] HSTS chỉ bật khi production site URL là HTTPS; hosted owner vẫn cần xác nhận subdomain policy.
 - [ ] Thay dần source-regex tests ở auth/payment/loyalty/voucher bằng behavior tests.
-- [x] Remote `db lint` không còn lỗi schema hoặc warning; advisor multiple-permissive-policy để tối ưu sau khi correctness/runtime gate hoàn tất.
+- [x] Remote `db lint` trước migration fan-out không còn lỗi schema hoặc warning; migration fan-out mới đã qua local lint và remote helper/trigger/privilege smoke. Advisor multiple-permissive-policy để tối ưu sau khi correctness/runtime gate hoàn tất.
 - [ ] Tách `AccountClient.tsx` theo tab sau khi correctness fixes đã merge.
 - [ ] Tách `HomeClient.tsx` và CSS lớn theo workflow khi có thay đổi chức năng liên quan.
 - [ ] Kiểm tra accessibility, Core Web Vitals và console/network errors trên staging (production build local đã sạch console; hosted staging vẫn cần kiểm tra).
@@ -184,7 +184,7 @@
 - [ ] Không còn finding P0/P1 mở.
 - [ ] Phone/Zalo và stored-value xác nhận vẫn tắt ở UI lẫn remote execution; Zalo cron đã xác nhận `0`, còn Auth Provider/Hook và Vercel flags cần owner kiểm tra.
 - [ ] Google login/logout/profile/admin role smoke pass bằng tài khoản thật.
-- [x] Lint, typecheck, 295/295 unit-contract tests, build và pgTAP local `385/385` pass; GitHub CI run `31621084519` của commit `6772ff5` completed/success ở quality, database và toàn bộ E2E. Hosted Google OAuth thật và owner sign-off còn thiếu.
+- [x] Lint, typecheck, 295/295 unit-contract tests, build và pgTAP local `390/390` pass; GitHub CI run `31621084519` của commit `6772ff5` completed/success ở quality, database và toàn bộ E2E. Hosted Google OAuth thật và owner sign-off còn thiếu.
 - [ ] Sepay webhook + reconciliation live smoke pass nếu bật payment.
 - [ ] Monitoring, backup, rollback và incident contacts đã được thử.
 - [ ] Owner ký xác nhận staging ở desktop/mobile.

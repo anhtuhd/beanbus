@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap;
-select plan(53);
+select plan(58);
 
 select has_table('public', 'notifications', 'notifications table exists');
 select has_table('public', 'notification_preferences', 'notification preferences table exists');
@@ -13,6 +13,7 @@ select has_function('public', 'mark_notification_read', array['uuid'], 'mark not
 select has_function('public', 'mark_all_notifications_read', array[]::text[], 'mark all RPC exists');
 select has_function('public', 'update_notification_preferences', array['boolean', 'boolean', 'boolean'], 'preferences RPC exists');
 select has_function('public', 'publish_store_announcement', array['text', 'text', 'text', 'text', 'text', 'boolean'], 'announcement RPC exists');
+select has_function('public', 'enqueue_role_notifications', array['text', 'text', 'text', 'text', 'text', 'text', 'text', 'text', 'text', 'text', 'text', 'boolean'], 'set-based role notification RPC exists');
 select has_function('public', 'claim_notification_email_batch', array['integer', 'uuid'], 'email claim RPC exists');
 select has_function('public', 'record_email_delivery_event', array['text', 'text', 'text', 'timestamptz'], 'delivery event RPC exists');
 
@@ -81,6 +82,10 @@ select ok(
   'authenticated cannot enqueue notifications directly'
 );
 select ok(
+  not has_function_privilege('authenticated', 'public.enqueue_role_notifications(text,text,text,text,text,text,text,text,text,text,text,boolean)', 'EXECUTE'),
+  'authenticated cannot fan out role notifications directly'
+);
+select ok(
   exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'notifications'),
   'notifications are in the realtime publication'
 );
@@ -147,6 +152,28 @@ values (
 update public.profiles
 set role = 'admin'
 where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+
+insert into auth.users (
+  instance_id, id, aud, role, email, created_at, updated_at
+)
+values (
+  '00000000-0000-0000-0000-000000000000',
+  'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+  'authenticated', 'authenticated', 'notification-admin-two@beanbus.test', now(), now()
+);
+
+update public.profiles
+set role = 'admin'
+where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+
+insert into auth.users (
+  instance_id, id, aud, role, email, created_at, updated_at
+)
+values (
+  '00000000-0000-0000-0000-000000000000',
+  '99999999-9999-4999-8999-999999999999',
+  'authenticated', 'authenticated', 'notification-member-two@beanbus.test', now(), now()
+);
 
 insert into public.notifications (
   id, recipient_user_id, kind, title_vi, title_en, body_vi, body_en,
@@ -219,19 +246,20 @@ values (
 
 select is(
   (select count(*) from public.notifications
-   where recipient_user_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
-     and kind = 'booking_request_created'),
-  1::bigint,
-  'new booking request notifies admins'
+   where kind = 'booking_request_created'
+     and recipient_user_id in ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')
+  ),
+  2::bigint,
+  'new booking request notifies every admin'
 );
 select is(
   (select count(*)
    from public.email_outbox as outbox
    join public.notifications as notification on notification.id = outbox.notification_id
-   where outbox.recipient_user_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+   where outbox.recipient_user_id in ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')
      and notification.kind = 'booking_request_created'),
-  1::bigint,
-  'new booking request queues transactional admin email'
+  2::bigint,
+  'new booking request queues email for every admin'
 );
 
 insert into public.customer_requests (
@@ -245,19 +273,48 @@ values (
 
 select is(
   (select count(*) from public.notifications
-   where recipient_user_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
-     and kind = 'customer_request_created'),
-  1::bigint,
-  'new customer request notifies admins'
+   where kind = 'customer_request_created'
+     and recipient_user_id in ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')),
+  2::bigint,
+  'new customer request notifies every admin'
 );
 select is(
   (select count(*)
    from public.email_outbox as outbox
    join public.notifications as notification on notification.id = outbox.notification_id
-   where outbox.recipient_user_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+   where outbox.recipient_user_id in ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')
      and notification.kind = 'customer_request_created'),
-  1::bigint,
-  'new customer request queues transactional admin email'
+  2::bigint,
+  'new customer request queues email for every admin'
+);
+
+set local role authenticated;
+set local request.jwt.claim.sub = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+select ok(
+  public.publish_store_announcement(
+    'Thông báo cửa hàng', 'Store announcement',
+    'Nội dung thông báo đủ dài để kiểm tra fan-out theo tập bản ghi.',
+    'Announcement body long enough to exercise set based fan out.',
+    '/menu', false
+  ) is not null,
+  'store announcement publishes successfully'
+);
+
+set local role service_role;
+select is(
+  (select count(*) from public.notifications
+   where kind = 'store_announcement'
+     and source_id = (select id::text from public.store_announcements order by created_at desc limit 1)),
+  2::bigint,
+  'store announcement fans out to every member'
+);
+select is(
+  (select count(*) from public.email_outbox as outbox
+   join public.notifications as notification on notification.id = outbox.notification_id
+   where notification.kind = 'store_announcement'
+     and notification.source_id = (select id::text from public.store_announcements order by created_at desc limit 1)),
+  0::bigint,
+  'store announcement without email does not enqueue email'
 );
 
 select * from finish();

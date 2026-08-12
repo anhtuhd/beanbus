@@ -19,7 +19,7 @@
 - [x] Production Vercel deployment đã được xác minh qua `/api/health` trả `200`, login Google-only/live smoke pass và production không bật phone auth; revision được đối chiếu tại mỗi lần release.
 - [x] Provider demo toàn cục nhận `appMode`; production không hydrate/persist orders, bookings, settings hoặc flash-sale fixtures từ `localStorage`.
 - [ ] Chưa bật Cloudflare reverse proxy trước Vercel. Nếu cần CDN ảnh, ưu tiên Cloudflare Images hoặc R2 với `images.beanbus.store`; không chuyển `www.beanbus.store` qua proxy trước khi đo latency/cache.
-- [x] Đã apply migration `20260812050000_staff_request_notifications.sql` trên Supabase remote; migration inventory đạt `44/44`, trigger booking/customer tồn tại và `db lint --level warning --fail-on warning` trả `No schema errors found`.
+- [x] Đã apply migration `20260813010000_notification_set_based_fanout.sql` trên Supabase remote; migration inventory đạt `45/45`, helper fan-out và trigger booking/customer/order/event tồn tại, authenticated không có quyền gọi helper trực tiếp.
 
 ## 1. Mục tiêu gần nhất
 
@@ -62,11 +62,11 @@ Kết quả local tại thời điểm review:
 - Cảnh báo React dev `Encountered a script tag while rendering React component` được xác minh là cảnh báo development khi render native JSON-LD; Next.js 16 vẫn khuyến nghị native JSON-LD script cho structured data. Production build đã kiểm tra trực tiếp, không có console warning hoặc page error, nên giữ nguyên cách triển khai hiện tại.
 - `npm audit --omit=dev --audit-level=high`: 0 vulnerability.
 - Đã cài Docker CLI, Colima và `libpq`/`psql`; Colima đang cung cấp Docker runtime cho Supabase local. `npx supabase db lint --local --level warning --fail-on warning` trả `No schema errors found`.
-- Đã dùng Supabase CLI với connection string đã cấu hình để apply migration commerce policy, SePay order expiry, notification center, notification lint và fan-out staff request. Remote đã xác minh migration inventory khớp `44/44`, trigger booking/customer, bảng notification/outbox, notification worker cron và Realtime publication; `db lint --level warning --fail-on warning` trả `No schema errors found`.
-- pgTAP local trên schema sạch đã pass `24` file, `385/385` tests; smoke transaction trên remote xác nhận booking/contact tạo notification admin và rollback sạch.
-- GitHub Actions run `31621084519` trên commit `6772ff5` đã completed/success ở quality, database và toàn bộ E2E (Demo, Auth, checkout thường, SePay contract, customer requests). Local hiện pass `npm test` 295/295, pgTAP 385/385 và build. Live smoke workflow không chạy trong push event; Gmail OAuth callback thật vẫn chưa test.
+- Đã dùng Supabase CLI với connection string đã cấu hình để apply migration commerce policy, SePay order expiry, notification center, notification lint, staff request fan-out và set-based fan-out. Remote đã xác minh migration inventory khớp `45/45`, trigger booking/customer/order/event, bảng notification/outbox, notification worker cron và Realtime publication; local `db lint --level warning --fail-on warning` trả `No schema errors found`.
+- pgTAP local trên schema sạch đã pass `24` file, `390/390` tests; smoke transaction trên remote xác nhận booking/contact tạo notification admin và rollback sạch.
+- GitHub Actions run `31621084519` trên commit `6772ff5` đã completed/success ở quality, database và toàn bộ E2E (Demo, Auth, checkout thường, SePay contract, customer requests). Local hiện pass `npm test` 295/295, pgTAP 390/390 và build. Live smoke workflow không chạy trong push event; Gmail OAuth callback thật vẫn chưa test.
 
-Các increment đã triển khai local: Google-only login UI và auth E2E, loyalty reversal forward migration, redemption idempotency key ổn định qua retry, RPC chống collision khác user, RPC phân trang request `UNION ALL` có total count/RLS, first-admin/release runbook, voucher reservation lifecycle, commerce policy có audit và RPC hoàn tiền SePay theo thời hạn, form CAPTCHA feature-gate, RSVP modal ổn định ngoài card hover, SePay API v2 reconciliation feature-gated, và notification fan-out cho admin khi có booking/contact mới. Provider, hosted user smoke, Gmail/Resend delivery và live payment smoke vẫn chưa hoàn tất.
+Các increment đã triển khai local: Google-only login UI và auth E2E, loyalty reversal forward migration, redemption idempotency key ổn định qua retry, RPC chống collision khác user, RPC phân trang request `UNION ALL` có total count/RLS, first-admin/release runbook, voucher reservation lifecycle, commerce policy có audit và RPC hoàn tiền SePay theo thời hạn, form CAPTCHA feature-gate, RSVP modal ổn định ngoài card hover, SePay API v2 reconciliation feature-gated, set-based notification fan-out cho order/booking/customer/event/store announcement. Provider, hosted user smoke, Gmail/Resend delivery và live payment smoke vẫn chưa hoàn tất.
 
 ## 3. Tiến độ theo chức năng
 
@@ -91,7 +91,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 
 1. **Loyalty reversal đã có forward fix, runtime pgTAP và remote lint sign-off.** `apply_loyalty_for_order()` xử lý reversal độc lập với policy hiện tại; pgTAP regression cho chuỗi disable policy -> cancel/refund đã pass. Hosted user smoke và owner sign-off vẫn còn.
 2. **Voucher/loyalty/refund policy đã có màn admin, migration remote và pgTAP/runtime coverage.** Mặc định consume khi SePay paid/COD completed, release khi cancel/payment failed/refund; admin có thể đổi hành vi release/consume, bật/tắt refund, đặt cửa sổ 1–720 giờ và bật/tắt reversal điểm. Chỉ còn owner xác nhận policy live bằng văn bản.
-3. **Remote inventory đã được reconcile và apply.** Remote đã khớp `44/44` migration tới `20260812050000`; `db lint` ở mức warning không còn schema error/warning. Vẫn cần RLS/runtime smoke bằng tài khoản thật và backup/restore sign-off.
+3. **Remote inventory đã được reconcile và apply.** Remote đã khớp `45/45` migration tới `20260813010000`; helper/trigger/quyền fan-out đã được kiểm tra read-only, còn local lint không có schema warning. Vẫn cần hosted lint schema-specific, RLS/runtime smoke bằng tài khoản thật và backup/restore sign-off.
 
 ### P1 - Phải hoàn thành trước mở traffic thật
 
@@ -127,7 +127,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 - Google Console dùng Supabase callback `https://<project-ref>.supabase.co/auth/v1/callback`; Supabase Redirect URLs cho phép `https://www.beanbus.store/auth/callback` và URL preview được duyệt.
 - [x] Ẩn phone form khi feature bị tắt; thêm test cho login Google-only.
 - Test Gmail mới: login, profile auto-create, account access, logout, login lại; test member bị chặn admin.
-- [x] Dùng Supabase CLI với connection string được cấp, so sánh migration inventory và apply các forward migration đã review tới `20260812050000`; `db lint` remote pass và hai Zalo cron vẫn được pause.
+- [x] Dùng Supabase CLI với connection string được cấp, so sánh migration inventory và apply các forward migration đã review tới `20260813010000`; remote helper/trigger/privilege smoke pass và hai Zalo cron vẫn được pause.
 
 **Exit criteria:** Một tài khoản Gmail thật hoàn thành account flow; phone/Zalo không còn UI hay remote execution; có migration inventory được lưu trong checklist phát hành.
 
@@ -207,14 +207,14 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 - [x] Feature flag notification bao phủ bell, admin navigation, dashboard KPI và các page.
 - [x] UI hiển thị lỗi tải notification thay vì biến lỗi thành danh sách rỗng.
 - [x] Contract và pgTAP đã bổ sung kiểm tra gateway, suppression, preference, quyền anon và race webhook/outbox.
-- [x] Migration `20260812050000_staff_request_notifications.sql` bổ sung trigger fan-out booking/contact cho admin; worker dùng sender transactional `RESEND_NOTIFY_FROM`, không gửi nhầm qua sender news.
+- [x] Migration `20260812050000_staff_request_notifications.sql` bổ sung trigger fan-out booking/contact cho admin; migration `20260813010000_notification_set_based_fanout.sql` chuyển fan-out sang `INSERT ... SELECT`; worker dùng sender transactional `RESEND_NOTIFY_FROM`, không gửi nhầm qua sender news.
 - [x] Admin request list/detail đã bỏ bộ lọc và nhãn `notification_status` legacy; notification center là điểm truy cập thống nhất.
 - [x] Thêm workflow GitHub `Deploy Supabase Edge Functions` chạy thủ công theo `production` environment; hỗ trợ deploy từng function hoặc cả bộ, không tự chạy theo push.
 
 ### Còn phải làm trước production
 
-- [x] Kiểm tra migration inventory remote bằng `DATABASE_URL` và apply các migration SePay/notification tới `20260812050000_staff_request_notifications.sql`; remote inventory khớp `44/44`, CLI chưa link project nhưng `db push --db-url` đã thành công.
-- [x] Chạy pgTAP trên schema sạch bằng Supabase local/Colima: `24` file, `385/385` tests pass; smoke transaction remote xác nhận trigger booking/contact và rollback sạch. Hosted RLS/behavior smoke vẫn cần tài khoản thật.
+- [x] Kiểm tra migration inventory remote bằng `DATABASE_URL` và apply các migration SePay/notification tới `20260813010000_notification_set_based_fanout.sql`; remote inventory khớp `45/45`, CLI chưa link project nhưng `db push --db-url` đã thành công.
+- [x] Chạy pgTAP trên schema sạch bằng Supabase local/Colima: `24` file, `390/390` tests pass; smoke transaction remote xác nhận trigger booking/contact và rollback sạch. Hosted RLS/behavior smoke vẫn cần tài khoản thật.
 - [x] Ba Edge Function notification đã được tạo/deploy trước đó với `verify_jwt=false`, Vault, Resend webhook endpoint và DNS sender; bản worker mới đổi sender transactional cần redeploy sau khi CLI có access token.
 - [x] Resend send smoke tới hai Gmail test được provider chấp nhận; worker production trả `disabled=true` đúng feature flag. Delivered/bounced/complained, webhook và unsubscribe thực tế vẫn cần xác minh từ mailbox/provider dashboard.
 - [ ] Cấu hình `SUPABASE_ACCESS_TOKEN` secret và `SUPABASE_PROJECT_REF` variable trong GitHub `production` environment, sau đó chạy workflow deploy worker mới.
@@ -225,7 +225,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 
 ### Backlog sau release gate
 
-- [ ] Chuyển fan-out announcement/event từ vòng lặp row-by-row sang set-based hoặc job fan-out khi số hội viên tăng.
+- [x] Chuyển fan-out order/booking/customer/event/announcement từ vòng lặp row-by-row sang helper `INSERT ... SELECT` set-based trong migration `20260813010000_notification_set_based_fanout.sql`; dedupe, preference, suppression và transactional outbox vẫn được giữ.
 - [x] Bổ sung pagination cho notification history; browser accessibility audit hosted vẫn chờ tài khoản test thật.
 - [ ] Thay dần source-regex contract bằng behavior/integration test chạy PostgreSQL thật.
 
@@ -241,7 +241,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 Một task chỉ được đánh dấu hoàn thành khi:
 
 - Có test behavior phù hợp; thay đổi DB có pgTAP và migration forward-only.
-- `npm run lint`, `npx tsc --noEmit`, `npm test` (295/295), `npm run build`, pgTAP local (385/385), live smoke production (1/1) và GitHub CI run `31621084519` trên `6772ff5` pass; production health đã xác nhận `mode: production` và revision khớp deployment tại thời điểm kiểm tra; live-smoke của workflow này được thiết kế opt-in qua `workflow_dispatch`.
+- `npm run lint`, `npx tsc --noEmit`, `npm test` (295/295), `npm run build`, pgTAP local (390/390), live smoke production (1/1) và GitHub CI run `31621084519` trên `6772ff5` pass; production health đã xác nhận `mode: production` và revision khớp deployment tại thời điểm kiểm tra; live-smoke của workflow này được thiết kế opt-in qua `workflow_dispatch`.
 - Luồng UI bị ảnh hưởng được test keyboard và mobile; không có loading/error/empty state giả.
 - Auth/RLS/ownership được kiểm thử bằng ít nhất hai user khác nhau.
 - Payment/points/voucher mutation idempotent, auditable và không log secret/OTP/full PII.

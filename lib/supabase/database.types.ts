@@ -1512,6 +1512,23 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: number;
       };
+      enqueue_role_notifications: {
+        Args: {
+          p_body_en: string;
+          p_body_vi: string;
+          p_dedupe_key: string;
+          p_email_category: string;
+          p_email_enabled?: boolean;
+          p_href: string | null;
+          p_kind: string;
+          p_recipient_role: string;
+          p_source_id: string;
+          p_source_type: string;
+          p_title_en: string;
+          p_title_vi: string;
+        };
+        Returns: number;
+      };
       update_notification_preferences: {
         Args: {
           p_email_event_updates: boolean;
