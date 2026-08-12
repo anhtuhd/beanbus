@@ -1,5 +1,5 @@
 import { getSepayConfig } from '@/lib/payments/sepay-config';
-import { parseSepayWebhook, parseSepayWebhookBody, resolveSepayPaymentCode, verifySepayHmac } from '@/lib/payments/sepay';
+import { isSepayTestPayload, parseSepayWebhook, parseSepayWebhookBody, resolveSepayPaymentCode, verifySepayHmac } from '@/lib/payments/sepay';
 import {
   CORRELATION_HEADER,
   createCorrelationId,
@@ -72,6 +72,10 @@ export async function POST(request: Request) {
 
   const rawPayload = parseSepayWebhookBody(rawBody, contentType);
   if (rawPayload === null) return rejectWebhook(400, correlationId, 'invalid_payload');
+  // SePay's authenticated dashboard test uses mock id 0; never write it to production ledgers.
+  if (isSepayTestPayload(rawPayload)) {
+    return Response.json({ success: true }, { headers: { [CORRELATION_HEADER]: correlationId } });
+  }
   const event = parseSepayWebhook(rawPayload);
   if (!event) return rejectWebhook(400, correlationId, 'invalid_payload');
 

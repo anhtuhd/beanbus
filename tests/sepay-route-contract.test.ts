@@ -10,11 +10,14 @@ test('webhook route verifies the raw body before parsing or writing', () => {
   const rawBodyIndex = route.indexOf('await request.text()');
   const verifyIndex = route.indexOf('if (!verifySepayHmac');
   const parseIndex = route.indexOf('parseSepayWebhookBody(rawBody');
+  const testPayloadIndex = route.indexOf('isSepayTestPayload(rawPayload');
   const rpcIndex = route.indexOf("admin.rpc('process_sepay_webhook'");
 
   assert.ok(rawBodyIndex > 0);
   assert.ok(verifyIndex > rawBodyIndex);
   assert.ok(parseIndex > verifyIndex);
+  assert.ok(testPayloadIndex > parseIndex);
+  assert.ok(testPayloadIndex < rpcIndex);
   assert.ok(rpcIndex > parseIndex);
 });
 
@@ -24,6 +27,7 @@ test('webhook route is feature-gated and bounds JSON request size', () => {
   assert.match(route, /content-type[\s\S]*application\/json/i);
   assert.match(route, /application\/x-www-form-urlencoded/);
   assert.match(route, /parseSepayWebhookBody/);
+  assert.match(route, /isSepayTestPayload/);
   assert.match(route, /resolveSepayPaymentCode/);
   assert.match(route, /p_code: rpcCode/);
   assert.match(route, /\{ success: true \}/);

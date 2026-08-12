@@ -3,6 +3,7 @@ import { createHmac } from 'node:crypto';
 import test from 'node:test';
 import {
   buildSepayQrUrl,
+  isSepayTestPayload,
   parseSepayWebhook,
   parseSepayWebhookBody,
   resolveSepayPaymentCode,
@@ -44,6 +45,8 @@ test('parses the documented inbound Sepay transaction shape', () => {
   assert.equal(parseSepayWebhook({ ...payload, transferAmount: -1 }), null);
   assert.equal(parseSepayWebhook({ ...payload, id: '92704' }), null);
   assert.equal(parseSepayWebhook({ ...payload, id: 0 })?.id, 0);
+  assert.equal(isSepayTestPayload({ id: 0 }), true);
+  assert.equal(isSepayTestPayload({ id: 1 }), false);
 });
 
 test('parses both JSON and URL-encoded webhook bodies', () => {

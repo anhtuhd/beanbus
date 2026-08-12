@@ -53,6 +53,13 @@ export function parseSepayWebhookBody(rawBody: string, contentType: string): unk
   };
 }
 
+export function isSepayTestPayload(value: unknown): boolean {
+  return !!value
+    && typeof value === 'object'
+    && !Array.isArray(value)
+    && (value as Record<string, unknown>).id === 0;
+}
+
 export function verifySepayHmac({
   nowMs = Date.now(),
   rawBody,
