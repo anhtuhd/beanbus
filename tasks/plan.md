@@ -48,7 +48,7 @@ Kết quả local tại thời điểm review:
 
 - `npm run lint`: pass.
 - `npx tsc --noEmit`: pass.
-- `npm test`: 293/293 pass.
+- `npm test`: 294/294 pass.
 - `npm run build`: pass.
 - `npm run test:e2e:auth`: 4/4 pass với Google enabled và phone disabled ở 375/768/1440px; chưa thực hiện OAuth Gmail thật.
 - `npm run test:e2e`: 33/43 pass; 10 production/provider tests skipped vì chưa có hosted credentials, trong đó live smoke được chạy riêng khi có `PLAYWRIGHT_LIVE=true`.
@@ -64,7 +64,7 @@ Kết quả local tại thời điểm review:
 - Đã cài Docker CLI, Colima và `libpq`/`psql`; Colima đang cung cấp Docker runtime cho Supabase local. `npx supabase db lint --local --level warning --fail-on warning` trả `No schema errors found`.
 - Đã dùng Supabase CLI với connection string đã cấu hình để apply migration commerce policy, SePay order expiry, notification center, notification lint và fan-out staff request. Remote đã xác minh migration inventory khớp `44/44`, trigger booking/customer, bảng notification/outbox, notification worker cron và Realtime publication; `db lint --level warning --fail-on warning` trả `No schema errors found`.
 - pgTAP local trên schema sạch đã pass `24` file, `385/385` tests; smoke transaction trên remote xác nhận booking/contact tạo notification admin và rollback sạch.
-- GitHub Actions run `31606945090` trên `5a8a6f3` đã xanh trước staff request migration; các run `31610193512`, `31610370426` và `31610579312` của code/docs/test outbox đều `completed / success`. Local hiện pass `npm test` 293/293, pgTAP 385/385 và build. Gmail OAuth/RLS thật vẫn chưa test.
+- GitHub Actions run `31606945090` trên `5a8a6f3` đã xanh trước staff request migration; các run `31610193512`, `31610370426` và `31610579312` của code/docs/test outbox đều `completed / success`. Local hiện pass `npm test` 294/294, pgTAP 385/385 và build. Gmail OAuth/RLS thật vẫn chưa test.
 
 Các increment đã triển khai local: Google-only login UI và auth E2E, loyalty reversal forward migration, redemption idempotency key ổn định qua retry, RPC chống collision khác user, RPC phân trang request `UNION ALL` có total count/RLS, first-admin/release runbook, voucher reservation lifecycle, commerce policy có audit và RPC hoàn tiền SePay theo thời hạn, form CAPTCHA feature-gate, RSVP modal ổn định ngoài card hover, SePay API v2 reconciliation feature-gated, và notification fan-out cho admin khi có booking/contact mới. Provider, hosted user smoke, Gmail/Resend delivery và live payment smoke vẫn chưa hoàn tất.
 
@@ -237,7 +237,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 Một task chỉ được đánh dấu hoàn thành khi:
 
 - Có test behavior phù hợp; thay đổi DB có pgTAP và migration forward-only.
-- `npm run lint`, `npx tsc --noEmit`, `npm test` (293/293), `npm run build`, pgTAP local (385/385), live smoke production (1/1) và GitHub CI run `31606945090` pass.
+- `npm run lint`, `npx tsc --noEmit`, `npm test` (294/294), `npm run build`, pgTAP local (385/385), live smoke production (1/1) và GitHub CI run `31606945090` pass.
 - Luồng UI bị ảnh hưởng được test keyboard và mobile; không có loading/error/empty state giả.
 - Auth/RLS/ownership được kiểm thử bằng ít nhất hai user khác nhau.
 - Payment/points/voucher mutation idempotent, auditable và không log secret/OTP/full PII.

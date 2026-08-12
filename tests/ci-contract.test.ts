@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const workflow = fs.readFileSync('.github/workflows/ci.yml', 'utf8');
+const functionDeployWorkflow = fs.readFileSync('.github/workflows/deploy-supabase-functions.yml', 'utf8');
 const playwrightConfig = fs.readFileSync('playwright.config.ts', 'utf8');
 const packageJson = fs.readFileSync('package.json', 'utf8');
 const productionRequestsE2e = fs.readFileSync('tests/e2e/customer-requests-production.spec.ts', 'utf8');
@@ -67,4 +68,16 @@ test('CI database job starts Supabase and executes SQL checks', () => {
   assert.match(workflow, /name: pgtap-output/);
   assert.match(workflow, /GITHUB_STEP_SUMMARY/);
   assert.match(workflow, /title=pgTAP failure/);
+});
+
+test('Supabase function deployment is manual, scoped, and secret-backed', () => {
+  assert.match(functionDeployWorkflow, /workflow_dispatch:/);
+  assert.match(functionDeployWorkflow, /SUPABASE_ACCESS_TOKEN: \$\{\{ secrets\.SUPABASE_ACCESS_TOKEN \}\}/);
+  assert.match(functionDeployWorkflow, /SUPABASE_PROJECT_REF: \$\{\{ vars\.SUPABASE_PROJECT_REF \}\}/);
+  assert.match(functionDeployWorkflow, /test -n "\$SUPABASE_ACCESS_TOKEN"/);
+  assert.match(functionDeployWorkflow, /--no-verify-jwt/);
+  assert.match(functionDeployWorkflow, /dispatch-notification-emails/);
+  assert.match(functionDeployWorkflow, /resend-webhook/);
+  assert.match(functionDeployWorkflow, /email-unsubscribe/);
+  assert.match(functionDeployWorkflow, /environment: production/);
 });

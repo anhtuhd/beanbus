@@ -67,6 +67,8 @@ The database checks require Docker and the Supabase CLI. Hosted database verific
    Read-only remote audit (2026-08-12) also shows both Zalo cron jobs at `0` active schedules and stored-value/top-up/flash-sale policy flags all `false`; the notification worker remains scheduled every minute.
 11. When password auth is enabled, turn on Supabase Auth's **Require current password when changing password** setting and test an incorrect current password. This is separate from `secure_password_change`/reauthentication. The admin recovery link must be tested separately and must not allow a different admin session to reuse its capability.
 
+The repository includes a manual `.github/workflows/deploy-supabase-functions.yml` workflow. Before using it, add `SUPABASE_ACCESS_TOKEN` as a masked `production` Environment secret and `SUPABASE_PROJECT_REF` as a non-secret `production` Environment variable in GitHub. It deploys only the selected function with `--no-verify-jwt`; it is never triggered by a normal push.
+
 `/api/health` validates application configuration. It is not a substitute for a database readiness probe or provider transaction test.
 
 ## First Admin Bootstrap
