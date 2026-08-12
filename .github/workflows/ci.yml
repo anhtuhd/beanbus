@@ -60,7 +60,8 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Demo E2E
-        run: npm run test:e2e
+        # The demo suite mutates browser-local fixtures and runs on constrained shared runners.
+        run: npm run test:e2e -- --workers=1
       - name: Production auth E2E
         run: npm run test:e2e:auth
       - name: Production checkout E2E
