@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
 import test from 'node:test';
-import { buildSepayQrUrl, parseSepayWebhook, resolveSepayPaymentCode, verifySepayHmac } from '../lib/payments/sepay.ts';
+import {
+  buildSepayQrUrl,
+  parseSepayWebhook,
+  parseSepayWebhookBody,
+  resolveSepayPaymentCode,
+  verifySepayHmac,
+} from '../lib/payments/sepay.ts';
 
 const payload = {
   id: 92704,
@@ -37,6 +43,18 @@ test('parses the documented inbound Sepay transaction shape', () => {
   assert.equal(parseSepayWebhook({ ...payload, transferType: 'out' })?.transferType, 'out');
   assert.equal(parseSepayWebhook({ ...payload, transferAmount: -1 }), null);
   assert.equal(parseSepayWebhook({ ...payload, id: '92704' }), null);
+});
+
+test('parses both JSON and URL-encoded webhook bodies', () => {
+  assert.deepEqual(parseSepayWebhookBody(JSON.stringify(payload), 'application/json'), payload);
+  const formBody = new URLSearchParams({
+    ...payload,
+    id: String(payload.id),
+    transferAmount: String(payload.transferAmount),
+    accumulated: String(payload.accumulated),
+  }).toString();
+  assert.deepEqual(parseSepayWebhookBody(formBody, 'application/x-www-form-urlencoded'), payload);
+  assert.equal(parseSepayWebhookBody('not-json', 'application/json'), null);
 });
 
 test('resolves the Beanbus payment code from the authenticated content fallback', () => {

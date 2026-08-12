@@ -1,5 +1,5 @@
 import { getSepayConfig } from '@/lib/payments/sepay-config';
-import { parseSepayWebhook, resolveSepayPaymentCode, verifySepayHmac } from '@/lib/payments/sepay';
+import { parseSepayWebhook, parseSepayWebhookBody, resolveSepayPaymentCode, verifySepayHmac } from '@/lib/payments/sepay';
 import {
   CORRELATION_HEADER,
   createCorrelationId,
@@ -36,7 +36,9 @@ function rejectWebhook(status: number, correlationId: string, reason: Operationa
 export async function POST(request: Request) {
   const correlationId = createCorrelationId(request.headers.get(CORRELATION_HEADER));
   if (process.env.NEXT_PUBLIC_ENABLE_SEPAY !== 'true') return failure(404, correlationId);
-  if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
+  const contentType = request.headers.get('content-type')?.toLowerCase() ?? '';
+  if (!contentType.startsWith('application/json')
+    && !contentType.startsWith('application/x-www-form-urlencoded')) {
     return rejectWebhook(415, correlationId, 'unsupported_media_type');
   }
 
@@ -68,12 +70,8 @@ export async function POST(request: Request) {
     timestamp: request.headers.get('x-sepay-timestamp'),
   })) return rejectWebhook(401, correlationId, 'invalid_signature');
 
-  let rawPayload: unknown;
-  try {
-    rawPayload = JSON.parse(rawBody);
-  } catch {
-    return rejectWebhook(400, correlationId, 'invalid_payload');
-  }
+  const rawPayload = parseSepayWebhookBody(rawBody, contentType);
+  if (rawPayload === null) return rejectWebhook(400, correlationId, 'invalid_payload');
   const event = parseSepayWebhook(rawPayload);
   if (!event) return rejectWebhook(400, correlationId, 'invalid_payload');
 

@@ -30,6 +30,29 @@ function boundedText(value: unknown, maxLength: number, allowEmpty = false): val
     && (allowEmpty || value.length > 0);
 }
 
+export function parseSepayWebhookBody(rawBody: string, contentType: string): unknown | null {
+  if (contentType.startsWith('application/json')) {
+    try {
+      return JSON.parse(rawBody);
+    } catch {
+      return null;
+    }
+  }
+  if (!contentType.startsWith('application/x-www-form-urlencoded')) return null;
+
+  const form = Object.fromEntries(new URLSearchParams(rawBody));
+  return {
+    ...form,
+    id: Number(form.id),
+    code: form.code || null,
+    subAccount: form.subAccount ?? '',
+    description: form.description ?? '',
+    transferAmount: Number(form.transferAmount),
+    accumulated: Number(form.accumulated),
+    referenceCode: form.referenceCode ?? '',
+  };
+}
+
 export function verifySepayHmac({
   nowMs = Date.now(),
   rawBody,
