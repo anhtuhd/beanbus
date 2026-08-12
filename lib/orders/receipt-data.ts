@@ -14,6 +14,7 @@ export type OrderReceipt = {
     quantity: number;
   }>;
   number: number;
+  orderCode: string;
   paymentMethod: 'cod' | 'sepay_qr';
   payment: {
     accountNumber: string;
@@ -65,6 +66,8 @@ export function parseOrderReceipt(value: unknown): OrderReceipt | null {
     || !Number.isInteger(value.number)
     || !isText(value.customerName)
     || !isText(value.customerPhone)
+    || !isText(value.orderCode)
+    || !/^DH-[0-9]{6}[A-Za-z0-9]{6}$/.test(value.orderCode)
     || !['pickup', 'delivery'].includes(String(value.fulfillment))
     || !['cod', 'sepay_qr'].includes(String(value.paymentMethod))
     || !['pending', 'paid', 'failed', 'refunded'].includes(String(value.paymentStatus))
@@ -94,6 +97,7 @@ export function parseOrderReceipt(value: unknown): OrderReceipt | null {
   return {
     id: value.id,
     number: Number(value.number),
+    orderCode: value.orderCode,
     customerName: value.customerName,
     customerPhone: value.customerPhone,
     fulfillment: value.fulfillment as OrderReceipt['fulfillment'],

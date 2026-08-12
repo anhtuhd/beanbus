@@ -8,6 +8,8 @@ import { getAppMode } from '@/lib/env';
 import CatalogUnavailable from '@/components/catalog/CatalogUnavailable';
 import styles from '../page.module.css';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Menu đồ uống và bánh tươi | Beanbus Coffee',
   description: 'Khám phá cà phê đặc sản, cold brew, trà và bánh tươi tại Beanbus Coffee Roaster Hải Phòng.',

@@ -28,7 +28,7 @@ test('visitor can place a demo COD order and see its confirmation', async ({ pag
   await page.getByLabel(/Thanh toán khi nhận hàng/).check();
   await page.getByRole('button', { name: /Xác Nhận Đặt Hàng/ }).click();
 
-  await expect(page).toHaveURL(/\/order\/confirmation\/BB-2026-/);
+  await expect(page).toHaveURL(/\/order\/confirmation\/DH-[0-9]{6}[A-Za-z0-9]{6}/);
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Đặt Hàng Thành Công');
   await page.screenshot({ path: '/tmp/beanbus-confirmation-desktop.png', fullPage: true });
   expect(consoleErrors).toEqual([]);

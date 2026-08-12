@@ -83,7 +83,7 @@ test('header dropdowns and mobile navigation are keyboard accessible', async ({ 
   await page.keyboard.press('Enter');
   await expect(desktopMenu).toHaveAttribute('aria-expanded', 'true');
   await page.keyboard.press('ArrowDown');
-  await expect(page.getByRole('link', { name: 'Câu chuyện' })).toBeFocused();
+  await expect(page.getByRole('link', { name: 'Tổng quan' })).toBeFocused();
 
   await page.setViewportSize({ width: 375, height: 812 });
   const burger = page.getByRole('button', { name: 'Mở menu' });
@@ -95,4 +95,17 @@ test('header dropdowns and mobile navigation are keyboard accessible', async ({ 
   await page.keyboard.press('Escape');
   await expect(page.getByRole('navigation', { name: 'Điều hướng di động' })).toBeHidden();
   await expect(page.getByRole('button', { name: 'Mở menu' })).toBeFocused();
+});
+
+test('about submenu keeps navigation on one page and scrolls to stable sections', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Về Beanbus' }).click();
+  await page.getByRole('link', { name: 'Câu chuyện' }).click();
+  await expect(page).toHaveURL(/\/about#story$/);
+  await expect(page.locator('#story')).toBeInViewport();
+
+  await page.getByRole('button', { name: 'Về Beanbus' }).click();
+  await page.getByRole('link', { name: 'Xưởng Rang' }).click();
+  await expect(page).toHaveURL(/\/about#roastery$/);
+  await expect(page.locator('#roastery')).toBeInViewport();
 });

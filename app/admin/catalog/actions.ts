@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { invalidateCatalogCache } from '@/lib/cache/tags';
 import { requireAdmin } from '@/lib/auth/session';
 import { logOperationalFailure } from '@/lib/observability/logger';
 import { getRequestCorrelationId } from '@/lib/observability/request';
@@ -34,6 +35,7 @@ export async function updateAdminProductStatus(
     }
     revalidatePath('/admin/catalog');
     revalidatePath('/menu');
+    invalidateCatalogCache();
     revalidatePath(`/menu/${productId}`);
     return { status: 'success', message: 'Đã lưu trữ sản phẩm; dữ liệu đơn cũ vẫn được giữ nguyên.' };
   }
@@ -50,5 +52,6 @@ export async function updateAdminProductStatus(
 
   revalidatePath('/admin/catalog');
   revalidatePath('/menu');
+  invalidateCatalogCache();
   return { status: 'success', message: 'Đã cập nhật sản phẩm.' };
 }

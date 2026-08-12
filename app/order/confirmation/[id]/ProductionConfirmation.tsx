@@ -16,17 +16,19 @@ const steps = [
   { key: 'completed', labelVi: 'Hoàn thành', labelEn: 'Completed' },
 ] as const;
 
-function formatOrderNumber(order: OrderReceipt) {
-  const year = new Date(order.createdAt).getFullYear();
-  return `BB-${year}-${String(order.number).padStart(6, '0')}`;
-}
-
 function formatPickupTime(value: string, lang: 'vi' | 'en') {
   return new Intl.DateTimeFormat(lang === 'vi' ? 'vi-VN' : 'en-US', {
     dateStyle: 'short',
     timeStyle: 'short',
     timeZone: 'Asia/Ho_Chi_Minh',
   }).format(new Date(value));
+}
+
+function formatCountdown(milliseconds: number): string {
+  const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
 type PaymentDisplay = { accountName: string; qrUrl: string } | null;
@@ -42,6 +44,7 @@ export function ProductionConfirmation({
   const { t, lang } = useLanguage();
   const [copied, setCopied] = useState<'account' | 'code' | null>(null);
   const [isExpired, setIsExpired] = useState(false);
+  const [remainingMs, setRemainingMs] = useState(0);
   const currentStepIndex = steps.findIndex((step) => step.key === order.status);
   const isCancelled = order.status === 'cancelled';
   const payment = order.payment;
@@ -49,11 +52,20 @@ export function ProductionConfirmation({
 
   useEffect(() => {
     if (!payment) return;
-    const updateExpiry = () => setIsExpired(Date.now() >= new Date(payment.expiresAt).getTime());
+    let refreshRequested = false;
+    const updateExpiry = () => {
+      const remaining = Math.max(0, new Date(payment.expiresAt).getTime() - Date.now());
+      setRemainingMs(remaining);
+      setIsExpired(remaining === 0);
+      if (remaining === 0 && !refreshRequested) {
+        refreshRequested = true;
+        router.refresh();
+      }
+    };
     updateExpiry();
-    const timer = window.setInterval(updateExpiry, 30_000);
+    const timer = window.setInterval(updateExpiry, 1000);
     return () => window.clearInterval(timer);
-  }, [payment]);
+  }, [payment, router]);
 
   useEffect(() => {
     if (!isPaymentPending || isExpired) return;
@@ -81,7 +93,7 @@ export function ProductionConfirmation({
         </div>
         <h1>{isCancelled ? t('Đơn hàng đã hủy', 'Order Cancelled') : t('Đã nhận đơn hàng', 'Order Received')}</h1>
         <p className={styles.orderIdText}>
-          {t('Mã đơn hàng:', 'Order ID:')} <strong>{formatOrderNumber(order)}</strong>
+          {t('Mã đơn hàng:', 'Order ID:')} <strong>{order.orderCode}</strong>
         </p>
         {order.paymentStatus === 'paid' && (
           <div className={styles.paidBadge}>{t('Thanh toán đã được xác nhận', 'Payment confirmed')}</div>
@@ -158,6 +170,9 @@ export function ProductionConfirmation({
               </div>
               <p className={styles.expiryText}>
                 {t('Có hiệu lực đến', 'Valid until')} {formatPickupTime(payment.expiresAt, lang)}
+              </p>
+              <p className={styles.countdownText} role="timer" aria-live="polite">
+                {t('Đếm ngược', 'Time left')}: <strong>{formatCountdown(remainingMs)}</strong>
               </p>
             </div>
           </div>

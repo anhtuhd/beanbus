@@ -10,7 +10,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 type OrderRow = Pick<
   Database['public']['Tables']['orders']['Row'],
-  'id' | 'order_number' | 'customer_name' | 'customer_phone' | 'fulfillment' | 'pickup_at' |
+  'id' | 'order_code' | 'order_number' | 'customer_name' | 'customer_phone' | 'fulfillment' | 'pickup_at' |
   'delivery_address' | 'total_vnd' | 'payment_method' | 'payment_status' | 'status' | 'created_at'
 >;
 
@@ -83,12 +83,13 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
 
   let query = supabase
     .from('orders')
-    .select('id, order_number, customer_name, customer_phone, fulfillment, pickup_at, delivery_address, total_vnd, payment_method, payment_status, status, created_at', { count: 'exact' })
+    .select('id, order_code, order_number, customer_name, customer_phone, fulfillment, pickup_at, delivery_address, total_vnd, payment_method, payment_status, status, created_at', { count: 'exact' })
     .order('created_at', { ascending: false });
   if (status !== 'all') query = query.eq('status', status as OrderRow['status']);
   if (search) {
     const phone = normalizeVietnameseMobile(search);
-    if (/^\d{1,9}$/.test(search)) query = query.eq('order_number', Number(search));
+    if (/^DH-[0-9]{6}[A-Za-z0-9]{6}$/i.test(search)) query = query.eq('order_code', search.toUpperCase());
+    else if (/^\d{1,9}$/.test(search)) query = query.eq('order_number', Number(search));
     else if (phone) query = query.eq('customer_phone', phone);
     else query = query.ilike('customer_name', `%${escapeLike(search)}%`);
   }
@@ -134,7 +135,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
         <div className={styles.requestList}>
           {orders.map((order) => (
             <article key={order.id} className={styles.requestRow}>
-              <div><span className={styles.label}>Mã / Thời gian</span><Link href={`/admin/orders/${order.id}`} className={styles.detailLink}><strong>BB-{String(order.order_number).padStart(6, '0')}</strong></Link><small>{formatDate(order.created_at)}</small></div>
+              <div><span className={styles.label}>Mã / Thời gian</span><Link href={`/admin/orders/${order.id}`} className={styles.detailLink}><strong>{order.order_code}</strong></Link><small>{formatDate(order.created_at)}</small></div>
               <div><span className={styles.label}>Khách hàng</span><strong>{order.customer_name}</strong><small>{order.customer_phone}</small></div>
               <div><span className={styles.label}>Nhận hàng</span><strong>{order.fulfillment === 'pickup' ? 'Nhận tại quán' : 'Giao hàng'}</strong><small>{order.pickup_at ? formatDate(order.pickup_at) : order.delivery_address}</small></div>
               <div><span className={styles.label}>Thanh toán</span><strong>{formatMoney(order.total_vnd)}</strong><small>{PAYMENT_METHOD_LABEL[order.payment_method] ?? order.payment_method} · {PAYMENT_STATUS_LABEL[order.payment_status] ?? order.payment_status}</small></div>

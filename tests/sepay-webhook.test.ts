@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
 import test from 'node:test';
-import { buildSepayQrUrl, parseSepayWebhook, verifySepayHmac } from '../lib/payments/sepay.ts';
+import { buildSepayQrUrl, parseSepayWebhook, resolveSepayPaymentCode, verifySepayHmac } from '../lib/payments/sepay.ts';
 
 const payload = {
   id: 92704,
@@ -9,8 +9,8 @@ const payload = {
   transactionDate: '2026-08-09 14:30:00',
   accountNumber: '0937936688',
   subAccount: '',
-  code: 'DH_101',
-  content: 'DH_101 thanh toan',
+  code: 'DH-260809ABC123',
+  content: 'DH-260809ABC123 thanh toan',
   transferType: 'in',
   description: 'NGUYEN VAN A chuyen tien',
   transferAmount: 81000,
@@ -39,18 +39,24 @@ test('parses the documented inbound Sepay transaction shape', () => {
   assert.equal(parseSepayWebhook({ ...payload, id: '92704' }), null);
 });
 
+test('resolves the Beanbus payment code from the authenticated content fallback', () => {
+  assert.equal(resolveSepayPaymentCode(null, 'Thanh toan dh-260809abc123'), 'DH-260809ABC123');
+  assert.equal(resolveSepayPaymentCode('DH-260809def456', 'unrelated content'), 'DH-260809DEF456');
+  assert.equal(resolveSepayPaymentCode(null, 'Thanh toan DH260809ABC123'), null);
+});
+
 test('builds a VietQR URL from server-owned payment instructions', () => {
   const url = new URL(buildSepayQrUrl({
     accountName: 'BEANBUS COFFEE ROASTER',
     accountNumber: '0937936688',
     amountVnd: 81000,
     bankCode: 'MB',
-    paymentCode: 'DH_101',
+    paymentCode: 'DH-260809ABC123',
   }));
 
   assert.equal(url.origin, 'https://vietqr.app');
   assert.equal(url.searchParams.get('acc'), '0937936688');
   assert.equal(url.searchParams.get('amount'), '81000');
-  assert.equal(url.searchParams.get('des'), 'DH_101');
+  assert.equal(url.searchParams.get('des'), 'DH-260809ABC123');
   assert.equal(url.searchParams.get('template'), 'compact');
 });

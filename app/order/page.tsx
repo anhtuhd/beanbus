@@ -6,6 +6,8 @@ import { getAppMode } from '@/lib/env';
 import CatalogUnavailable from '@/components/catalog/CatalogUnavailable';
 import styles from './order.module.css';
 
+export const dynamic = 'force-dynamic';
+
 function OrderNoScript({ products }: { products: Product[] }) {
   return (
     <div className={styles.noScriptFallback}>

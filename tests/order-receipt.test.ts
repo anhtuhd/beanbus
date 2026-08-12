@@ -5,6 +5,7 @@ import { parseOrderReceipt } from '../lib/orders/receipt-data.ts';
 const receipt = {
   id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
   number: 101,
+  orderCode: 'DH-260809ABC123',
   customerName: 'Nguyễn Văn A',
   customerPhone: '+84912345678',
   fulfillment: 'pickup',
@@ -29,14 +30,14 @@ test('rejects malformed receipt totals, statuses, and line items', () => {
   assert.equal(parseOrderReceipt({ ...receipt, totalVnd: '45000' }), null);
   assert.equal(parseOrderReceipt({ ...receipt, paymentStatus: 'client-paid' }), null);
   assert.equal(parseOrderReceipt({ ...receipt, items: [{ quantity: 0 }] }), null);
-  assert.equal(parseOrderReceipt({ ...receipt, payment: { code: 'DH_101', status: 'browser-paid' } }), null);
+  assert.equal(parseOrderReceipt({ ...receipt, payment: { code: 'DH-260809ABC123', status: 'browser-paid' } }), null);
 });
 
 test('accepts server-created pending payment instructions', () => {
   const payment = {
     accountNumber: '0937936688',
     bankCode: 'MB',
-    code: 'DH_101',
+    code: 'DH-260809ABC123',
     expiresAt: '2026-08-09T08:00:00Z',
     status: 'pending',
   };

@@ -7,6 +7,8 @@ import { CATEGORIES, PRODUCTS, type Category, type Product } from '@/data/produc
 import { getCatalog, getCatalogProduct } from '@/lib/catalog/queries';
 import { getAppMode, getSiteUrl } from '@/lib/env';
 
+export const dynamic = 'force-dynamic';
+
 type ProductPageProps = {
   params: Promise<{ id: string }>;
 };

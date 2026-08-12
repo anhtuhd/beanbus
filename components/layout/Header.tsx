@@ -32,15 +32,24 @@ interface MobileNavItemProps {
   setMobileOpen: (open: boolean) => void;
 }
 
+function routePath(href: string): string {
+  return href.split('#', 1)[0] || '/';
+}
+
+function isNavHrefActive(href: string, pathname: string): boolean {
+  return routePath(href) === pathname;
+}
+
 const navConfig: NavItem[] = [
   { href: '/', labelVi: 'Trang chủ', labelEn: 'Home' },
   {
     labelVi: 'Về Beanbus',
     labelEn: 'About Beanbus',
     children: [
-      { href: '/#story', labelVi: 'Câu chuyện', labelEn: 'Story' },
-      { href: '/#beans', labelVi: 'Hạt Cà Phê', labelEn: 'Coffee Beans' },
-      { href: '/about', labelVi: 'Về chúng tôi', labelEn: 'About' },
+      { href: '/about#top', labelVi: 'Tổng quan', labelEn: 'Overview' },
+      { href: '/about#story', labelVi: 'Câu chuyện', labelEn: 'Story' },
+      { href: '/about#process', labelVi: 'Quy trình', labelEn: 'Process' },
+      { href: '/about#roastery', labelVi: 'Xưởng Rang', labelEn: 'Roastery' },
     ]
   },
   {
@@ -96,7 +105,10 @@ function closeMenuOnEscape(event: React.KeyboardEvent<HTMLDivElement>) {
 
 const MobileNavItem = ({ item, menuId, t, pathname, setMobileOpen }: MobileNavItemProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const isActive = item.href === pathname || item.children?.some((child) => child.href === pathname);
+  const isActive = Boolean(
+    (item.href && isNavHrefActive(item.href, pathname))
+      || item.children?.some((child) => isNavHrefActive(child.href, pathname))
+  );
 
   if (item.children) {
     return (
@@ -116,7 +128,7 @@ const MobileNavItem = ({ item, menuId, t, pathname, setMobileOpen }: MobileNavIt
               <Link
                 key={child.href}
                 href={child.href}
-                className={`${styles.mobileNavLink} ${pathname === child.href ? styles.activeMobile : ''}`}
+                className={`${styles.mobileNavLink} ${isNavHrefActive(child.href, pathname) ? styles.activeMobile : ''}`}
                 onClick={() => setMobileOpen(false)}
               >
                 {t(child.labelVi, child.labelEn)}
@@ -171,8 +183,8 @@ export const Header: React.FC = () => {
   }, [mobileOpen]);
 
   const isItemActive = (item: NavItem) => {
-    if (item.href === pathname) return true;
-    if (item.children?.some(child => child.href === pathname)) return true;
+    if (item.href && isNavHrefActive(item.href, pathname)) return true;
+    if (item.children?.some(child => isNavHrefActive(child.href, pathname))) return true;
     return false;
   };
 
@@ -207,7 +219,7 @@ export const Header: React.FC = () => {
                       <Link 
                         key={child.href} 
                         href={child.href} 
-                        className={`${styles.dropdownItem} ${pathname === child.href ? styles.activeDropItem : ''}`}
+                        className={`${styles.dropdownItem} ${isNavHrefActive(child.href, pathname) ? styles.activeDropItem : ''}`}
                       >
                         {t(child.labelVi, child.labelEn)}
                       </Link>

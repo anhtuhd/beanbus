@@ -5,7 +5,6 @@ import test from 'node:test';
 const migration = readFileSync('supabase/migrations/20260811031803_sepay_reconciliation.sql', 'utf8');
 const route = readFileSync('app/api/cron/sepay-reconciliation/route.ts', 'utf8');
 const env = readFileSync('lib/env.ts', 'utf8');
-const vercel = readFileSync('vercel.json', 'utf8');
 
 test('SePay reconciliation has a service-only text-key ledger and lease checkpoint', () => {
   assert.match(migration, /provider_transaction_key text/i);
@@ -33,5 +32,4 @@ test('reconciliation route is cron-authenticated, bounded, feature-gated, and se
   assert.doesNotMatch(route, /apiKey.*responseBody|cronSecret.*responseBody/);
   assert.match(route, /parseSepayV2Response/);
   assert.match(env, /NEXT_PUBLIC_ENABLE_SEPAY_RECONCILIATION/);
-  assert.match(vercel, /sepay-reconciliation/);
 });

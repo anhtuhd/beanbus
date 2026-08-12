@@ -45,7 +45,7 @@ export default function AboutClient() {
   return (
     <div className={styles.aboutPage}>
       {/* BANNER */}
-      <div className={styles.pageHeader}>
+      <div className={styles.pageHeader} id="top">
         <div className="wrap">
           <div className="eyebrow eyebrow-green">
             <span>{t('Về thương hiệu Beanbus', 'About Beanbus')}</span>
@@ -62,7 +62,7 @@ export default function AboutClient() {
 
       <div className="wrap">
         {/* STORY DETAILED GRID */}
-        <div className={styles.storySection}>
+        <div className={styles.storySection} id="story">
           <div className={styles.storyGrid}>
             <div className={styles.textSide}>
               <div className="eyebrow"><span>{t('Khởi nguồn', 'The Origin')}</span></div>
@@ -95,7 +95,7 @@ export default function AboutClient() {
         </div>
 
         {/* PROCESS STEPS */}
-        <div className={styles.processSection}>
+        <div className={styles.processSection} id="process">
           <div className="section-head center">
             <div className="eyebrow center"><span>{t('Quy trình chất lượng', 'Quality Process')}</span></div>
             <h2 className="section-title">{t('4 Bước Từ Nông Trang Đến Ly Cà Phê', '4 Steps From Farm to Cup')}</h2>
@@ -113,7 +113,7 @@ export default function AboutClient() {
         </div>
 
         {/* ROASTERY SHOWCASE */}
-        <div className={styles.roasteryShowcase}>
+        <div className={styles.roasteryShowcase} id="roastery">
           <div className={styles.rText}>
             <h2>🔥 {t('Xưởng Rang Cà Phê Sáng Tạo Việt', 'Cà Phê Sáng Tạo Việt Roastery')}</h2>
             <p>

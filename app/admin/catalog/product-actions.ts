@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { invalidateCatalogCache } from '@/lib/cache/tags';
 import { requireAdmin } from '@/lib/auth/session';
 import { getRequestCorrelationId } from '@/lib/observability/request';
 import { logOperationalFailure } from '@/lib/observability/logger';
@@ -70,5 +71,6 @@ export async function upsertAdminProduct(
   revalidatePath('/admin/catalog');
   revalidatePath('/menu');
   revalidatePath(`/menu/${data[0].updated_product_id}`);
+  invalidateCatalogCache();
   return { status: 'success', message: data[0].operation === 'created' ? 'Đã tạo sản phẩm.' : 'Đã cập nhật sản phẩm.' };
 }

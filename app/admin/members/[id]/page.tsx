@@ -16,7 +16,7 @@ type LedgerRow = Pick<
 >;
 type OrderRow = Pick<
   Database['public']['Tables']['orders']['Row'],
-  'id' | 'order_number' | 'total_vnd' | 'status' | 'payment_status' | 'created_at'
+  'id' | 'order_code' | 'order_number' | 'total_vnd' | 'status' | 'payment_status' | 'created_at'
 >;
 type RoleHistoryRow = Pick<
   Database['public']['Tables']['member_role_history']['Row'],
@@ -70,7 +70,7 @@ export default async function AdminMemberDetailPage({
     supabase.from('profiles').select('id, member_number, full_name, phone, email, birthday, avatar_url, role, created_at').eq('id', id).maybeSingle(),
     supabase.rpc('get_member_loyalty_summary', { p_user_id: id }),
     supabase.from('loyalty_ledger').select('id, points, amount_vnd, source_type, source_key, voucher_code, note, created_at', { count: 'exact' }).eq('user_id', id).order('created_at', { ascending: false }).range((ledgerPage - 1) * PAGE_SIZE, ledgerPage * PAGE_SIZE - 1),
-    supabase.from('orders').select('id, order_number, total_vnd, status, payment_status, created_at', { count: 'exact' }).eq('user_id', id).order('created_at', { ascending: false }).range((orderPage - 1) * PAGE_SIZE, orderPage * PAGE_SIZE - 1),
+    supabase.from('orders').select('id, order_code, order_number, total_vnd, status, payment_status, created_at', { count: 'exact' }).eq('user_id', id).order('created_at', { ascending: false }).range((orderPage - 1) * PAGE_SIZE, orderPage * PAGE_SIZE - 1),
     supabase.from('member_role_history').select('id, from_role, to_role, actor_user_id, created_at').eq('user_id', id).order('created_at', { ascending: false }).limit(20),
   ]);
 
@@ -161,10 +161,10 @@ export default async function AdminMemberDetailPage({
           <div className={styles.requestList}>
             {orders.map((order) => (
               <article key={order.id} className={styles.requestRow}>
-                <div><span className={styles.label}>Đơn hàng</span><strong>BB-{String(order.order_number).padStart(6, '0')}</strong><small>{formatDateTime(order.created_at)}</small></div>
+                <div><span className={styles.label}>Đơn hàng</span><strong>{order.order_code}</strong><small>{formatDateTime(order.created_at)}</small></div>
                 <div><span className={styles.label}>Tổng tiền</span><strong>{formatMoney(order.total_vnd)}</strong></div>
                 <div><span className={styles.label}>Trạng thái</span><strong>{order.status}</strong><small>{order.payment_status}</small></div>
-                <div><Link href={`/admin/orders?q=${order.order_number}`} className={styles.detailLink}>Mở trong đơn hàng <ExternalLink size={14} /></Link></div>
+                <div><Link href={`/admin/orders?q=${order.order_code}`} className={styles.detailLink}>Mở trong đơn hàng <ExternalLink size={14} /></Link></div>
               </article>
             ))}
           </div>

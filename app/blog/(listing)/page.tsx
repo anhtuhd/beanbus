@@ -5,6 +5,8 @@ import { BLOG_POSTS, type BlogPost } from '@/data/events';
 import { getPublishedBlogPosts } from '@/lib/content/queries';
 import { getAppMode } from '@/lib/env';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Kiến Thức Cà Phê & Câu Chuyện Hạt | Beanbus',
   description: 'Bí quyết pha chế, kiến thức rang và câu chuyện cà phê đặc sản từ đội ngũ Beanbus Hải Phòng.',

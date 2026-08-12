@@ -1,10 +1,12 @@
 import 'server-only';
 
 import { cache } from 'react';
+import { unstable_cache } from 'next/cache';
 import { BLOG_POSTS, EVENTS, type BlogPost, type EventItem } from '@/data/events';
 import { getAppMode } from '@/lib/env';
+import { BLOG_CACHE_TAG, EVENTS_CACHE_TAG } from '@/lib/cache/tags';
 import type { Database } from '@/lib/supabase/database.types';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createPublicSupabaseClient } from '@/lib/supabase/public-server';
 
 type EventRow = Database['public']['Tables']['events']['Row'];
 type BlogPostRow = Database['public']['Tables']['blog_posts']['Row'];
@@ -64,9 +66,8 @@ function mapBlogPost(row: BlogPostRow): BlogPost {
   };
 }
 
-export const getPublishedEvents = cache(async (): Promise<EventItem[]> => {
-  if (getAppMode() === 'demo') return EVENTS;
-  const supabase = await createServerSupabaseClient();
+async function loadPublishedEvents(): Promise<EventItem[]> {
+  const supabase = createPublicSupabaseClient();
   const result = await supabase
     .from('events')
     .select('id, slug, title_vi, title_en, summary_vi, summary_en, description_vi, description_en, starts_at, ends_at, time_label, location, image_url, max_seats, is_featured, is_published, published_at, sort_order, created_at, updated_at')
@@ -74,11 +75,20 @@ export const getPublishedEvents = cache(async (): Promise<EventItem[]> => {
     .order('starts_at');
   if (result.error) throw new Error('Unable to load events.');
   return result.data.map(mapEvent);
+}
+
+const getCachedPublishedEvents = unstable_cache(loadPublishedEvents, ['public-events'], {
+  tags: [EVENTS_CACHE_TAG],
+  revalidate: 300,
 });
 
-const findPublishedEvent = cache(async (id: string): Promise<EventItem | null> => {
-  if (getAppMode() === 'demo') return EVENTS.find((event) => event.id === id) ?? null;
-  const supabase = await createServerSupabaseClient();
+export const getPublishedEvents = cache(async (): Promise<EventItem[]> => {
+  if (getAppMode() === 'demo') return EVENTS;
+  return getCachedPublishedEvents();
+});
+
+async function loadPublishedEvent(id: string): Promise<EventItem | null> {
+  const supabase = createPublicSupabaseClient();
   const result = await supabase
     .from('events')
     .select('id, slug, title_vi, title_en, summary_vi, summary_en, description_vi, description_en, starts_at, ends_at, time_label, location, image_url, max_seats, is_featured, is_published, published_at, sort_order, created_at, updated_at')
@@ -87,15 +97,20 @@ const findPublishedEvent = cache(async (id: string): Promise<EventItem | null> =
     .maybeSingle();
   if (result.error) throw new Error('Unable to load event.');
   return result.data ? mapEvent(result.data) : null;
+}
+
+const getCachedPublishedEvent = unstable_cache(loadPublishedEvent, ['public-event'], {
+  tags: [EVENTS_CACHE_TAG],
+  revalidate: 300,
 });
 
 export async function getPublishedEvent(id: string): Promise<EventItem | null> {
-  return findPublishedEvent(id);
+  if (getAppMode() === 'demo') return EVENTS.find((event) => event.id === id) ?? null;
+  return getCachedPublishedEvent(id);
 }
 
-export const getPublishedBlogPosts = cache(async (): Promise<BlogPost[]> => {
-  if (getAppMode() === 'demo') return BLOG_POSTS;
-  const supabase = await createServerSupabaseClient();
+async function loadPublishedBlogPosts(): Promise<BlogPost[]> {
+  const supabase = createPublicSupabaseClient();
   const result = await supabase
     .from('blog_posts')
     .select('id, slug, title_vi, title_en, category_vi, category_en, author, read_time_vi, read_time_en, excerpt_vi, excerpt_en, content_vi, content_en, cover_image_url, is_published, published_at, sort_order, created_at, updated_at')
@@ -103,11 +118,20 @@ export const getPublishedBlogPosts = cache(async (): Promise<BlogPost[]> => {
     .order('published_at', { ascending: false });
   if (result.error) throw new Error('Unable to load blog posts.');
   return result.data.map(mapBlogPost);
+}
+
+const getCachedPublishedBlogPosts = unstable_cache(loadPublishedBlogPosts, ['public-blog'], {
+  tags: [BLOG_CACHE_TAG],
+  revalidate: 3600,
 });
 
-const findPublishedBlogPost = cache(async (slug: string): Promise<BlogPost | null> => {
-  if (getAppMode() === 'demo') return BLOG_POSTS.find((post) => post.slug === slug) ?? null;
-  const supabase = await createServerSupabaseClient();
+export const getPublishedBlogPosts = cache(async (): Promise<BlogPost[]> => {
+  if (getAppMode() === 'demo') return BLOG_POSTS;
+  return getCachedPublishedBlogPosts();
+});
+
+async function loadPublishedBlogPost(slug: string): Promise<BlogPost | null> {
+  const supabase = createPublicSupabaseClient();
   const result = await supabase
     .from('blog_posts')
     .select('id, slug, title_vi, title_en, category_vi, category_en, author, read_time_vi, read_time_en, excerpt_vi, excerpt_en, content_vi, content_en, cover_image_url, is_published, published_at, sort_order, created_at, updated_at')
@@ -116,8 +140,14 @@ const findPublishedBlogPost = cache(async (slug: string): Promise<BlogPost | nul
     .maybeSingle();
   if (result.error) throw new Error('Unable to load blog post.');
   return result.data ? mapBlogPost(result.data) : null;
+}
+
+const getCachedPublishedBlogPost = unstable_cache(loadPublishedBlogPost, ['public-blog-post'], {
+  tags: [BLOG_CACHE_TAG],
+  revalidate: 3600,
 });
 
 export async function getPublishedBlogPost(slug: string): Promise<BlogPost | null> {
-  return findPublishedBlogPost(slug);
+  if (getAppMode() === 'demo') return BLOG_POSTS.find((post) => post.slug === slug) ?? null;
+  return getCachedPublishedBlogPost(slug);
 }

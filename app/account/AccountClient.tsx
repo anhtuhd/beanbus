@@ -501,7 +501,7 @@ export default function AccountClient({
                   <div key={order.id} className={styles.orderCard}>
                     <div className={styles.orderHead}>
                       <div>
-                        <Link href={`/account/orders/${order.id}`} className={styles.orderLink}>Đơn #{order.number}</Link>
+                        <Link href={`/account/orders/${order.id}`} className={styles.orderLink}>Đơn #{order.code}</Link>
                         <span className={styles.orderDate}>{formatDate(order.createdAt)}</span>
                       </div>
                       <span className={`${styles.statusBadge} ${styles[`status_${order.status}`]}`}>{statusLabel(order.status, t)}</span>

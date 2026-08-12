@@ -1,5 +1,5 @@
 import { getSepayConfig } from '@/lib/payments/sepay-config';
-import { parseSepayWebhook, verifySepayHmac } from '@/lib/payments/sepay';
+import { parseSepayWebhook, resolveSepayPaymentCode, verifySepayHmac } from '@/lib/payments/sepay';
 import {
   CORRELATION_HEADER,
   createCorrelationId,
@@ -79,7 +79,10 @@ export async function POST(request: Request) {
 
   try {
     const admin = createAdminSupabaseClient();
-    const isStoredValueCode = typeof event.code === 'string' && /^B[TF][0-9]+$/i.test(event.code.trim());
+    const paymentCode = resolveSepayPaymentCode(event.code, event.content);
+    const storedValueCode = typeof event.code === 'string' ? event.code.trim() : null;
+    const isStoredValueCode = typeof storedValueCode === 'string' && /^B[TF][0-9]+$/i.test(storedValueCode);
+    const rpcCode = isStoredValueCode ? storedValueCode : paymentCode;
     if (isStoredValueCode && !isStoredValueConfigured()) {
       return rejectWebhook(404, correlationId, 'feature_disabled');
     }
@@ -89,7 +92,7 @@ export async function POST(request: Request) {
         p_gateway: event.gateway,
         p_transaction_at: event.transactionAt,
         p_account_number: event.accountNumber,
-        p_code: event.code,
+        p_code: rpcCode,
         p_transfer_type: event.transferType,
         p_transfer_amount: event.transferAmount,
         p_reference_code: event.referenceCode,
@@ -100,7 +103,7 @@ export async function POST(request: Request) {
         p_gateway: event.gateway,
         p_transaction_at: event.transactionAt,
         p_account_number: event.accountNumber,
-        p_code: event.code,
+        p_code: rpcCode,
         p_transfer_type: event.transferType,
         p_transfer_amount: event.transferAmount,
         p_reference_code: event.referenceCode,

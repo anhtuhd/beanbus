@@ -44,7 +44,7 @@ select * from public.create_sepay_payment(
 select is(
   (select outcome from public.process_sepay_reconciliation(
     'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'MBBank', now(), '0937936688',
-    (select payment_code from reconciliation_payment), 'in', 1, 'FT-MISMATCH', 'DH_1',
+    (select payment_code from reconciliation_payment), 'in', 1, 'FT-MISMATCH', 'DH-260811ABC123',
     '{"id":"a1b2c3d4-e5f6-7890-abcd-ef1234567890"}'::jsonb
   )),
   'rejected',
@@ -64,7 +64,7 @@ select is(
 create temporary table reconciled_event as
 select * from public.process_sepay_reconciliation(
   'b1b2c3d4-e5f6-7890-abcd-ef1234567890', 'MBBank', now(), '0937936688',
-  (select payment_code from reconciliation_payment), 'in', 35000, 'FT-VALID', 'DH_1',
+  (select payment_code from reconciliation_payment), 'in', 35000, 'FT-VALID', 'DH-260811ABC123',
   '{"id":"b1b2c3d4-e5f6-7890-abcd-ef1234567890"}'::jsonb
 );
 select is((select outcome from reconciled_event), 'processed', 'matching API transaction is processed');
@@ -81,7 +81,7 @@ select is(
 select is(
   (select outcome from public.process_sepay_reconciliation(
     'b1b2c3d4-e5f6-7890-abcd-ef1234567890', 'MBBank', now(), '0937936688',
-    (select payment_code from reconciliation_payment), 'in', 35000, 'FT-VALID', 'DH_1',
+    (select payment_code from reconciliation_payment), 'in', 35000, 'FT-VALID', 'DH-260811ABC123',
     '{"id":"b1b2c3d4-e5f6-7890-abcd-ef1234567890"}'::jsonb
   )),
   'duplicate',

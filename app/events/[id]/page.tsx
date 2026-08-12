@@ -6,6 +6,8 @@ import EventDetailClient from './EventDetailClient';
 import type { EventItem } from '@/data/events';
 import { getPublishedEvent } from '@/lib/content/queries';
 
+export const dynamic = 'force-dynamic';
+
 type Props = { params: Promise<{ id: string }> };
 
 function EventDetailNoScript({ event }: { event: EventItem }) {

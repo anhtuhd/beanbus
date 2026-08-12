@@ -63,11 +63,11 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
   const supabase = await createServerSupabaseClient();
   const orderResult = await supabase
     .from('orders')
-    .select('id, order_number, customer_name, customer_phone, fulfillment, pickup_at, delivery_address, note, voucher_code, subtotal_vnd, discount_vnd, total_vnd, payment_method, payment_status, status, created_at')
+    .select('id, order_code, order_number, customer_name, customer_phone, fulfillment, pickup_at, delivery_address, note, voucher_code, subtotal_vnd, discount_vnd, total_vnd, payment_method, payment_status, status, created_at')
     .eq('id', id)
     .maybeSingle();
   if (orderResult.error || !orderResult.data) notFound();
-  const order = orderResult.data as Pick<Order, 'id' | 'order_number' | 'customer_name' | 'customer_phone' | 'fulfillment' | 'pickup_at' | 'delivery_address' | 'note' | 'voucher_code' | 'subtotal_vnd' | 'discount_vnd' | 'total_vnd' | 'payment_method' | 'payment_status' | 'status' | 'created_at'>;
+  const order = orderResult.data as Pick<Order, 'id' | 'order_code' | 'order_number' | 'customer_name' | 'customer_phone' | 'fulfillment' | 'pickup_at' | 'delivery_address' | 'note' | 'voucher_code' | 'subtotal_vnd' | 'discount_vnd' | 'total_vnd' | 'payment_method' | 'payment_status' | 'status' | 'created_at'>;
 
   const [itemsResult, historyResult] = await Promise.all([
     supabase.from('order_items').select('id, product_name_vi, product_name_en, quantity, unit_price_vnd, line_total_vnd, special_note').eq('order_id', id),
@@ -88,7 +88,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
         <div>
           <Link href="/admin/orders" className={styles.backLink}><ArrowLeft size={16} /> Danh sách đơn hàng</Link>
           <span className={detailStyles.detailEyebrow}><ShoppingBag size={16} /> Order Operations</span>
-          <h1>Đơn #{order.order_number}</h1>
+          <h1>Đơn #{order.order_code}</h1>
           <p>Tạo lúc {formatDate(order.created_at)}</p>
         </div>
         <div>

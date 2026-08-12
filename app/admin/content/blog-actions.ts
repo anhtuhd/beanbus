@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { invalidateBlogCache } from '@/lib/cache/tags';
 import { requireAdmin } from '@/lib/auth/session';
 import { getRequestCorrelationId } from '@/lib/observability/request';
 import { logOperationalFailure } from '@/lib/observability/logger';
@@ -72,5 +73,6 @@ export async function upsertAdminBlogPost(
   revalidatePath('/admin/content');
   revalidatePath('/blog');
   revalidatePath(`/blog/${slug}`);
+  invalidateBlogCache();
   return { status: 'success', message: data[0].operation === 'created' ? 'Đã tạo bài viết.' : 'Đã cập nhật bài viết.' };
 }

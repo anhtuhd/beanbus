@@ -7,7 +7,7 @@ const migration = readFileSync(
   'utf8'
 );
 const conventionMigration = readFileSync(
-  new URL('../supabase/migrations/20260811011957_sepay_dh_payment_code.sql', import.meta.url),
+  new URL('../supabase/migrations/20260812012522_sepay_order_code_and_expiry.sql', import.meta.url),
   'utf8'
 );
 
@@ -34,6 +34,6 @@ test('verified payment transition matches code, amount, account, direction, and 
 });
 
 test('new order payments use the DH invoice code convention', () => {
-  assert.match(conventionMigration, /payment_code ~ '\^\(DH_\[0-9\]\+\|BB\[0-9\]\+\)\$'/i);
-  assert.match(conventionMigration, /v_order\.id, 'DH_' \|\| v_order\.order_number/i);
+  assert.match(conventionMigration, /payment_code ~ '\^DH-\[0-9\]\{6\}\[A-Za-z0-9\]\{6\}\$'/i);
+  assert.match(conventionMigration, /v_order\.id, v_order\.order_code/i);
 });

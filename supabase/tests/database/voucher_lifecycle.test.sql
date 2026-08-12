@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(21);
+select plan(23);
 
 select has_table('public', 'voucher_reservations', 'voucher reservation ledger exists');
 select has_function(
@@ -111,6 +111,11 @@ select is(
   'expired SePay payment moves the order to failed payment state'
 );
 select is(
+  (select status::text from public.orders where id = (select order_id from expiring_order)),
+  'cancelled',
+  'expired SePay payment cancels the order'
+);
+select is(
   (select status from public.voucher_reservations where order_id = (select order_id from expiring_order)),
   'released',
   'expired SePay payment releases the voucher reservation'
@@ -142,6 +147,11 @@ select is(
   (select payment_status::text from public.orders where id = (select order_id from abandoned_order)),
   'failed',
   'abandoned SePay order moves to failed payment state'
+);
+select is(
+  (select status::text from public.orders where id = (select order_id from abandoned_order)),
+  'cancelled',
+  'abandoned SePay order is cancelled after fifteen minutes'
 );
 select is(
   (select status from public.voucher_reservations where order_id = (select order_id from abandoned_order)),

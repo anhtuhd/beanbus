@@ -668,6 +668,7 @@ export type Database = {
           id: string;
           idempotency_key: string;
           note: string | null;
+          order_code: string;
           order_number: number;
           payment_method: Database['public']['Enums']['order_payment_method'];
           payment_status: Database['public']['Enums']['order_payment_status'];
@@ -689,6 +690,7 @@ export type Database = {
           id?: string;
           idempotency_key: string;
           note?: string | null;
+          order_code?: never;
           order_number?: never;
           payment_method: Database['public']['Enums']['order_payment_method'];
           payment_status?: Database['public']['Enums']['order_payment_status'];

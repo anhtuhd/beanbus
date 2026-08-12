@@ -21,9 +21,9 @@ test('parses an inbound SePay API v2 transaction into the webhook contract', () 
     transfer_type: 'in',
     amount_in: 35000,
     amount_out: 0,
-    transaction_content: 'Thanh toan DH_123',
+    transaction_content: 'Thanh toan DH-260811ABC123',
     reference_number: 'FT26069ABC',
-    code: 'DH_123',
+    code: 'DH-260811ABC123',
     bank_brand_name: 'MBBank',
   });
 
@@ -31,12 +31,12 @@ test('parses an inbound SePay API v2 transaction into the webhook contract', () 
     providerTransactionKey: id,
     transactionAt: '2026-08-11T03:15:00.000Z',
     accountNumber: '0937936688',
-    code: 'DH_123',
+    code: 'DH-260811ABC123',
     transferType: 'in',
     transferAmount: 35000,
     referenceCode: 'FT26069ABC',
     gateway: 'MBBank',
-    content: 'Thanh toan DH_123',
+    content: 'Thanh toan DH-260811ABC123',
   });
 
   const contentCode = parseSepayV2Transaction({
@@ -46,12 +46,12 @@ test('parses an inbound SePay API v2 transaction into the webhook contract', () 
     transfer_type: 'in',
     amount_in: 35000,
     amount_out: 0,
-    transaction_content: 'Thanh toan DH_456',
+    transaction_content: 'Thanh toan DH-260811DEF456',
     reference_number: 'FT26069ABD',
     code: null,
     bank_brand_name: 'MBBank',
   });
-  assert.equal(contentCode?.code, 'DH_456');
+  assert.equal(contentCode?.code, 'DH-260811DEF456');
 });
 
 test('rejects malformed or unsafe v2 transaction values', () => {
@@ -65,7 +65,7 @@ test('rejects malformed or unsafe v2 transaction values', () => {
     amount_out: 0,
     transaction_content: '',
     reference_number: 'FT26069ABC',
-    code: 'DH_123',
+    code: 'DH-260811ABC123',
     bank_brand_name: 'MBBank',
   }), null);
   assert.equal(parseSepayV2Transaction({
@@ -75,9 +75,9 @@ test('rejects malformed or unsafe v2 transaction values', () => {
     transfer_type: 'in',
     amount_in: 35000,
     amount_out: 0,
-    transaction_content: 'DH_123',
+    transaction_content: 'DH-260811ABC123',
     reference_number: 'FT26069ABC',
-    code: 'DH_123',
+    code: 'DH-260811ABC123',
     bank_brand_name: 'MBBank',
   }), null);
 });
@@ -92,9 +92,9 @@ test('parses API v2 pagination and keeps only valid transactions', () => {
       transfer_type: 'in',
       amount_in: 35000,
       amount_out: 0,
-      transaction_content: 'DH_123',
+      transaction_content: 'DH-260811ABC123',
       reference_number: 'FT26069ABC',
-      code: 'DH_123',
+      code: 'DH-260811ABC123',
       bank_brand_name: 'MBBank',
     }, {}],
     meta: { pagination: { current_page: 2, last_page: 4, has_more: true } },
@@ -116,9 +116,9 @@ test('rejects a malformed transaction when it carries a Beanbus payment code', (
       transfer_type: 'in',
       amount_in: 0,
       amount_out: 0,
-      transaction_content: 'Thanh toan DH_999',
+      transaction_content: 'Thanh toan DH-260811BAD999',
       reference_number: 'FT26069BAD',
-      code: 'DH_999',
+      code: 'DH-260811BAD999',
       bank_brand_name: 'MBBank',
     }],
     meta: { pagination: { current_page: 1, last_page: 1, has_more: false } },

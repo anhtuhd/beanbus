@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { invalidateBlogCache, invalidateEventsCache } from '@/lib/cache/tags';
 import { requireAdmin } from '@/lib/auth/session';
 import { logOperationalFailure } from '@/lib/observability/logger';
 import { getRequestCorrelationId } from '@/lib/observability/request';
@@ -36,6 +37,8 @@ export async function updateContentPublication(
   revalidatePath('/admin/content');
   revalidatePath('/events');
   revalidatePath('/blog');
+  if (contentType === 'event') invalidateEventsCache();
+  else invalidateBlogCache();
   if (contentType === 'event') revalidatePath(`/events/${contentId}`);
   return { status: 'success', message: isPublished ? 'Đã công bố.' : 'Đã chuyển về bản nháp.' };
 }

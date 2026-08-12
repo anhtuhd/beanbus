@@ -16,7 +16,7 @@ export function DemoConfirmation() {
   const { t, lang } = useLanguage();
 
   const order = orders.find((candidate) => candidate.id === orderId) || {
-    id: orderId || 'BB-2026-8801',
+    id: orderId || 'DH-260809A1B2C3',
     customerName: 'Nguyễn Văn Bean',
     customerPhone: '0987 654 321',
     orderType: 'pickup' as const,
@@ -29,7 +29,7 @@ export function DemoConfirmation() {
     paymentStatus: isPaidParam ? ('paid' as const) : ('pending' as const),
     status: isPaidParam ? ('confirmed' as const) : ('pending' as const),
     createdAt: new Date().toISOString(),
-    sepayCode: 'DH_8801',
+    sepayCode: 'DH-260809A1B2C3',
   };
 
   const steps = [

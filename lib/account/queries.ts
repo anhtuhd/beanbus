@@ -14,8 +14,8 @@ type AccountOrderItem = Pick<
 type MemberRequestRow = Database['public']['Functions']['get_member_requests']['Returns'][number];
 
 export type MemberAccountOrder = {
+  code: string;
   id: string;
-  number: number;
   status: OrderRow['status'];
   paymentStatus: OrderRow['payment_status'];
   fulfillment: OrderRow['fulfillment'];
@@ -110,12 +110,12 @@ function emptyAccountData(page: number, loyaltyPage: number, requestPage: number
 }
 
 function mapOrder(
-  order: Pick<OrderRow, 'id' | 'order_number' | 'status' | 'payment_status' | 'fulfillment' | 'total_vnd' | 'voucher_code' | 'created_at'>,
+  order: Pick<OrderRow, 'id' | 'order_code' | 'status' | 'payment_status' | 'fulfillment' | 'total_vnd' | 'voucher_code' | 'created_at'>,
   items: AccountOrderItem[]
 ): MemberAccountOrder {
   return {
     id: order.id,
-    number: order.order_number,
+    code: order.order_code,
     status: order.status,
     paymentStatus: order.payment_status,
     fulfillment: order.fulfillment,
@@ -160,7 +160,7 @@ export async function getMemberAccountData(requestedPage = 1, requestedLoyaltyPa
   const [ordersResult, loyaltyResult, loyaltyEntriesResult, rewardsResult, requestsResult, requestCountResult] = await Promise.all([
     supabase
     .from('orders')
-    .select('id, order_number, status, payment_status, fulfillment, total_vnd, voucher_code, created_at', { count: 'exact' })
+    .select('id, order_code, status, payment_status, fulfillment, total_vnd, voucher_code, created_at', { count: 'exact' })
     .eq('user_id', profile.id)
     .order('created_at', { ascending: false })
     .range((page - 1) * ORDER_PAGE_SIZE, page * ORDER_PAGE_SIZE - 1),
@@ -246,7 +246,7 @@ export async function getMemberAccountOrder(id: string): Promise<MemberAccountOr
   const supabase = await createServerSupabaseClient();
   const orderResult = await supabase
     .from('orders')
-    .select('id, order_number, status, payment_status, fulfillment, total_vnd, voucher_code, created_at, subtotal_vnd, discount_vnd, payment_method, customer_name, customer_phone, delivery_address, pickup_at, note')
+    .select('id, order_code, status, payment_status, fulfillment, total_vnd, voucher_code, created_at, subtotal_vnd, discount_vnd, payment_method, customer_name, customer_phone, delivery_address, pickup_at, note')
     .eq('user_id', profile.id)
     .eq('id', id)
     .maybeSingle();

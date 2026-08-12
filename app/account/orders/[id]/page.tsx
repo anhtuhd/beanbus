@@ -47,7 +47,7 @@ export default async function MemberOrderDetailPage({
       <header className={styles.orderDetailHeader}>
         <div>
           <span className={styles.detailEyebrow}><ShoppingBag size={16} /> Lịch sử đơn hàng</span>
-          <h1>Đơn #{order.number}</h1>
+          <h1>Đơn #{order.code}</h1>
           <p>Tạo lúc {formatDate(order.createdAt)}</p>
         </div>
         <span className={`${styles.statusBadge} ${styles[`status_${order.status}`]}`}>

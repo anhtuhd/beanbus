@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { invalidateEventsCache } from '@/lib/cache/tags';
 import { requireAdmin } from '@/lib/auth/session';
 import { getRequestCorrelationId } from '@/lib/observability/request';
 import { logOperationalFailure } from '@/lib/observability/logger';
@@ -81,5 +82,6 @@ export async function upsertAdminEvent(
   revalidatePath('/admin/content');
   revalidatePath('/events');
   revalidatePath(`/events/${id}`);
+  invalidateEventsCache();
   return { status: 'success', message: data[0].operation === 'created' ? 'Đã tạo sự kiện.' : 'Đã cập nhật sự kiện.' };
 }

@@ -4,6 +4,8 @@ import { getCatalog } from '@/lib/catalog/queries';
 import { getPublishedBlogPosts, getPublishedEvents } from '@/lib/content/queries';
 import { getAppMode, getSiteUrl } from '@/lib/env';
 
+export const dynamic = 'force-dynamic';
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl();
   const catalogPromise = getAppMode() === 'demo'

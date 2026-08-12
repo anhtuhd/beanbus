@@ -6,6 +6,8 @@ import BlogArticleClient from './BlogArticleClient';
 import type { BlogPost } from '@/data/events';
 import { getPublishedBlogPost } from '@/lib/content/queries';
 
+export const dynamic = 'force-dynamic';
+
 type Props = { params: Promise<{ slug: string }> };
 
 function renderVietnameseContent(content: string) {

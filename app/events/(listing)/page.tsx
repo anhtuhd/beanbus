@@ -5,6 +5,8 @@ import { EVENTS, type EventItem } from '@/data/events';
 import { getPublishedEvents } from '@/lib/content/queries';
 import { getAppMode } from '@/lib/env';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Sự Kiện & Workshop Cà Phê | Beanbus Coffee Roaster',
   description: 'Workshop cupping, đêm nhạc và hoạt động cộng đồng cà phê đặc sản tại Beanbus Hải Phòng.',

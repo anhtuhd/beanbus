@@ -47,6 +47,14 @@ export function verifySepayHmac({
   return expectedBytes.length === signatureBytes.length && timingSafeEqual(expectedBytes, signatureBytes);
 }
 
+const BEANBUS_PAYMENT_CODE_PATTERN = /\bDH-[0-9]{6}[A-Za-z0-9]{6}\b/i;
+
+export function resolveSepayPaymentCode(code: string | null, content: string): string | null {
+  const explicitCode = code?.match(BEANBUS_PAYMENT_CODE_PATTERN)?.[0];
+  const contentCode = content.match(BEANBUS_PAYMENT_CODE_PATTERN)?.[0];
+  return (explicitCode ?? contentCode)?.toUpperCase() ?? null;
+}
+
 export function parseSepayWebhook(value: unknown): SepayWebhook | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   const input = value as Record<string, unknown>;
