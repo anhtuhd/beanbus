@@ -8,6 +8,7 @@ import { requireAdmin } from '@/lib/auth/session';
 import { boundedPage } from '@/lib/pagination';
 import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { isNextOptimizedImage } from '@/lib/media/image';
 
 type ProductRow = Pick<
   Database['public']['Tables']['products']['Row'],
@@ -129,7 +130,7 @@ export default async function AdminCatalogPage({ searchParams }: PageProps) {
           {products.map((product) => (
             <article key={product.id} className={`${styles.requestRow} ${styles.catalogRow}`}>
               <div className={styles.productIdentity}>
-                <Image src={product.image_url} alt="" width={56} height={56} unoptimized className={styles.productImage} />
+                <Image src={product.image_url} alt="" width={56} height={56} unoptimized={!isNextOptimizedImage(product.image_url)} className={styles.productImage} />
                 <span><strong>{product.name_vi}</strong><small>{product.name_en}</small></span>
               </div>
               <div><span className={styles.label}>Mã / Danh mục</span><strong>{product.id}</strong><small>{categoryNames.get(product.category_id) ?? product.category_id}</small></div>

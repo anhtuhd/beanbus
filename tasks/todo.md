@@ -4,13 +4,13 @@
 
 **Cập nhật:** 2026-08-12
 
-**Ưu tiên hiện tại:** notification hardening local -> pgTAP/staging verification -> deploy Resend safely -> hosted member/admin smoke.
+**Ưu tiên hiện tại:** performance hardening deploy -> apply notification lint migration -> pgTAP/staging verification -> deploy Resend safely -> hosted member/admin smoke.
 
 ## Trạng thái đã xác minh local
 
 - [x] `npm run lint` pass.
 - [x] `npx tsc --noEmit` pass.
-- [x] `npm test` pass 283/283.
+- [x] `npm test` pass 290/290.
 - [x] `npm run build` pass.
 - [x] `npm run test:e2e:auth` pass 4/4 với Google enabled và phone disabled ở 375/768/1440px.
 - [x] `npm run test:e2e` pass 30/40; 10 suite production/provider được skip đúng khi thiếu credential.
@@ -27,6 +27,16 @@
 - [x] Apply `20260811120000_fix_loyalty_redemption_collision.sql` lên remote sau khi CI database xác nhận xanh.
 - [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration loyalty/content/SePay/flash-sale; advisor multiple-permissive-policy vẫn là backlog maintainability.
 - [x] GitHub run `31462882057` trên `8d55557` completed successfully; quality, database và E2E đều xanh. Lỗi collision của run `31462604288` đã có assertion cụ thể và được sửa.
+
+## 0B. Performance/UX hardening
+
+- [x] Public routes chuyển sang ISR; giữ fallback rỗng ở production khi Supabase chưa sẵn sàng trong lúc prerender.
+- [x] Giảm duplicate no-JS markup, tối ưu ảnh trusted bằng Next Image và đồng bộ lại snapshot/giá cart từ catalog.
+- [x] Notification bell bỏ `getClaims()` lặp và account voucher query chạy song song với batch chính.
+- [x] SePay payment confirmation pause/backoff polling khi tab ẩn và refresh khi quay lại.
+- [x] CSP production report-only loại `unsafe-eval`; chưa chuyển sang enforce cho tới khi review browser reports.
+- [ ] Cloudflare Images/R2 là lựa chọn CDN ảnh tương lai; chưa cần cài package. Giữ Vercel làm host app và chỉ thêm `images.beanbus.store` sau khi có Cloudflare account, bucket/Images delivery URL và DNS.
+- [ ] Apply `20260812043000_fix_notification_preference_lint.sql` lên Supabase remote và chạy lại remote lint.
 
 ## 0A. Notification/Resend hardening
 

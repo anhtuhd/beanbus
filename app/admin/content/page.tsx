@@ -9,6 +9,7 @@ import { requireAdmin } from '@/lib/auth/session';
 import { boundedPage } from '@/lib/pagination';
 import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { isNextOptimizedImage } from '@/lib/media/image';
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 type ContentRow = {
@@ -125,7 +126,7 @@ export default async function AdminContentPage({ searchParams }: Props) {
           {rows.map((row) => (
             <article key={row.id} className={`${styles.requestRow} ${styles.contentRow}`}>
               <div className={styles.productIdentity}>
-                <Image src={row.image} alt="" width={56} height={56} unoptimized className={styles.productImage} />
+                <Image src={row.image} alt="" width={56} height={56} unoptimized={!isNextOptimizedImage(row.image)} className={styles.productImage} />
                 <span><strong>{row.title}</strong><small>{row.label} · {row.id}</small></span>
               </div>
               <div><span className={styles.label}>Lịch</span><strong>{row.secondary}</strong></div>

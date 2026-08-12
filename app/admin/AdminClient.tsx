@@ -16,6 +16,7 @@ import {
   TriangleAlert,
 } from 'lucide-react';
 import { useDialogFocus } from '@/lib/ui/use-dialog-focus';
+import { isNextOptimizedImage } from '@/lib/media/image';
 import styles from './admin.module.css';
 
 type AdminTab = 'orders' | 'menu' | 'bookings';
@@ -293,7 +294,7 @@ export default function AdminClient() {
               <tbody>
                 {menuList.map((item) => (
                   <tr key={item.id}>
-                    <td><Image src={item.image} alt="" width={56} height={56} unoptimized className={styles.tableImg} /></td>
+                    <td><Image src={item.image} alt="" width={56} height={56} unoptimized={!isNextOptimizedImage(item.image)} className={styles.tableImg} /></td>
                     <td><strong>{item.nameVi}</strong></td>
                     <td>{item.categoryId}</td>
                     <td className={styles.priceTd}>{item.price.toLocaleString('vi-VN')}đ</td>

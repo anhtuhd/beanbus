@@ -15,4 +15,5 @@ test('Next response headers include baseline browser hardening', () => {
   assert.match(config, /Content-Security-Policy-Report-Only/);
   assert.match(config, /Strict-Transport-Security/);
   assert.match(config, /productionHttps/);
+  assert.match(config, /developmentScriptPolicy/);
 });

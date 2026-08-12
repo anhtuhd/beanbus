@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const migration = readFileSync('supabase/migrations/20260811041000_fix_remote_lint_warnings.sql', 'utf8');
+const notificationMigration = readFileSync('supabase/migrations/20260812043000_fix_notification_preference_lint.sql', 'utf8');
 
 test('remote lint warning fixes preserve signatures and consume previously unused inputs', () => {
   assert.match(migration, /create or replace function public\.update_loyalty_policy\(/i);
@@ -12,4 +13,5 @@ test('remote lint warning fixes preserve signatures and consume previously unuse
   assert.match(migration, /create or replace function public\.process_sepay_webhook\(/i);
   assert.match(migration, /char_length\(trim\(p_gateway\)\)/i);
   assert.match(migration, /create or replace function public\.process_stored_value_webhook\(/i);
+  assert.match(notificationMigration, /p_email_order_updates is distinct from true/i);
 });

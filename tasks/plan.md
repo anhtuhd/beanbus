@@ -2,9 +2,22 @@
 
 **Cập nhật:** 2026-08-12
 
-**Trạng thái:** Notification/Resend đã deploy function và cron production; email vẫn giữ tắt chờ smoke test
+**Trạng thái:** Performance hardening đã triển khai local và đang chờ push/deploy; notification/Resend vẫn giữ email tắt chờ smoke test
 
-**Phạm vi hiện tại:** Dùng Google OAuth để tạo/đăng nhập tài khoản hội viên; tạm dừng Phone OTP/Zalo; bật SePay webhook đơn hàng; giữ reconciliation, stored-value và flash-sale ở trạng thái tắt.
+**Phạm vi hiện tại:** Dùng Google OAuth để tạo/đăng nhập tài khoản hội viên; tạm dừng Phone OTP/Zalo; bật SePay webhook đơn hàng; giữ reconciliation, stored-value và flash-sale ở trạng thái tắt. Cloudflare CDN/R2/Images chưa bật; giữ domain chính đi thẳng Vercel.
+
+## 0. Increment performance đã triển khai
+
+- [x] Public home/menu/order/events/blog và detail dùng ISR (`5 phút`, blog `1 giờ`) thay cho `force-dynamic`; lỗi dữ liệu lúc build không làm lộ catalog demo vào production sitemap.
+- [x] Loại bỏ bản render no-JavaScript bị nhân đôi; giữ fallback trong `<noscript>` để giảm HTML và hydration work.
+- [x] Ảnh local và Unsplash đáng tin cậy đi qua Next Image optimizer; URL ảnh động chưa được allowlist vẫn dùng `unoptimized` an toàn.
+- [x] Cart storage có version `2`, tự đồng bộ snapshot sản phẩm/option/giá khi vào menu, cart hoặc checkout; giá cuối cùng vẫn do server pricing RPC quyết định.
+- [x] Header notification dùng `user.id` từ AuthContext, không gọi `getClaims()` lặp; formatter ngày được memoize.
+- [x] Voucher account lọc thời gian ở PostgREST và chạy song song với batch dữ liệu đầu tiên.
+- [x] SePay confirmation giảm polling khi tab ẩn, backoff tối đa 30 giây và refresh ngay khi tab được focus.
+- [x] CSP report-only production không còn `unsafe-eval`; chỉ development mới bật để hỗ trợ Next dev.
+- [ ] Chưa bật Cloudflare reverse proxy trước Vercel. Nếu cần CDN ảnh, ưu tiên Cloudflare Images hoặc R2 với `images.beanbus.store`; không chuyển `www.beanbus.store` qua proxy trước khi đo latency/cache.
+- [ ] Cần apply migration `20260812043000_fix_notification_preference_lint.sql` trên Supabase remote, sau đó chạy lại `db lint`.
 
 ## 1. Mục tiêu gần nhất
 
@@ -33,7 +46,7 @@ Kết quả local tại thời điểm review:
 
 - `npm run lint`: pass.
 - `npx tsc --noEmit`: pass.
-- `npm test`: 289/289 pass.
+- `npm test`: 290/290 pass.
 - `npm run build`: pass.
 - `npm run test:e2e:auth`: 4/4 pass với Google enabled và phone disabled ở 375/768/1440px; chưa thực hiện OAuth Gmail thật.
 - `npm run test:e2e`: 33/43 pass; 10 production/provider tests skipped vì chưa có hosted credentials, trong đó live smoke được chạy riêng khi có `PLAYWRIGHT_LIVE=true`.
