@@ -26,7 +26,7 @@
 - [x] Đã đọc migration inventory bằng Supabase CLI với quyền remote; remote khớp đủ `44/44` migration tới `20260812050000_staff_request_notifications.sql`, remote lint warning pass.
 - [x] Apply `20260811120000_fix_loyalty_redemption_collision.sql` lên remote sau khi CI database xác nhận xanh.
 - [x] Remote `db lint --fail-on error` pass với `No schema errors found` sau migration loyalty/content/SePay/flash-sale; advisor multiple-permissive-policy vẫn là backlog maintainability.
-- [x] GitHub run `31616758345` trên `acfd2c5` completed successfully; quality, database và toàn bộ E2E đều xanh. Demo E2E dùng webpack/webpack-only CI server và assertion redirect chịu cold start.
+- [x] GitHub run `31621084519` trên `6772ff5` completed successfully; quality, database và toàn bộ E2E đều xanh. Demo và các production E2E dùng webpack/webpack-only CI server, env tường minh và một worker để tránh runner contention.
 
 ## 0B. Performance/UX hardening
 
