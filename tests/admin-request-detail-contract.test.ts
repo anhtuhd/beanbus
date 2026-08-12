@@ -11,7 +11,8 @@ test('admin request detail is guarded, typed, and read-only apart from status ac
   assert.match(page, /from\('booking_requests'\)[\s\S]*\.select\(/);
   assert.match(page, /from\('customer_requests'\)[\s\S]*\.select\(/);
   assert.match(page, /RequestStatusForm/);
-  assert.match(page, /notification_status/);
+  assert.doesNotMatch(page, /notification_status/);
+  assert.match(page, /\/admin\/notifications/);
   assert.match(page, /requestTypeLabel/);
   assert.match(page, /volumeLabel/);
   assert.match(page, /booking_request_status_history/);

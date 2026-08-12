@@ -207,6 +207,7 @@ Các increment đã triển khai local: Google-only login UI và auth E2E, loyal
 - [x] UI hiển thị lỗi tải notification thay vì biến lỗi thành danh sách rỗng.
 - [x] Contract và pgTAP đã bổ sung kiểm tra gateway, suppression, preference, quyền anon và race webhook/outbox.
 - [x] Migration `20260812050000_staff_request_notifications.sql` bổ sung trigger fan-out booking/contact cho admin; worker dùng sender transactional `RESEND_NOTIFY_FROM`, không gửi nhầm qua sender news.
+- [x] Admin request list/detail đã bỏ bộ lọc và nhãn `notification_status` legacy; notification center là điểm truy cập thống nhất.
 - [x] Thêm workflow GitHub `Deploy Supabase Edge Functions` chạy thủ công theo `production` environment; hỗ trợ deploy từng function hoặc cả bộ, không tự chạy theo push.
 
 ### Còn phải làm trước production

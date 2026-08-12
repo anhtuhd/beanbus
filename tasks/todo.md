@@ -62,6 +62,7 @@
 - [x] Kiểm tra migration inventory bằng `DATABASE_URL`; apply migration notification center và staff request fan-out lên remote, xác minh bảng, trigger, cron và Realtime publication.
 - [x] Chạy pgTAP trên Docker/Postgres runtime qua Colima; `24` file, `385/385` tests pass. Hosted RLS/behavior smoke vẫn cần tài khoản thật.
 - [x] Booking/contact tạo in-app notification cho tất cả admin và transactional outbox; dedupe/source/kind có contract và pgTAP.
+- [x] Trang danh sách/chi tiết booking và contact của admin không còn dùng `notification_status` legacy; liên kết thống nhất về `/admin/notifications`.
 - [ ] Khi bật password auth, bật Supabase Auth `Require current password when changing password` và smoke mật khẩu sai/đúng trên hosted.
 - [x] Migration/functions notification đã được cấu hình với Vault, `verify_jwt=false` và endpoint production; Resend DNS/webhook còn chờ owner hoàn tất/allowlist smoke test.
 - [x] Thêm workflow GitHub deploy Edge Functions thủ công, chọn từng function hoặc `all`, dùng `production` environment secrets.

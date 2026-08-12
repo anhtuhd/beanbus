@@ -11,13 +11,13 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 type Booking = Pick<
   Database['public']['Tables']['booking_requests']['Row'],
   'id' | 'reference_number' | 'customer_name' | 'customer_phone' | 'reservation_at' |
-  'guest_count' | 'seating_area' | 'note' | 'consent_to_contact' | 'status' | 'notification_status' | 'created_at'
+  'guest_count' | 'seating_area' | 'note' | 'consent_to_contact' | 'status' | 'created_at'
 >;
 type CustomerRequest = Pick<
   Database['public']['Tables']['customer_requests']['Row'],
   'id' | 'reference_number' | 'request_type' | 'contact_name' | 'contact_phone' | 'contact_email' |
   'subject_reference' | 'organization' | 'volume_range' | 'message' | 'consent_to_contact' |
-  'status' | 'notification_status' | 'created_at'
+  'status' | 'created_at'
 >;
 type StatusHistory = {
   id: number;
@@ -38,10 +38,6 @@ function formatDate(value: string): string {
 
 function reference(prefix: string, number: number): string {
   return `${prefix}-${String(number).padStart(6, '0')}`;
-}
-
-function notificationLabel(status: string): string {
-  return status === 'sent' ? 'Đã gửi' : status === 'pending' ? 'Đang chờ gửi' : status === 'failed' ? 'Gửi lỗi' : 'Chưa cấu hình';
 }
 
 function requestTypeLabel(type: string): string {
@@ -105,7 +101,7 @@ export default async function AdminRequestDetailPage({
   if (kind === 'booking') {
     const result = await supabase
       .from('booking_requests')
-      .select('id, reference_number, customer_name, customer_phone, reservation_at, guest_count, seating_area, note, consent_to_contact, status, notification_status, created_at')
+      .select('id, reference_number, customer_name, customer_phone, reservation_at, guest_count, seating_area, note, consent_to_contact, status, created_at')
       .eq('id', id)
       .maybeSingle();
     if (result.error || !result.data) notFound();
@@ -124,7 +120,7 @@ export default async function AdminRequestDetailPage({
         </header>
         <section className={detailStyles.orderDetailGrid} aria-label="Chi tiết yêu cầu đặt bàn">
           <div className={detailStyles.orderDetailPanel}><h2>Thông tin khách</h2><dl className={detailStyles.detailList}><div><dt>Họ tên</dt><dd>{booking.customer_name}</dd></div><div><dt>Số điện thoại</dt><dd>{booking.customer_phone}</dd></div><div><dt>Số khách</dt><dd>{booking.guest_count}</dd></div><div><dt>Khu vực</dt><dd>{booking.seating_area}</dd></div><div><dt>Đồng ý liên hệ</dt><dd>{booking.consent_to_contact ? 'Có' : 'Không'}</dd></div></dl></div>
-          <div className={detailStyles.orderDetailPanel}><h2>Lịch đặt</h2><dl className={detailStyles.detailList}><div><dt>Thời gian</dt><dd>{formatDate(booking.reservation_at)}</dd></div><div><dt>Trạng thái thông báo</dt><dd>{notificationLabel(booking.notification_status)}</dd></div><div><dt>Ghi chú</dt><dd>{value(booking.note)}</dd></div></dl></div>
+          <div className={detailStyles.orderDetailPanel}><h2>Lịch đặt</h2><dl className={detailStyles.detailList}><div><dt>Thời gian</dt><dd>{formatDate(booking.reservation_at)}</dd></div><div><dt>Thông báo nội bộ</dt><dd><Link href="/admin/notifications" className={styles.detailLink}>Mở trung tâm thông báo</Link></dd></div><div><dt>Ghi chú</dt><dd>{value(booking.note)}</dd></div></dl></div>
         </section>
         <RequestHistory history={history} error={Boolean(historyResult.error)} />
       </main>
@@ -133,7 +129,7 @@ export default async function AdminRequestDetailPage({
 
   const result = await supabase
     .from('customer_requests')
-    .select('id, reference_number, request_type, contact_name, contact_phone, contact_email, subject_reference, organization, volume_range, message, consent_to_contact, status, notification_status, created_at')
+    .select('id, reference_number, request_type, contact_name, contact_phone, contact_email, subject_reference, organization, volume_range, message, consent_to_contact, status, created_at')
     .eq('id', id)
     .maybeSingle();
   if (result.error || !result.data) notFound();
@@ -153,7 +149,7 @@ export default async function AdminRequestDetailPage({
       </header>
       <section className={detailStyles.orderDetailGrid} aria-label="Chi tiết customer request">
         <div className={detailStyles.orderDetailPanel}><h2>Thông tin liên hệ</h2><dl className={detailStyles.detailList}><div><dt>Loại yêu cầu</dt><dd>{requestTypeLabel(request.request_type)}</dd></div><div><dt>Họ tên</dt><dd>{request.contact_name}</dd></div><div><dt>Số điện thoại</dt><dd>{request.contact_phone}</dd></div><div><dt>Email</dt><dd>{value(request.contact_email)}</dd></div><div><dt>Đồng ý liên hệ</dt><dd>{request.consent_to_contact ? 'Có' : 'Không'}</dd></div></dl></div>
-        <div className={detailStyles.orderDetailPanel}><h2>Nội dung</h2><dl className={detailStyles.detailList}><div><dt>Sự kiện / sản phẩm</dt><dd>{value(request.subject_reference)}</dd></div><div><dt>Tổ chức</dt><dd>{value(request.organization)}</dd></div><div><dt>Sản lượng</dt><dd>{volumeLabel(request.volume_range)}</dd></div><div><dt>Thông báo</dt><dd>{notificationLabel(request.notification_status)}</dd></div><div><dt>Nội dung</dt><dd>{value(request.message)}</dd></div></dl></div>
+        <div className={detailStyles.orderDetailPanel}><h2>Nội dung</h2><dl className={detailStyles.detailList}><div><dt>Sự kiện / sản phẩm</dt><dd>{value(request.subject_reference)}</dd></div><div><dt>Tổ chức</dt><dd>{value(request.organization)}</dd></div><div><dt>Sản lượng</dt><dd>{volumeLabel(request.volume_range)}</dd></div><div><dt>Thông báo nội bộ</dt><dd><Link href="/admin/notifications" className={styles.detailLink}>Mở trung tâm thông báo</Link></dd></div><div><dt>Nội dung</dt><dd>{value(request.message)}</dd></div></dl></div>
       </section>
       <RequestHistory history={history} error={Boolean(historyResult.error)} />
       <p><Link href="/admin/requests?view=leads" className={styles.detailLink}>Quay lại danh sách <ExternalLink size={14} /></Link></p>

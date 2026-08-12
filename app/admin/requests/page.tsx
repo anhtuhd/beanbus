@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowLeft, CalendarDays, Inbox, Search } from 'lucide-react';
+import { ArrowLeft, Bell, CalendarDays, Inbox, Search } from 'lucide-react';
 import RequestStatusForm from './RequestStatusForm';
 import styles from './requests.module.css';
 import { normalizeVietnameseMobile } from '@/lib/auth/input';
@@ -11,13 +11,13 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 type BookingRow = Pick<
   Database['public']['Tables']['booking_requests']['Row'],
   'id' | 'reference_number' | 'customer_name' | 'customer_phone' | 'reservation_at' |
-  'guest_count' | 'seating_area' | 'note' | 'status' | 'notification_status' | 'created_at'
+  'guest_count' | 'seating_area' | 'note' | 'status' | 'created_at'
 >;
 type CustomerRow = Pick<
   Database['public']['Tables']['customer_requests']['Row'],
   'id' | 'reference_number' | 'request_type' | 'contact_name' | 'contact_phone' |
   'contact_email' | 'subject_reference' | 'organization' | 'volume_range' | 'message' |
-  'status' | 'notification_status' | 'created_at'
+  'status' | 'created_at'
 >;
 
 type PageProps = {
@@ -25,7 +25,6 @@ type PageProps = {
     page?: string | string[];
     q?: string | string[];
     status?: string | string[];
-    notification?: string | string[];
     view?: string | string[];
   }>;
 };
@@ -40,10 +39,9 @@ function first(value: string | string[] | undefined): string {
   return Array.isArray(value) ? value[0] ?? '' : value ?? '';
 }
 
-function pageLink(view: RequestView, status: string, page: number, search = '', notification = ''): string {
+function pageLink(view: RequestView, status: string, page: number, search = ''): string {
   const params = new URLSearchParams({ view, status, page: String(page) });
   if (search) params.set('q', search);
-  if (notification) params.set('notification', notification);
   return `/admin/requests?${params.toString()}`;
 }
 
@@ -70,10 +68,6 @@ function detailForRequest(request: CustomerRow): string {
   return [request.organization, request.subject_reference && `Hạt: ${request.subject_reference}`, volume].filter(Boolean).join(' · ');
 }
 
-function notificationLabel(status: BookingRow['notification_status']): string {
-  return status === 'sent' ? 'Đã gửi' : status === 'pending' ? 'Đang chờ gửi' : status === 'failed' ? 'Gửi lỗi' : 'Chưa cấu hình';
-}
-
 function BookingList({ bookings }: { bookings: BookingRow[] }) {
   if (bookings.length === 0) return <div className={styles.stateBox}>Chưa có yêu cầu đặt bàn phù hợp.</div>;
   return <div className={styles.requestList}>{bookings.map((booking) => (
@@ -82,7 +76,7 @@ function BookingList({ bookings }: { bookings: BookingRow[] }) {
       <div><span className={styles.label}>Khách hàng</span><strong>{booking.customer_name}</strong><small>{booking.customer_phone}</small></div>
       <div><span className={styles.label}>Lịch đặt</span><strong>{formatDate(booking.reservation_at)}</strong><small>{booking.guest_count} khách · {booking.seating_area}</small></div>
       <div><span className={styles.label}>Ghi chú</span><span>{booking.note || 'Không có'}</span></div>
-      <div><span className={styles.label}>Trạng thái</span><RequestStatusForm kind="booking" requestId={booking.id} currentStatus={booking.status} /><small>Thông báo: {notificationLabel(booking.notification_status)}</small></div>
+      <div><span className={styles.label}>Trạng thái</span><RequestStatusForm kind="booking" requestId={booking.id} currentStatus={booking.status} /></div>
     </article>
   ))}</div>;
 }
@@ -95,7 +89,7 @@ function CustomerList({ requests }: { requests: CustomerRow[] }) {
       <div><span className={styles.label}>Liên hệ</span><strong>{request.contact_name}</strong><small>{request.contact_phone}{request.contact_email ? ` · ${request.contact_email}` : ''}</small></div>
       <div><span className={styles.label}>Nội dung</span><span>{detailForRequest(request)}</span></div>
       <div><span className={styles.label}>Ngày nhận</span><span>{formatDate(request.created_at)}</span></div>
-      <div><span className={styles.label}>Trạng thái</span><RequestStatusForm kind="customer" requestId={request.id} currentStatus={request.status} /><small>Thông báo: {notificationLabel(request.notification_status)}</small></div>
+      <div><span className={styles.label}>Trạng thái</span><RequestStatusForm kind="customer" requestId={request.id} currentStatus={request.status} /></div>
     </article>
   ))}</div>;
 }
@@ -108,7 +102,6 @@ export default async function AdminRequestsPage({ searchParams }: PageProps) {
   const supportedStatuses = view === 'bookings' ? BOOKING_STATUSES : view === 'leads' ? CUSTOMER_STATUSES : ALL_STATUSES;
   const requestedStatus = first(params.status);
   const status = supportedStatuses.includes(requestedStatus) ? requestedStatus : 'all';
-  const notification = first(params.notification) === 'failed' ? 'failed' : 'all';
   const search = first(params.q).trim().slice(0, 50);
   const requestedPage = Number.parseInt(first(params.page), 10);
   const page = boundedPage(requestedPage);
@@ -125,10 +118,9 @@ export default async function AdminRequestsPage({ searchParams }: PageProps) {
   if (view !== 'leads') {
     let query = supabase
       .from('booking_requests')
-      .select('id, reference_number, customer_name, customer_phone, reservation_at, guest_count, seating_area, note, status, notification_status, created_at', { count: 'exact' })
+      .select('id, reference_number, customer_name, customer_phone, reservation_at, guest_count, seating_area, note, status, created_at', { count: 'exact' })
       .order('created_at', { ascending: false });
     if (status !== 'all') query = query.eq('status', status as BookingRow['status']);
-    if (notification === 'failed') query = query.eq('notification_status', 'failed');
     if (search) {
       const phone = normalizeVietnameseMobile(search);
       if (/^\d{1,9}$/.test(search)) query = query.eq('reference_number', Number(search));
@@ -143,10 +135,9 @@ export default async function AdminRequestsPage({ searchParams }: PageProps) {
   if (view !== 'bookings') {
     let query = supabase
       .from('customer_requests')
-      .select('id, reference_number, request_type, contact_name, contact_phone, contact_email, subject_reference, organization, volume_range, message, status, notification_status, created_at', { count: 'exact' })
+      .select('id, reference_number, request_type, contact_name, contact_phone, contact_email, subject_reference, organization, volume_range, message, status, created_at', { count: 'exact' })
       .order('created_at', { ascending: false });
     if (status !== 'all') query = query.eq('status', status as CustomerRow['status']);
-    if (notification === 'failed') query = query.eq('notification_status', 'failed');
     if (search) {
       const phone = normalizeVietnameseMobile(search);
       if (/^\d{1,9}$/.test(search)) query = query.eq('reference_number', Number(search));
@@ -183,17 +174,17 @@ export default async function AdminRequestsPage({ searchParams }: PageProps) {
           <h1>Booking & Customer Requests</h1>
           <p>Dữ liệu production, chỉ dành cho tài khoản admin.</p>
         </div>
-        <span className={styles.total}>{count} yêu cầu</span>
+        <div><Link href="/admin/notifications" className={styles.detailLink}><Bell size={16} /> Trung tâm thông báo</Link><span className={styles.total}>{count} yêu cầu</span></div>
       </header>
 
       <nav className={styles.tabs} aria-label="Loại yêu cầu">
-        <Link href={pageLink('all', 'all', 1, '', notification)} className={view === 'all' ? styles.activeTab : ''}>
+        <Link href={pageLink('all', 'all', 1)} className={view === 'all' ? styles.activeTab : ''}>
           <Inbox size={17} /> Tất cả
         </Link>
-        <Link href={pageLink('bookings', 'all', 1, '', notification)} className={view === 'bookings' ? styles.activeTab : ''}>
+        <Link href={pageLink('bookings', 'all', 1)} className={view === 'bookings' ? styles.activeTab : ''}>
           <CalendarDays size={17} /> Đặt bàn
         </Link>
-        <Link href={pageLink('leads', 'all', 1, '', notification)} className={view === 'leads' ? styles.activeTab : ''}>
+        <Link href={pageLink('leads', 'all', 1)} className={view === 'leads' ? styles.activeTab : ''}>
           <Inbox size={17} /> Liên hệ, RSVP & B2B
         </Link>
       </nav>
@@ -201,27 +192,21 @@ export default async function AdminRequestsPage({ searchParams }: PageProps) {
       <form className={styles.searchForm} action="/admin/requests" method="get">
         <input type="hidden" name="view" value={view} />
         <input type="hidden" name="status" value={status} />
-        {notification === 'failed' && <input type="hidden" name="notification" value="failed" />}
         <label htmlFor="request-search">Tìm theo mã yêu cầu, số điện thoại hoặc tên khách</label>
         <div>
           <input id="request-search" name="q" defaultValue={search} maxLength={50} />
           <button type="submit"><Search size={16} /> Tìm</button>
-          {search && <Link href={pageLink(view, status, 1, '', notification)}>Xóa lọc</Link>}
+          {search && <Link href={pageLink(view, status, 1)}>Xóa lọc</Link>}
         </div>
       </form>
 
       <div className={styles.filters} aria-label="Lọc trạng thái">
         {statuses.map((item) => (
-            <Link key={item} href={pageLink(view, item, 1, search, notification === 'failed' ? 'failed' : '')} className={status === item ? styles.activeFilter : ''}>
+            <Link key={item} href={pageLink(view, item, 1, search)} className={status === item ? styles.activeFilter : ''}>
             {item === 'all' ? 'Tất cả' : item.replace('_', ' ')}
           </Link>
         ))}
       </div>
-      <div className={styles.filters} aria-label="Lọc trạng thái thông báo">
-        <Link href={pageLink(view, status, 1, search)} className={notification === 'all' ? styles.activeFilter : ''}>Tất cả thông báo</Link>
-        <Link href={pageLink(view, status, 1, search, 'failed')} className={notification === 'failed' ? styles.activeFilter : ''}>Thông báo lỗi</Link>
-      </div>
-
       {failed ? (
         <div className={styles.stateBox} role="alert">Không thể tải dữ liệu yêu cầu. Vui lòng thử lại.</div>
       ) : view === 'all' ? (
@@ -233,9 +218,9 @@ export default async function AdminRequestsPage({ searchParams }: PageProps) {
 
       {totalPages > 1 && (
         <nav className={styles.pagination} aria-label="Phân trang">
-          {page > 1 && <Link href={pageLink(view, status, page - 1, search, notification === 'failed' ? 'failed' : '')}>Trang trước</Link>}
+          {page > 1 && <Link href={pageLink(view, status, page - 1, search)}>Trang trước</Link>}
           <span>Trang {Math.min(page, totalPages)} / {totalPages}</span>
-          {page < totalPages && <Link href={pageLink(view, status, page + 1, search, notification === 'failed' ? 'failed' : '')}>Trang sau</Link>}
+          {page < totalPages && <Link href={pageLink(view, status, page + 1, search)}>Trang sau</Link>}
         </nav>
       )}
     </main>

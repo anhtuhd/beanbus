@@ -38,11 +38,11 @@ test('lead status RPC repeats admin authorization and keeps terminal states clos
   assert.match(migration, /grant execute on function public\.update_customer_request_status[\s\S]*to authenticated/i);
 });
 
-test('admin requests expose honest notification delivery state', () => {
-  assert.match(page, /notification_status/);
-  assert.match(page, /Chưa cấu hình/);
-  assert.match(page, /Đã gửi/);
-  assert.match(page, /Gửi lỗi/);
+test('admin requests route notification work to the notification center', () => {
+  assert.doesNotMatch(page, /notification_status/);
+  assert.doesNotMatch(page, /Thông báo lỗi/);
+  assert.match(page, /\/admin\/notifications/);
+  assert.match(page, /Trung tâm thông báo/);
 });
 
 test('members can read only their own request status history', () => {
