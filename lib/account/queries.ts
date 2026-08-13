@@ -81,6 +81,8 @@ export type MemberAccountData = {
   loyaltyTotalPages: number;
   requestPage: number;
   requestTotalPages: number;
+  rewardPage: number;
+  rewardTotalPages: number;
   voucherPage: number;
   voucherTotalPages: number;
   error?: string;
@@ -107,10 +109,11 @@ export type MemberAccountOrderDetail = MemberAccountOrder & {
 const ORDER_PAGE_SIZE = 10;
 const LOYALTY_PAGE_SIZE = 20;
 const REQUEST_PAGE_SIZE = 20;
+const REWARD_PAGE_SIZE = 20;
 const VOUCHER_PAGE_SIZE = 20;
 
-function emptyAccountData(page: number, loyaltyPage: number, requestPage: number, voucherPage: number, error?: string): MemberAccountData {
-  return { orders: [], vouchers: [], loyalty: null, loyaltyEntries: [], rewards: [], requests: [], page, totalPages: 1, totalOrders: 0, totalRequests: 0, loyaltyPage, loyaltyTotalPages: 1, requestPage, requestTotalPages: 1, voucherPage, voucherTotalPages: 1, error };
+function emptyAccountData(page: number, loyaltyPage: number, requestPage: number, rewardPage: number, voucherPage: number, error?: string): MemberAccountData {
+  return { orders: [], vouchers: [], loyalty: null, loyaltyEntries: [], rewards: [], requests: [], page, totalPages: 1, totalOrders: 0, totalRequests: 0, loyaltyPage, loyaltyTotalPages: 1, requestPage, requestTotalPages: 1, rewardPage, rewardTotalPages: 1, voucherPage, voucherTotalPages: 1, error };
 }
 
 function mapOrder(
@@ -160,14 +163,16 @@ export async function getMemberAccountData(
   requestedLoyaltyPage = 1,
   requestedRequestPage = 1,
   requestedVoucherPage = 1,
+  requestedRewardPage = 1,
   activeTab: AccountTab = 'membership',
 ): Promise<MemberAccountData> {
   const page = boundedPage(requestedPage);
   const loyaltyPage = boundedPage(requestedLoyaltyPage);
   const requestPage = boundedPage(requestedRequestPage);
   const voucherPage = boundedPage(requestedVoucherPage);
+  const rewardPage = boundedPage(requestedRewardPage);
   const profile = await getCurrentProfile();
-  if (!profile) return emptyAccountData(page, loyaltyPage, requestPage, voucherPage, 'Phiên đăng nhập đã hết hạn.');
+  if (!profile) return emptyAccountData(page, loyaltyPage, requestPage, rewardPage, voucherPage, 'Phiên đăng nhập đã hết hạn.');
   const supabase = await createServerSupabaseClient();
   const nowIso = new Date().toISOString();
   const needsOrders = activeTab === 'orders';
@@ -185,7 +190,7 @@ export async function getMemberAccountData(
     supabase.from('orders').select('id', { count: 'exact', head: true }).eq('user_id', profile.id),
     needsMembership || needsRewards ? supabase.rpc('get_member_loyalty_summary', { p_user_id: profile.id }) : null,
     needsMembership ? supabase.from('loyalty_ledger').select('id, points, source_type, voucher_code, note, created_at', { count: 'exact' }).eq('user_id', profile.id).order('created_at', { ascending: false }).range((loyaltyPage - 1) * LOYALTY_PAGE_SIZE, loyaltyPage * LOYALTY_PAGE_SIZE - 1) : null,
-    needsRewards ? supabase.from('loyalty_rewards').select('id, name_vi, name_en, points_cost, discount_type, discount_value, minimum_subtotal_vnd, maximum_discount_vnd').eq('is_active', true).order('points_cost') : null,
+    needsRewards ? supabase.from('loyalty_rewards').select('id, name_vi, name_en, points_cost, discount_type, discount_value, minimum_subtotal_vnd, maximum_discount_vnd', { count: 'exact' }).eq('is_active', true).order('points_cost').range((rewardPage - 1) * REWARD_PAGE_SIZE, rewardPage * REWARD_PAGE_SIZE - 1) : null,
     needsRequests ? supabase.rpc('get_member_requests', { p_page: requestPage, p_page_size: REQUEST_PAGE_SIZE, p_user_id: profile.id }) : null,
     supabase.rpc('get_member_request_count', { p_user_id: profile.id }),
     needsVouchers ? supabase
@@ -210,7 +215,7 @@ export async function getMemberAccountData(
     || (needsRewards && rewardsResult?.error)
     || (needsRequests && requestsResult?.error)
     || (needsVouchers && vouchersResult?.error)) {
-    return emptyAccountData(page, loyaltyPage, requestPage, voucherPage, 'Không thể tải dữ liệu hội viên lúc này.');
+    return emptyAccountData(page, loyaltyPage, requestPage, rewardPage, voucherPage, 'Không thể tải dữ liệu hội viên lúc này.');
   }
 
   const vouchers: MemberVoucher[] = vouchersResult?.data ?? [];
@@ -238,6 +243,8 @@ export async function getMemberAccountData(
     loyaltyTotalPages: needsMembership ? Math.max(1, Math.ceil((loyaltyEntriesResult?.count ?? 0) / LOYALTY_PAGE_SIZE)) : 1,
     requestPage,
     requestTotalPages: Math.max(1, Math.ceil(totalRequests / REQUEST_PAGE_SIZE)),
+    rewardPage,
+    rewardTotalPages: needsRewards ? Math.max(1, Math.ceil((rewardsResult?.count ?? 0) / REWARD_PAGE_SIZE)) : 1,
     voucherPage,
     voucherTotalPages: needsVouchers ? Math.max(1, Math.ceil((vouchersResult?.count ?? 0) / VOUCHER_PAGE_SIZE)) : 1,
   };

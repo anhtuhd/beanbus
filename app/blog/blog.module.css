@@ -50,6 +50,32 @@
   font-size: 22px;
 }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 32px;
+  color: var(--brown);
+  font-size: 13px;
+}
+
+.pagination a {
+  min-width: 36px;
+  min-height: 36px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  color: var(--brown-dark);
+  text-decoration: none;
+}
+
+.pagination a:hover {
+  border-color: var(--orange);
+  color: var(--orange);
+}
+
 .postCard {
   background: var(--white);
   border-radius: var(--radius);

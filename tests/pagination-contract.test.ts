@@ -28,3 +28,26 @@ test('member and admin list queries use the shared page bound', () => {
     assert.match(source, /boundedPage/, file);
   }
 });
+
+test('public content listings and member rewards fetch bounded pages', () => {
+  const account = readFileSync('lib/account/queries.ts', 'utf8');
+  const content = readFileSync('lib/content/queries.ts', 'utf8');
+
+  assert.match(account, /loyalty_rewards[\s\S]*?\.range\(\(rewardPage - 1\) \* REWARD_PAGE_SIZE/);
+  assert.match(account, /rewardTotalPages/);
+  assert.match(content, /loadPublishedEventsPage/);
+  assert.match(content, /EVENTS_PAGE_SIZE/);
+  assert.match(content, /loadPublishedBlogPage/);
+  assert.match(content, /BLOG_PAGE_SIZE/);
+});
+
+test('admin notification failures expose an offset pagination contract', () => {
+  const migration = readFileSync('supabase/migrations/20260813135154_notification_failure_pagination.sql', 'utf8');
+  const page = readFileSync('app/admin/notifications/page.tsx', 'utf8');
+  const center = readFileSync('components/notifications/NotificationCenter.tsx', 'utf8');
+
+  assert.match(migration, /p_offset integer default 0/);
+  assert.match(migration, /offset greatest\(coalesce\(p_offset, 0\), 0\)/);
+  assert.match(page, /p_offset: 0/);
+  assert.match(center, /loadMoreFailures/);
+});

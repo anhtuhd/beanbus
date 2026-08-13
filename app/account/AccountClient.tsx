@@ -89,6 +89,8 @@ export default function AccountClient({
   loyaltyTotalPages = 1,
   requestPage = 1,
   requestTotalPages = 1,
+  rewardPage = 1,
+  rewardTotalPages = 1,
   voucherPage = 1,
   voucherTotalPages = 1,
 }: {
@@ -112,6 +114,8 @@ export default function AccountClient({
   loyaltyTotalPages?: number;
   requestPage?: number;
   requestTotalPages?: number;
+  rewardPage?: number;
+  rewardTotalPages?: number;
   voucherPage?: number;
   voucherTotalPages?: number;
 }) {
@@ -142,11 +146,12 @@ export default function AccountClient({
     router.refresh();
   }, [production, profileState, router]);
 
-  const accountHref = (overrides: Partial<Record<'page' | 'loyaltyPage' | 'requestPage' | 'voucherPage', number>> = {}) => {
+  const accountHref = (overrides: Partial<Record<'page' | 'loyaltyPage' | 'requestPage' | 'rewardPage' | 'voucherPage', number>> = {}) => {
     const params = new URLSearchParams({
       page: String(overrides.page ?? orderPage),
       loyaltyPage: String(overrides.loyaltyPage ?? loyaltyPage),
       requestPage: String(overrides.requestPage ?? requestPage),
+      rewardPage: String(overrides.rewardPage ?? rewardPage),
       voucherPage: String(overrides.voucherPage ?? voucherPage),
       tab: activeTab,
     });
@@ -159,6 +164,7 @@ export default function AccountClient({
       page: String(orderPage),
       loyaltyPage: String(loyaltyPage),
       requestPage: String(requestPage),
+      rewardPage: String(rewardPage),
       voucherPage: String(voucherPage),
       tab: nextTab,
     });
@@ -663,6 +669,13 @@ export default function AccountClient({
                     </div>
                   ))}
                 </div>
+                {rewardTotalPages > 1 && (
+                  <nav className={styles.pagination} aria-label={t('Phân trang phần thưởng', 'Rewards pagination')}>
+                    {rewardPage > 1 && <Link href={accountHref({ rewardPage: rewardPage - 1 })} aria-label={t('Trang phần thưởng trước', 'Previous rewards page')}>←</Link>}
+                    <span>{t(`Trang ${rewardPage} / ${rewardTotalPages}`, `Page ${rewardPage} / ${rewardTotalPages}`)}</span>
+                    {rewardPage < rewardTotalPages && <Link href={accountHref({ rewardPage: rewardPage + 1 })} aria-label={t('Trang phần thưởng sau', 'Next rewards page')}>→</Link>}
+                  </nav>
+                )}
               </>
             )
           ) : (

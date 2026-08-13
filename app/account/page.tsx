@@ -16,11 +16,13 @@ export default async function AccountPage({
   const rawPage = Array.isArray(params.page) ? params.page[0] : params.page;
   const rawLoyaltyPage = Array.isArray(params.loyaltyPage) ? params.loyaltyPage[0] : params.loyaltyPage;
   const rawRequestPage = Array.isArray(params.requestPage) ? params.requestPage[0] : params.requestPage;
+  const rawRewardPage = Array.isArray(params.rewardPage) ? params.rewardPage[0] : params.rewardPage;
   const rawVoucherPage = Array.isArray(params.voucherPage) ? params.voucherPage[0] : params.voucherPage;
   const rawTab = Array.isArray(params.tab) ? params.tab[0] : params.tab;
   const requestedPage = Number.parseInt(rawPage ?? '1', 10);
   const requestedLoyaltyPage = Number.parseInt(rawLoyaltyPage ?? '1', 10);
   const requestedRequestPage = Number.parseInt(rawRequestPage ?? '1', 10);
+  const requestedRewardPage = Number.parseInt(rawRewardPage ?? '1', 10);
   const requestedVoucherPage = Number.parseInt(rawVoucherPage ?? '1', 10);
   const initialTab: AccountTab = ['membership', 'orders', 'requests', 'rewards', 'vouchers'].includes(rawTab as AccountTab)
     ? rawTab as AccountTab
@@ -29,7 +31,7 @@ export default async function AccountPage({
 
   const profile = await requireProfile('/account');
   if (profile.role === 'admin') redirect('/admin');
-  const accountData = await getMemberAccountData(requestedPage, requestedLoyaltyPage, requestedRequestPage, requestedVoucherPage, initialTab);
+  const accountData = await getMemberAccountData(requestedPage, requestedLoyaltyPage, requestedRequestPage, requestedVoucherPage, requestedRewardPage, initialTab);
   return (
     <AccountClient
       initialUser={toUserProfile(profile)}
@@ -55,6 +57,8 @@ export default async function AccountPage({
       loyaltyTotalPages={accountData.loyaltyTotalPages}
       requestPage={accountData.requestPage}
       requestTotalPages={accountData.requestTotalPages}
+      rewardPage={accountData.rewardPage}
+      rewardTotalPages={accountData.rewardTotalPages}
       voucherPage={accountData.voucherPage}
       voucherTotalPages={accountData.voucherTotalPages}
     />

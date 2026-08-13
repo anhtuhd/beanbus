@@ -9,7 +9,7 @@ import { ArrowRight, CalendarDays, Clock, User } from 'lucide-react';
 import styles from './blog.module.css';
 import { isNextOptimizedImage } from '@/lib/media/image';
 
-export default function BlogListClient({ posts }: { posts: BlogPost[] }) {
+export default function BlogListClient({ posts, page = 1, totalPages = 1 }: { posts: BlogPost[]; page?: number; totalPages?: number }) {
   const { t, lang } = useLanguage();
 
   return (
@@ -36,7 +36,8 @@ export default function BlogListClient({ posts }: { posts: BlogPost[] }) {
             <h2>{t('Chưa có bài viết mới', 'No articles yet')}</h2>
             <p>{t('Các câu chuyện và kiến thức cà phê sẽ được cập nhật tại đây.', 'New coffee stories and knowledge will appear here.')}</p>
           </div>
-        ) : <div className={styles.blogGrid}>
+        ) : <>
+        <div className={styles.blogGrid}>
           {posts.map((post, index) => (
             <article key={post.id} className={styles.postCard}>
               <div className={styles.imgBox}>
@@ -67,7 +68,15 @@ export default function BlogListClient({ posts }: { posts: BlogPost[] }) {
               </div>
             </article>
           ))}
-        </div>}
+        </div>
+        {totalPages > 1 && (
+          <nav className={styles.pagination} aria-label={t('Phân trang bài viết', 'Articles pagination')}>
+            {page > 1 && <Link href={`/blog?page=${page - 1}`} aria-label={t('Trang bài viết trước', 'Previous articles page')}>←</Link>}
+            <span>{t(`Trang ${page} / ${totalPages}`, `Page ${page} / ${totalPages}`)}</span>
+            {page < totalPages && <Link href={`/blog?page=${page + 1}`} aria-label={t('Trang bài viết sau', 'Next articles page')}>→</Link>}
+          </nav>
+        )}
+        </>}
       </div>
     </div>
   );

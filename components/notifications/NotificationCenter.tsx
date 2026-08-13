@@ -27,6 +27,7 @@ type Props = {
   initialPreferences?: Preferences | null;
   initialError?: string;
   failures?: Failure[];
+  initialFailureTotal?: number;
   isAdmin?: boolean;
 };
 
@@ -45,12 +46,16 @@ export default function NotificationCenter({
   initialPreferences,
   initialError,
   failures = [],
+  initialFailureTotal = failures.length,
   isAdmin = false,
 }: Props) {
   const { lang, t } = useLanguage();
   const [notifications, setNotifications] = useState(initialNotifications);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [failureRows, setFailureRows] = useState(failures);
+  const [failureTotal, setFailureTotal] = useState(initialFailureTotal);
+  const [loadingMoreFailures, setLoadingMoreFailures] = useState(false);
   const [preferences, setPreferences] = useState({
     ...(initialPreferences ?? {
       user_id: '',
@@ -113,6 +118,27 @@ export default function NotificationCenter({
       return [...current, ...(data ?? []).filter((notification) => !existing.has(notification.id))];
     });
     setHasMore(from + (data?.length ?? 0) < (count ?? from + (data?.length ?? 0)));
+  };
+
+  const loadMoreFailures = async () => {
+    if (!isAdmin || loadingMoreFailures || failureRows.length >= failureTotal) return;
+    setLoadingMoreFailures(true);
+    const supabase = createBrowserSupabaseClient();
+    const [{ data, error }, { data: summary }] = await Promise.all([
+      supabase.rpc('get_admin_notification_failures', { p_limit: 50, p_offset: failureRows.length }),
+      supabase.rpc('get_admin_notification_summary'),
+    ]);
+    setLoadingMoreFailures(false);
+    if (error) {
+      setMessage('Không thể tải thêm email lỗi.');
+      return;
+    }
+    const nextRows = data ?? [];
+    setFailureRows((current) => {
+      const existing = new Set(current.map((failure) => failure.id));
+      return [...current, ...nextRows.filter((failure) => !existing.has(failure.id))];
+    });
+    setFailureTotal(summary?.[0]?.failed_email_count ?? failureRows.length + nextRows.length);
   };
 
   const savePreferences = async () => {
@@ -219,13 +245,20 @@ export default function NotificationCenter({
       {isAdmin && (
         <section className={styles.failures}>
           <h2>{t('Email lỗi gần đây', 'Recent email failures')}</h2>
-          {failures.length === 0 ? <p>{t('Chưa có email lỗi.', 'No failed emails.')}</p> : failures.map((failure) => (
+          {failureRows.length === 0 ? <p>{t('Chưa có email lỗi.', 'No failed emails.')}</p> : failureRows.map((failure) => (
             <div key={failure.id} className={styles.failureRow}>
               <span>{failure.recipient_email}</span>
               <span>{failure.last_error_code ?? 'UNKNOWN'} · {failure.attempt_count} lần thử</span>
               <time dateTime={failure.updated_at}>{displayDate(failure.updated_at)}</time>
             </div>
           ))}
+          {failureRows.length < failureTotal && (
+            <div className={styles.loadMore}>
+              <button type="button" className={styles.secondaryButton} onClick={() => void loadMoreFailures()} disabled={loadingMoreFailures}>
+                {loadingMoreFailures ? t('Đang tải...', 'Loading...') : t('Tải thêm email lỗi', 'Load more email failures')}
+              </button>
+            </div>
+          )}
         </section>
       )}
     </div>

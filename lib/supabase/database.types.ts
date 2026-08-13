@@ -1711,7 +1711,7 @@ export type Database = {
         Returns: { failed_email_count: number; unread_count: number }[];
       };
       get_admin_notification_failures: {
-        Args: { p_limit?: number };
+        Args: { p_limit?: number; p_offset?: number };
         Returns: {
           attempt_count: number;
           id: string;

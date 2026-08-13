@@ -11,7 +11,7 @@ import { isNextOptimizedImage } from '@/lib/media/image';
 
 const isProduction = process.env.NEXT_PUBLIC_APP_MODE === 'production';
 
-export default function EventsClient({ events }: { events: EventItem[] }) {
+export default function EventsClient({ events, page = 1, totalPages = 1 }: { events: EventItem[]; page?: number; totalPages?: number }) {
   const { t, lang } = useLanguage();
 
   return (
@@ -39,7 +39,8 @@ export default function EventsClient({ events }: { events: EventItem[] }) {
             <h2>{t('Hiện chưa có sự kiện sắp tới', 'No upcoming events')}</h2>
             <p>{t('Beanbus sẽ cập nhật workshop và hoạt động cộng đồng tại đây.', 'Beanbus will publish upcoming workshops and community events here.')}</p>
           </div>
-        ) : <div className={styles.eventsGrid}>
+        ) : <>
+        <div className={styles.eventsGrid}>
           {events.map((item, index) => (
             <article key={item.id} className={styles.eventCard}>
               <div className={styles.imgBox}>
@@ -87,7 +88,15 @@ export default function EventsClient({ events }: { events: EventItem[] }) {
               </div>
             </article>
           ))}
-        </div>}
+        </div>
+        {totalPages > 1 && (
+          <nav className={styles.pagination} aria-label={t('Phân trang sự kiện', 'Events pagination')}>
+            {page > 1 && <Link href={`/events?page=${page - 1}`} aria-label={t('Trang sự kiện trước', 'Previous events page')}>←</Link>}
+            <span>{t(`Trang ${page} / ${totalPages}`, `Page ${page} / ${totalPages}`)}</span>
+            {page < totalPages && <Link href={`/events?page=${page + 1}`} aria-label={t('Trang sự kiện sau', 'Next events page')}>→</Link>}
+          </nav>
+        )}
+        </>}
       </div>
 
     </div>
