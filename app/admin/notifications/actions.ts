@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/auth/session';
+import { notificationPlainText } from '@/lib/notifications/rich-text';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 export type AnnouncementState = { status: 'idle' | 'success' | 'error'; message: string };
@@ -21,7 +22,9 @@ export async function publishAnnouncement(
   const bodyEn = String(formData.get('bodyEn') ?? '').trim();
   const href = String(formData.get('href') ?? '').trim() || null;
   const sendEmail = formData.get('sendEmail') === 'on';
-  if (titleVi.length < 3 || titleVi.length > 180 || titleEn.length < 3 || titleEn.length > 180 || bodyVi.length < 10 || bodyVi.length > 1000 || bodyEn.length < 10 || bodyEn.length > 1000 || (href && (!href.startsWith('/') || href.startsWith('//')))) {
+  const invalidTitle = (title: string) => title.length < 3 || title.length > 180 || /[\r\n]/.test(title);
+  const invalidBody = (body: string) => body.length > 1000 || notificationPlainText(body).length < 10;
+  if (invalidTitle(titleVi) || invalidTitle(titleEn) || invalidBody(bodyVi) || invalidBody(bodyEn) || (href && (href.length > 500 || !href.startsWith('/') || href.startsWith('//') || href.includes('\\')))) {
     return { status: 'error', message: 'Nội dung thông báo không hợp lệ.' };
   }
   const supabase = await createServerSupabaseClient();

@@ -11,6 +11,7 @@ import {
   webPushStatus,
   type PushStatus,
 } from '@/lib/notifications/firebase-client';
+import { notificationPlainText } from '@/lib/notifications/rich-text';
 import styles from './NotificationBell.module.css';
 
 type NotificationItem = {
@@ -328,7 +329,7 @@ export function NotificationBell({ isAdmin, isAuthReady, isLoggedIn, userId }: P
                   onClick={() => void markRead(item)}
                 >
                   <strong>{lang === 'en' ? item.title_en : item.title_vi}</strong>
-                  <span>{lang === 'en' ? item.body_en : item.body_vi}</span>
+                  <span>{notificationPlainText(lang === 'en' ? item.body_en : item.body_vi)}</span>
                   <time dateTime={item.created_at}>{dateFormatter.format(new Date(item.created_at))}</time>
                 </Link>
               ))}

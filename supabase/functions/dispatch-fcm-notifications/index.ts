@@ -66,11 +66,23 @@ function boundedString(value: unknown, maxLength: number): string | null {
     : null;
 }
 
+function notificationPlainText(value: string): string {
+  return value
+    .replace(/^\s*(?:[-*]|\d+[.)]|>)\s+/gm, '')
+    .replace(/\*\*\*([^*\n]+)\*\*\*/g, '$1')
+    .replace(/\*\*([^*\n]+)\*\*/g, '$1')
+    .replace(/\*([^*\n]+)\*/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function parsePayload(value: Record<string, unknown>): SafePayload | null {
   const titleVi = boundedString(value.titleVi, 180);
   const titleEn = boundedString(value.titleEn, 180);
-  const bodyVi = boundedString(value.bodyVi, 240);
-  const bodyEn = boundedString(value.bodyEn, 240);
+  const bodyViValue = boundedString(value.bodyVi, 240);
+  const bodyEnValue = boundedString(value.bodyEn, 240);
+  const bodyVi = bodyViValue ? notificationPlainText(bodyViValue) : null;
+  const bodyEn = bodyEnValue ? notificationPlainText(bodyEnValue) : null;
   const href = normalizeFcmHref(value.href);
   const kind = boundedString(value.kind, 80);
   const tag = boundedString(value.tag, 255);

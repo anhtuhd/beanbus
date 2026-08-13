@@ -6,6 +6,7 @@ import { Bell, Check, CheckCheck, Mail, Save, Smartphone } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/database.types';
+import { NotificationRichText } from './NotificationRichText';
 import styles from './notification-center.module.css';
 
 type Notification = Database['public']['Tables']['notifications']['Row'];
@@ -168,7 +169,7 @@ export default function NotificationCenter({
             <div className={styles.itemIcon}><Bell size={17} /></div>
             <div className={styles.itemBody}>
               <h2>{lang === 'en' ? notification.title_en : notification.title_vi}</h2>
-              <p>{lang === 'en' ? notification.body_en : notification.body_vi}</p>
+              <NotificationRichText value={lang === 'en' ? notification.body_en : notification.body_vi} />
               <time dateTime={notification.created_at}>{displayDate(notification.created_at)}</time>
             </div>
             <div className={styles.itemActions}>

@@ -47,6 +47,60 @@ function escapeHtml(value: string): string {
     })[character] ?? character);
 }
 
+function renderNotificationInlineHtml(value: string): string {
+  return escapeHtml(value)
+    .replace(/\*\*\*([^*\n]+)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+}
+
+function notificationPlainText(value: string): string {
+  return value
+    .replace(/^\s*(?:[-*]|\d+[.)]|>)\s+/gm, '')
+    .replace(/\*\*\*([^*\n]+)\*\*\*/g, '$1')
+    .replace(/\*\*([^*\n]+)\*\*/g, '$1')
+    .replace(/\*([^*\n]+)\*/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function renderNotificationRichTextHtml(value: string): string {
+  const lines = value.replace(/\r\n?/g, '\n').split('\n');
+  const html: string[] = [];
+  let list: 'ul' | 'ol' | null = null;
+  const closeList = () => {
+    if (!list) return;
+    html.push(`</${list}>`);
+    list = null;
+  };
+
+  for (const line of lines) {
+    if (!line.trim()) {
+      closeList();
+      continue;
+    }
+    const unordered = line.match(/^\s*[-*]\s+(.+)$/);
+    const ordered = line.match(/^\s*\d+[.)]\s+(.+)$/);
+    if (unordered || ordered) {
+      const nextList: 'ul' | 'ol' = unordered ? 'ul' : 'ol';
+      if (list !== nextList) {
+        closeList();
+        list = nextList;
+        html.push(`<${list}>`);
+      }
+      html.push(`<li>${renderNotificationInlineHtml((unordered ?? ordered)?.[1] ?? '')}</li>`);
+      continue;
+    }
+    closeList();
+    const quote = line.match(/^\s*>\s?(.*)$/);
+    html.push(quote
+      ? `<blockquote style="border-left:3px solid #f57f2f;margin:12px 0;padding:8px 12px">${renderNotificationInlineHtml(quote[1])}</blockquote>`
+      : `<p>${renderNotificationInlineHtml(line.trim())}</p>`);
+  }
+  closeList();
+  return html.join('');
+}
+
 function base64Url(value: string): string {
   return btoa(value).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
 }
@@ -88,7 +142,8 @@ async function sendEmail(outbox: OutboxRow, notification: NotificationRow): Prom
       : null;
   const href = notification.href ? `${siteUrl}${notification.href}` : siteUrl;
   const title = escapeHtml(notification.title_vi);
-  const body = escapeHtml(notification.body_vi);
+  const body = renderNotificationRichTextHtml(notification.body_vi);
+  const plainBody = notificationPlainText(notification.body_vi);
   const isMarketingNotification = notification.kind === 'event_published' ||
     notification.kind === 'store_announcement';
   const link = `<p><a href="${escapeHtml(href)}">Xem trên Beanbus</a></p>`;
@@ -119,8 +174,8 @@ async function sendEmail(outbox: OutboxRow, notification: NotificationRow): Prom
           }
           : undefined,
         html:
-          `<div style="font-family:Arial,sans-serif;line-height:1.6"><h2>${title}</h2><p>${body}</p>${link}${footer}</div>`,
-        text: `${notification.title_vi}\n\n${notification.body_vi}\n\n${href}${
+          `<div style="font-family:Arial,sans-serif;line-height:1.6"><h2>${title}</h2>${body}${link}${footer}</div>`,
+        text: `${notification.title_vi}\n\n${plainBody}\n\n${href}${
           unsubscribe ? `\n\nHủy nhận email: ${unsubscribe}` : ''
         }`,
       }),

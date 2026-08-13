@@ -80,6 +80,10 @@
   padding-top: 16px;
 }
 
+.adminNavSticky {
+  width: 100%;
+}
+
 .adminNav {
   display: flex;
   flex-wrap: wrap;
@@ -107,6 +111,31 @@
 .adminNavLink:focus-visible {
   border-color: var(--orange);
   color: var(--orange);
+}
+
+@media (min-width: 1025px) {
+  .adminNavSticky {
+    position: sticky;
+    top: 78px;
+    z-index: 900;
+    background: rgba(255, 255, 255, 0.97);
+    border-bottom: 1px solid rgba(134, 114, 103, 0.14);
+    box-shadow: 0 5px 14px rgba(43, 36, 32, 0.06);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .adminNavWrap {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .adminNav {
+    max-height: calc(100vh - 102px);
+    overflow-y: auto;
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
 }
 
 .adminBanner {

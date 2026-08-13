@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Bell, Check, CheckCheck, LoaderCircle } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { NotificationRichText } from './NotificationRichText';
 import styles from './notification-center.module.css';
 
 type GuestItem = {
@@ -98,7 +99,7 @@ export default function GuestNotificationCenter() {
             <div className={styles.itemIcon}><Bell size={17} /></div>
             <div className={styles.itemBody}>
               <h2>{lang === 'en' ? item.title_en : item.title_vi}</h2>
-              <p>{lang === 'en' ? item.body_en : item.body_vi}</p>
+              <NotificationRichText value={lang === 'en' ? item.body_en : item.body_vi} />
               <time dateTime={item.created_at}>{dateFormatter.format(new Date(item.created_at))}</time>
             </div>
             <div className={styles.itemActions}>

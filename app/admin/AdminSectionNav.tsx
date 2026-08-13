@@ -46,15 +46,17 @@ export default function AdminSectionNav() {
     : visibleSections.filter((section) => section.href !== '/admin/notifications');
 
   return (
-    <div className={`wrap ${styles.adminNavWrap}`}>
-      <nav className={styles.adminNav} aria-label="Admin navigation">
-        {sectionsWithFlags.map(({ href, vi, en, icon: Icon }) => (
-          <Link key={href} href={href} className={styles.adminNavLink}>
-            <Icon size={15} aria-hidden="true" />
-            <span><LocalizedText vi={vi} en={en} /></span>
-          </Link>
-        ))}
-      </nav>
+    <div className={styles.adminNavSticky}>
+      <div className={`wrap ${styles.adminNavWrap}`}>
+        <nav className={styles.adminNav} aria-label="Admin navigation">
+          {sectionsWithFlags.map(({ href, vi, en, icon: Icon }) => (
+            <Link key={href} href={href} className={styles.adminNavLink}>
+              <Icon size={15} aria-hidden="true" />
+              <span><LocalizedText vi={vi} en={en} /></span>
+            </Link>
+          ))}
+        </nav>
+      </div>
     </div>
   );
 }
