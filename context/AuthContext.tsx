@@ -118,6 +118,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode; mode: AppMode }
       const loadProfile = async () => {
         const version = ++loadVersion;
         try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (!sessionData.session) {
+            if (active && version === loadVersion) setUser(null);
+            return;
+          }
+
           const { data } = await supabase.rpc('get_current_profile');
           const profile = data?.[0];
 

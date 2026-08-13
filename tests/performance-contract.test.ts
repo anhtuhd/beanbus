@@ -20,6 +20,8 @@ test('private auth resolves the RLS-owned profile in one data request', () => {
   assert.match(authSession, /rpc\('get_current_profile'\)/);
   assert.doesNotMatch(authSession, /auth\.getClaims\(\)/);
   assert.match(authContext, /rpc\('get_current_profile'\)/);
+  assert.match(authContext, /auth\.getSession\(\)/);
+  assert.ok(authContext.indexOf('auth.getSession()') < authContext.indexOf("rpc('get_current_profile')"));
   assert.doesNotMatch(authContext, /auth\.getClaims\(\)/);
   assert.match(migrations, /create or replace function public\.get_current_profile\(\)/i);
   assert.match(migrations, /security invoker/i);
