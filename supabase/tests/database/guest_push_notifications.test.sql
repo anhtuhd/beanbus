@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(59);
+select plan(61);
 
 select has_table('public', 'guest_notification_sessions', 'guest sessions table exists');
 select has_table('public', 'guest_order_access', 'guest order access table exists');
@@ -191,6 +191,16 @@ begin
 end;
 $$;
 select is((select count(*) from public.fcm_installation_recipients where user_id = '66666666-6666-4666-8666-666666666666'), 10::bigint, 'member is capped at ten installations');
+select ok(
+  exists (
+    select 1
+    from public.fcm_installation_recipients as recipient
+    join public.fcm_installations as installation on installation.id = recipient.installation_id
+    where recipient.user_id = '66666666-6666-4666-8666-666666666666'
+      and installation.fid = 'user-fid-abcdefghijkl-11'
+  ),
+  'member cap retains the newest installation'
+);
 
 do $$
 begin
@@ -200,6 +210,16 @@ begin
   );
 end;
 $$;
+select ok(
+  exists (
+    select 1
+    from public.fcm_installation_recipients as recipient
+    join public.fcm_installations as installation on installation.id = recipient.installation_id
+    where recipient.guest_session_id = '33333333-3333-4333-8333-333333333333'
+      and installation.fid = 'lease-fid-abcdefghijkl-1'
+  ),
+  'guest cap retains the newest installation'
+);
 
 insert into public.guest_notifications (
   guest_session_id, kind, title_vi, title_en, body_vi, body_en, href, order_id, dedupe_key
