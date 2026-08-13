@@ -18,6 +18,8 @@ test('account and admin routes expose accessible loading states', () => {
   assert.match(adminLoading, /Đang tải bảng điều hành/);
   assert.match(accountLoading, /accountPage/);
   assert.match(adminLoading, /adminPage/);
+  assert.match(accountLoading, /loadingBanner/);
+  assert.match(adminLoading, /loadingBanner/);
 });
 
 test('booking and contact routes keep interactive forms behind server metadata shells', () => {

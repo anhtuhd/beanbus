@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Check, CheckCircle2, CircleAlert, Copy, QrCode, ShoppingBag } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import type { OrderReceipt } from '@/lib/orders/receipt-data';
@@ -36,47 +35,73 @@ type PaymentDisplay = { accountName: string; qrUrl: string } | null;
 export function ProductionConfirmation({
   order,
   paymentDisplay,
+  receiptToken,
 }: {
   order: OrderReceipt;
   paymentDisplay: PaymentDisplay;
+  receiptToken: string;
 }) {
-  const router = useRouter();
   const { t, lang } = useLanguage();
   const [copied, setCopied] = useState<'account' | 'code' | null>(null);
   const [isExpired, setIsExpired] = useState(false);
   const [remainingMs, setRemainingMs] = useState(0);
-  const currentStepIndex = steps.findIndex((step) => step.key === order.status);
-  const isCancelled = order.status === 'cancelled';
-  const payment = order.payment;
-  const isPaymentPending = order.paymentStatus === 'pending' && payment?.status === 'pending';
+  const [liveStatus, setLiveStatus] = useState({
+    status: order.status,
+    paymentStatus: order.paymentStatus,
+    paymentDetailStatus: order.payment?.status ?? null,
+  });
+  const currentStepIndex = steps.findIndex((step) => step.key === liveStatus.status);
+  const isCancelled = liveStatus.status === 'cancelled';
+  const payment = order.payment
+    ? { ...order.payment, status: liveStatus.paymentDetailStatus ?? order.payment.status }
+    : null;
+  const isPaymentPending = liveStatus.paymentStatus === 'pending' && payment?.status === 'pending';
 
   useEffect(() => {
-    if (!payment) return;
-    let refreshRequested = false;
+    if (!order.payment) return;
     const updateExpiry = () => {
-      const remaining = Math.max(0, new Date(payment.expiresAt).getTime() - Date.now());
+      const remaining = Math.max(0, new Date(order.payment!.expiresAt).getTime() - Date.now());
       setRemainingMs(remaining);
       setIsExpired(remaining === 0);
-      if (remaining === 0 && !refreshRequested) {
-        refreshRequested = true;
-        router.refresh();
-      }
     };
     updateExpiry();
     const timer = window.setInterval(updateExpiry, 1000);
     return () => window.clearInterval(timer);
-  }, [payment, router]);
+  }, [order.payment]);
 
   useEffect(() => {
     if (!isPaymentPending || isExpired) return;
     let timer: number | null = null;
     let delay = 5_000;
 
+    const refreshStatus = async () => {
+      try {
+        const response = await fetch(`/api/orders/${order.id}/status?receipt=${encodeURIComponent(receiptToken)}`, {
+          cache: 'no-store',
+          credentials: 'same-origin',
+        });
+        if (!response.ok) return;
+        const data = await response.json() as {
+          status?: OrderReceipt['status'];
+          paymentStatus?: OrderReceipt['paymentStatus'];
+          payment?: { status?: NonNullable<OrderReceipt['payment']>['status'] } | null;
+        };
+        if (!data.status || !data.paymentStatus) return;
+        setLiveStatus({
+          status: data.status,
+          paymentStatus: data.paymentStatus,
+          paymentDetailStatus: data.payment?.status ?? null,
+        });
+      } catch {
+        // The next scheduled check is the fallback for transient network failures.
+      }
+    };
+
     const scheduleRefresh = () => {
       if (timer !== null) window.clearTimeout(timer);
       timer = window.setTimeout(() => {
         if (!document.hidden) {
-          router.refresh();
+          void refreshStatus();
           delay = Math.min(30_000, Math.round(delay * 1.5));
         }
         scheduleRefresh();
@@ -85,7 +110,7 @@ export function ProductionConfirmation({
     const refreshOnFocus = () => {
       if (!document.hidden) {
         delay = 5_000;
-        router.refresh();
+        void refreshStatus();
         scheduleRefresh();
       }
     };
@@ -96,7 +121,7 @@ export function ProductionConfirmation({
       if (timer !== null) window.clearTimeout(timer);
       document.removeEventListener('visibilitychange', refreshOnFocus);
     };
-  }, [isExpired, isPaymentPending, router]);
+  }, [isExpired, isPaymentPending, order.id, receiptToken]);
 
   const copyValue = async (value: string, key: 'account' | 'code') => {
     try {
@@ -120,7 +145,7 @@ export function ProductionConfirmation({
         <p className={styles.orderIdText}>
           {t('Mã đơn hàng:', 'Order ID:')} <strong>{order.orderCode}</strong>
         </p>
-        {order.paymentStatus === 'paid' && (
+        {liveStatus.paymentStatus === 'paid' && (
           <div className={styles.paidBadge}>{t('Thanh toán đã được xác nhận', 'Payment confirmed')}</div>
         )}
       </div>
@@ -204,7 +229,7 @@ export function ProductionConfirmation({
         </section>
       )}
 
-      {payment && (payment.status === 'expired' || isExpired) && order.paymentStatus !== 'paid' && (
+      {payment && (payment.status === 'expired' || isExpired) && liveStatus.paymentStatus !== 'paid' && (
         <div className={styles.paymentNotice} role="status">
           <CircleAlert size={20} aria-hidden="true" />
           <span>{t('Mã thanh toán đã hết hạn. Vui lòng đặt lại đơn hoặc liên hệ Beanbus nếu bạn đã chuyển khoản.', 'This payment code has expired. Place a new order or contact Beanbus if you already transferred.')}</span>

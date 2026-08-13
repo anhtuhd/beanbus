@@ -20,7 +20,7 @@ test('member account exposes only active vouchers through an authenticated read 
 });
 
 test('member account queries use RLS-owned orders and pass server data to the UI', () => {
-  assert.match(query, /from\('orders'\)[\s\S]*\.from\('order_items'\)/i);
+  assert.match(query, /from\('orders'\)[\s\S]*order_items\(id, order_id/i);
   assert.match(query, /getCurrentProfile/);
   assert.match(query, /\.eq\('user_id', profile\.id\)/i);
   assert.match(page, /getMemberAccountData\(/);

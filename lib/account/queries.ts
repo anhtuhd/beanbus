@@ -11,6 +11,10 @@ type AccountOrderItem = Pick<
   Database['public']['Tables']['order_items']['Row'],
   'id' | 'order_id' | 'product_name_vi' | 'product_name_en' | 'quantity' | 'line_total_vnd'
 >;
+type AccountOrderWithItems = Pick<
+  OrderRow,
+  'id' | 'order_code' | 'status' | 'payment_status' | 'fulfillment' | 'total_vnd' | 'voucher_code' | 'created_at'
+> & { order_items: AccountOrderItem[] | null };
 type MemberRequestRow = Database['public']['Functions']['get_member_requests']['Returns'][number];
 
 export type MemberAccountOrder = {
@@ -149,7 +153,15 @@ function mapMemberRequest(request: MemberRequestRow): MemberRequest {
   };
 }
 
-export async function getMemberAccountData(requestedPage = 1, requestedLoyaltyPage = 1, requestedRequestPage = 1, requestedVoucherPage = 1): Promise<MemberAccountData> {
+type AccountTab = 'membership' | 'orders' | 'requests' | 'rewards' | 'vouchers';
+
+export async function getMemberAccountData(
+  requestedPage = 1,
+  requestedLoyaltyPage = 1,
+  requestedRequestPage = 1,
+  requestedVoucherPage = 1,
+  activeTab: AccountTab = 'membership',
+): Promise<MemberAccountData> {
   const page = boundedPage(requestedPage);
   const loyaltyPage = boundedPage(requestedLoyaltyPage);
   const requestPage = boundedPage(requestedRequestPage);
@@ -158,80 +170,76 @@ export async function getMemberAccountData(requestedPage = 1, requestedLoyaltyPa
   if (!profile) return emptyAccountData(page, loyaltyPage, requestPage, voucherPage, 'Phiên đăng nhập đã hết hạn.');
   const supabase = await createServerSupabaseClient();
   const nowIso = new Date().toISOString();
-  const [ordersResult, loyaltyResult, loyaltyEntriesResult, rewardsResult, requestsResult, requestCountResult, vouchersResult] = await Promise.all([
-    supabase
-    .from('orders')
-    .select('id, order_code, status, payment_status, fulfillment, total_vnd, voucher_code, created_at', { count: 'exact' })
-    .eq('user_id', profile.id)
-    .order('created_at', { ascending: false })
-    .range((page - 1) * ORDER_PAGE_SIZE, page * ORDER_PAGE_SIZE - 1),
-    supabase.rpc('get_member_loyalty_summary', { p_user_id: profile.id }),
-    supabase.from('loyalty_ledger').select('id, points, source_type, voucher_code, note, created_at', { count: 'exact' }).eq('user_id', profile.id).order('created_at', { ascending: false }).range((loyaltyPage - 1) * LOYALTY_PAGE_SIZE, loyaltyPage * LOYALTY_PAGE_SIZE - 1),
-    supabase.from('loyalty_rewards').select('id, name_vi, name_en, points_cost, discount_type, discount_value, minimum_subtotal_vnd, maximum_discount_vnd').eq('is_active', true).order('points_cost'),
-    supabase.rpc('get_member_requests', { p_page: requestPage, p_page_size: REQUEST_PAGE_SIZE, p_user_id: profile.id }),
+  const needsOrders = activeTab === 'orders';
+  const needsMembership = activeTab === 'membership';
+  const needsRequests = activeTab === 'requests';
+  const needsRewards = activeTab === 'rewards';
+  const needsVouchers = activeTab === 'vouchers';
+  const [ordersResult, orderCountResult, loyaltyResult, loyaltyEntriesResult, rewardsResult, requestsResult, requestCountResult, vouchersResult] = await Promise.all([
+    needsOrders ? supabase
+      .from('orders')
+      .select('id, order_code, status, payment_status, fulfillment, total_vnd, voucher_code, created_at, order_items(id, order_id, product_name_vi, product_name_en, quantity, line_total_vnd)', { count: 'exact' })
+      .eq('user_id', profile.id)
+      .order('created_at', { ascending: false })
+      .range((page - 1) * ORDER_PAGE_SIZE, page * ORDER_PAGE_SIZE - 1) : null,
+    supabase.from('orders').select('id', { count: 'exact', head: true }).eq('user_id', profile.id),
+    needsMembership || needsRewards ? supabase.rpc('get_member_loyalty_summary', { p_user_id: profile.id }) : null,
+    needsMembership ? supabase.from('loyalty_ledger').select('id, points, source_type, voucher_code, note, created_at', { count: 'exact' }).eq('user_id', profile.id).order('created_at', { ascending: false }).range((loyaltyPage - 1) * LOYALTY_PAGE_SIZE, loyaltyPage * LOYALTY_PAGE_SIZE - 1) : null,
+    needsRewards ? supabase.from('loyalty_rewards').select('id, name_vi, name_en, points_cost, discount_type, discount_value, minimum_subtotal_vnd, maximum_discount_vnd').eq('is_active', true).order('points_cost') : null,
+    needsRequests ? supabase.rpc('get_member_requests', { p_page: requestPage, p_page_size: REQUEST_PAGE_SIZE, p_user_id: profile.id }) : null,
     supabase.rpc('get_member_request_count', { p_user_id: profile.id }),
-    supabase
+    needsVouchers ? supabase
       .from('vouchers')
       .select('code, discount_type, discount_value, minimum_subtotal_vnd, maximum_discount_vnd, starts_at, ends_at', { count: 'exact' })
       .eq('is_active', true)
       .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
       .or(`ends_at.is.null,ends_at.gt.${nowIso}`)
       .order('created_at', { ascending: false })
-      .range((voucherPage - 1) * VOUCHER_PAGE_SIZE, voucherPage * VOUCHER_PAGE_SIZE - 1),
+      .range((voucherPage - 1) * VOUCHER_PAGE_SIZE, voucherPage * VOUCHER_PAGE_SIZE - 1) : null,
   ]);
 
-  if (ordersResult.error) {
-    return emptyAccountData(page, loyaltyPage, requestPage, voucherPage, 'Không thể tải dữ liệu hội viên lúc này.');
-  }
-
-  const orders = ordersResult.data ?? [];
-  const orderIds = orders.map((order) => order.id);
-  const itemsResult = orderIds.length
-    ? await supabase
-      .from('order_items')
-      .select('id, order_id, product_name_vi, product_name_en, quantity, line_total_vnd')
-      .in('order_id', orderIds)
-    : { data: [], error: null };
-
-  if (itemsResult.error || vouchersResult.error || loyaltyResult.error || !loyaltyResult.data?.[0] || loyaltyEntriesResult.error || rewardsResult.error || requestsResult.error || requestCountResult.error) {
-    return emptyAccountData(page, loyaltyPage, requestPage, voucherPage, 'Không thể tải dữ liệu hội viên lúc này.');
-  }
-
-  const itemsByOrder = new Map<string, AccountOrderItem[]>();
-  for (const item of itemsResult.data ?? []) {
-    const items = itemsByOrder.get(item.order_id) ?? [];
-    items.push(item);
-    itemsByOrder.set(item.order_id, items);
-  }
-
-  const vouchers: MemberVoucher[] = vouchersResult.data ?? [];
-
-  const requests = (requestsResult.data ?? []).map(mapMemberRequest);
+  const orders = (ordersResult?.data ?? []) as unknown as AccountOrderWithItems[];
+  const loyalty = loyaltyResult?.data?.[0] ?? null;
+  const totalOrders = orderCountResult.count ?? 0;
   const totalRequests = requestCountResult.data ?? 0;
 
+  if (orderCountResult.error || requestCountResult.error
+    || (needsOrders && ordersResult?.error)
+    || ((needsMembership || needsRewards) && (loyaltyResult?.error || !loyalty))
+    || (needsMembership && loyaltyEntriesResult?.error)
+    || (needsRewards && rewardsResult?.error)
+    || (needsRequests && requestsResult?.error)
+    || (needsVouchers && vouchersResult?.error)) {
+    return emptyAccountData(page, loyaltyPage, requestPage, voucherPage, 'Không thể tải dữ liệu hội viên lúc này.');
+  }
+
+  const vouchers: MemberVoucher[] = vouchersResult?.data ?? [];
+
+  const requests = (requestsResult?.data ?? []).map(mapMemberRequest);
+
   return {
-    orders: orders.map((order) => mapOrder(order, itemsByOrder.get(order.id) ?? [])),
+    orders: orders.map((order) => mapOrder(order, order.order_items ?? [])),
     vouchers,
-    loyalty: {
-      policyEnabled: loyaltyResult.data[0].policy_enabled,
-      balancePoints: loyaltyResult.data[0].balance_points,
-      earnedPoints: loyaltyResult.data[0].earned_points,
-      redeemedPoints: loyaltyResult.data[0].redeemed_points,
-      totalSpentVnd: loyaltyResult.data[0].total_spent_vnd,
-    },
-    loyaltyEntries: loyaltyEntriesResult.data ?? [],
-    rewards: rewardsResult.data ?? [],
+    loyalty: loyalty ? {
+      policyEnabled: loyalty.policy_enabled,
+      balancePoints: loyalty.balance_points,
+      earnedPoints: loyalty.earned_points,
+      redeemedPoints: loyalty.redeemed_points,
+      totalSpentVnd: loyalty.total_spent_vnd,
+    } : null,
+    loyaltyEntries: loyaltyEntriesResult?.data ?? [],
+    rewards: rewardsResult?.data ?? [],
     requests,
     page,
-    totalPages: Math.max(1, Math.ceil((ordersResult.count ?? 0) / ORDER_PAGE_SIZE)),
-    totalOrders: ordersResult.count ?? 0,
+    totalPages: needsOrders ? Math.max(1, Math.ceil((ordersResult?.count ?? 0) / ORDER_PAGE_SIZE)) : 1,
+    totalOrders,
     totalRequests,
     loyaltyPage,
-    loyaltyTotalPages: Math.max(1, Math.ceil((loyaltyEntriesResult.count ?? 0) / LOYALTY_PAGE_SIZE)),
+    loyaltyTotalPages: needsMembership ? Math.max(1, Math.ceil((loyaltyEntriesResult?.count ?? 0) / LOYALTY_PAGE_SIZE)) : 1,
     requestPage,
     requestTotalPages: Math.max(1, Math.ceil(totalRequests / REQUEST_PAGE_SIZE)),
     voucherPage,
-    voucherTotalPages: Math.max(1, Math.ceil((vouchersResult.count ?? 0) / VOUCHER_PAGE_SIZE)),
+    voucherTotalPages: needsVouchers ? Math.max(1, Math.ceil((vouchersResult?.count ?? 0) / VOUCHER_PAGE_SIZE)) : 1,
   };
 }
 

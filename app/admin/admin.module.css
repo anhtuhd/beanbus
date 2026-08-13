@@ -6,6 +6,76 @@
   gap: 32px;
 }
 
+.loadingShell {
+  min-height: 560px;
+}
+
+.loadingBanner {
+  min-height: 148px;
+  padding: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  background: var(--brown-dark);
+  border-radius: var(--radius);
+}
+
+.loadingActions,
+.loadingKpis {
+  display: flex;
+  gap: 8px;
+}
+
+.loadingActions {
+  width: min(58%, 520px);
+}
+
+.loadingBlock {
+  background: rgba(134, 114, 103, 0.16);
+  border-radius: 6px;
+  animation: loadingPulse 1.4s ease-in-out infinite;
+}
+
+.loadingBanner .loadingBlock {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.loadingTitle {
+  width: min(34%, 260px);
+  height: 34px;
+}
+
+.loadingAction {
+  height: 38px;
+  flex: 1;
+}
+
+.loadingKpis {
+  min-height: 112px;
+}
+
+.loadingKpi {
+  min-width: 0;
+  flex: 1;
+}
+
+.loadingContent {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  color: var(--brown);
+  font-size: 13px;
+}
+
+@keyframes loadingPulse {
+  50% { opacity: 0.52; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingBlock { animation: none; }
+}
+
 .adminNavWrap {
   padding-top: 16px;
 }

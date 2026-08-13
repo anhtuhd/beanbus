@@ -29,5 +29,5 @@ export default async function OrderConfirmationPage({ params, searchParams }: Co
     }),
   } : null;
 
-  return <ProductionConfirmation order={order} paymentDisplay={paymentDisplay} />;
+  return <ProductionConfirmation order={order} paymentDisplay={paymentDisplay} receiptToken={receiptToken} />;
 }

@@ -29,7 +29,7 @@ export default async function AccountPage({
 
   const profile = await requireProfile('/account');
   if (profile.role === 'admin') redirect('/admin');
-  const accountData = await getMemberAccountData(requestedPage, requestedLoyaltyPage, requestedRequestPage, requestedVoucherPage);
+  const accountData = await getMemberAccountData(requestedPage, requestedLoyaltyPage, requestedRequestPage, requestedVoucherPage, initialTab);
   return (
     <AccountClient
       initialUser={toUserProfile(profile)}

@@ -153,6 +153,18 @@ export default function AccountClient({
     return `/account?${params.toString()}`;
   };
 
+  const handleTabChange = (nextTab: AccountTab) => {
+    setActiveTab(nextTab);
+    const params = new URLSearchParams({
+      page: String(orderPage),
+      loyaltyPage: String(loyaltyPage),
+      requestPage: String(requestPage),
+      voucherPage: String(voucherPage),
+      tab: nextTab,
+    });
+    router.push(`/account?${params.toString()}`);
+  };
+
   const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
     if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) return;
     event.preventDefault();
@@ -164,7 +176,7 @@ export default function AccountClient({
         ? tabs.length - 1
         : (currentIndex + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
     const nextTab = tabs[nextIndex];
-    setActiveTab(nextTab);
+    handleTabChange(nextTab);
     tabRefs.current[nextTab]?.focus();
   };
 
@@ -310,7 +322,7 @@ export default function AccountClient({
           ref={(element) => { tabRefs.current.membership = element; }}
           onKeyDown={handleTabKeyDown}
           className={`${styles.tabBtn} ${activeTab === 'membership' ? styles.activeTab : ''}`}
-          onClick={() => setActiveTab('membership')}
+          onClick={() => handleTabChange('membership')}
         >
           <Award size={16} /> <span>{t('Thẻ Hội Viên', 'Membership Card')}</span>
         </button>
@@ -325,7 +337,7 @@ export default function AccountClient({
           ref={(element) => { tabRefs.current.orders = element; }}
           onKeyDown={handleTabKeyDown}
           className={`${styles.tabBtn} ${activeTab === 'orders' ? styles.activeTab : ''}`}
-          onClick={() => setActiveTab('orders')}
+          onClick={() => handleTabChange('orders')}
         >
           <ShoppingBag size={16} /> <span>{t('Lịch Sử Đơn Hàng', 'Order History')} ({accountOrderCount})</span>
         </button>
@@ -340,7 +352,7 @@ export default function AccountClient({
           ref={(element) => { tabRefs.current.requests = element; }}
           onKeyDown={handleTabKeyDown}
           className={`${styles.tabBtn} ${activeTab === 'requests' ? styles.activeTab : ''}`}
-          onClick={() => setActiveTab('requests')}
+          onClick={() => handleTabChange('requests')}
         >
           <Inbox size={16} /> <span>{t('Yêu cầu của tôi', 'My Requests')} ({accountRequestCount})</span>
         </button>
@@ -355,7 +367,7 @@ export default function AccountClient({
           ref={(element) => { tabRefs.current.rewards = element; }}
           onKeyDown={handleTabKeyDown}
           className={`${styles.tabBtn} ${activeTab === 'rewards' ? styles.activeTab : ''}`}
-          onClick={() => setActiveTab('rewards')}
+          onClick={() => handleTabChange('rewards')}
         >
           <Gift size={16} /> <span>{t('Đổi Quà Đổi Điểm', 'Redeem Store')}</span>
         </button>
@@ -370,7 +382,7 @@ export default function AccountClient({
           ref={(element) => { tabRefs.current.vouchers = element; }}
           onKeyDown={handleTabKeyDown}
           className={`${styles.tabBtn} ${activeTab === 'vouchers' ? styles.activeTab : ''}`}
-          onClick={() => setActiveTab('vouchers')}
+          onClick={() => handleTabChange('vouchers')}
         >
           <Ticket size={16} /> <span>{t('Kho Voucher', 'Vouchers')}</span>
         </button>

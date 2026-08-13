@@ -259,6 +259,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  justify-content: center;
+  min-width: 118px;
   background: var(--cream-light);
   border: 1px solid rgba(134, 114, 103, 0.2);
   padding: 8px 14px;

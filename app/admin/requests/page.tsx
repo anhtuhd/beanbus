@@ -115,7 +115,7 @@ export default async function AdminRequestsPage({ searchParams }: PageProps) {
   let count = 0;
   let failed = false;
 
-  if (view !== 'leads') {
+  const bookingsPromise = view === 'leads' ? null : (async () => {
     let query = supabase
       .from('booking_requests')
       .select('id, reference_number, customer_name, customer_phone, reservation_at, guest_count, seating_area, note, status, created_at', { count: 'exact' })
@@ -127,12 +127,10 @@ export default async function AdminRequestsPage({ searchParams }: PageProps) {
       else if (phone) query = query.eq('customer_phone', phone);
       else query = query.ilike('customer_name', `%${escapeLike(search)}%`);
     }
-    const result = await query.range(queryFrom, to);
-    bookings = result.data ?? [];
-    count += result.count ?? 0;
-    failed = failed || Boolean(result.error);
-  }
-  if (view !== 'bookings') {
+    return query.range(queryFrom, to);
+  })();
+
+  const requestsPromise = view === 'bookings' ? null : (async () => {
     let query = supabase
       .from('customer_requests')
       .select('id, reference_number, request_type, contact_name, contact_phone, contact_email, subject_reference, organization, volume_range, message, status, created_at', { count: 'exact' })
@@ -144,7 +142,18 @@ export default async function AdminRequestsPage({ searchParams }: PageProps) {
       else if (phone) query = query.eq('contact_phone', phone);
       else query = query.ilike('contact_name', `%${escapeLike(search)}%`);
     }
-    const result = await query.range(queryFrom, to);
+    return query.range(queryFrom, to);
+  })();
+
+  const [bookingResult, customerResult] = await Promise.all([bookingsPromise, requestsPromise]);
+  if (bookingResult) {
+    const result = bookingResult;
+    bookings = result.data ?? [];
+    count += result.count ?? 0;
+    failed = failed || Boolean(result.error);
+  }
+  if (customerResult) {
+    const result = customerResult;
     requests = result.data ?? [];
     count += result.count ?? 0;
     failed = failed || Boolean(result.error);

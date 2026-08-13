@@ -161,6 +161,12 @@
   text-align: right;
 }
 
+.countdownText strong {
+  display: inline-block;
+  min-width: 5ch;
+  font-variant-numeric: tabular-nums;
+}
+
 .paymentNotice {
   display: flex;
   align-items: center;

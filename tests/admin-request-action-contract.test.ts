@@ -34,6 +34,7 @@ test('admin requests page is guarded, filtered, and paginated', () => {
   assert.match(pageSource, /view === 'bookings' \? BOOKING_STATUSES : view === 'leads' \? CUSTOMER_STATUSES : ALL_STATUSES/);
   assert.match(pageSource, /pageLink\('all', 'all'/);
   assert.match(pageSource, /combined\.slice\(from, to \+ 1\)/);
+  assert.match(pageSource, /Promise\.all\(\[bookingsPromise, requestsPromise\]\)/);
   assert.match(pageSource, /pageLink\(view, status, 1\)/);
   assert.doesNotMatch(pageSource, /\.select\('\*'/);
 });
