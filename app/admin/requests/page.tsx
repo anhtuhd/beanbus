@@ -8,6 +8,7 @@ import { boundedPage } from '@/lib/pagination';
 import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { LocalizedText } from '@/components/ui/LocalizedText';
+import { REQUEST_STATUS_LABELS, type RequestStatus } from './request-workflow';
 
 type RequestRow = Database['public']['Views']['admin_request_feed']['Row'];
 
@@ -59,15 +60,21 @@ function detailForRequest(request: RequestRow): string {
   return [request.organization, request.subject_reference && `Hạt: ${request.subject_reference}`, volume].filter(Boolean).join(' · ');
 }
 
+function statusFilterLabel(status: string, view: RequestView): { vi: string; en: string } {
+  if (status === 'all') return { vi: 'Tất cả', en: 'All' };
+  if (status === 'pending' && view === 'bookings') return { vi: 'Chờ xác nhận', en: 'Awaiting confirmation' };
+  return REQUEST_STATUS_LABELS[status as RequestStatus] ?? { vi: status.replace('_', ' '), en: status.replace('_', ' ') };
+}
+
 function BookingList({ bookings }: { bookings: RequestRow[] }) {
   if (bookings.length === 0) return <div className={styles.stateBox}>Chưa có yêu cầu đặt bàn phù hợp.</div>;
   return <div className={styles.requestList}>{bookings.map((booking) => (
     <article key={booking.id} className={styles.requestRow}>
-      <div><span className={styles.label}>Mã</span><Link href={`/admin/requests/${booking.id}?kind=booking`} className={styles.detailLink}><strong>{reference('BK', booking.reference_number)}</strong></Link></div>
-      <div><span className={styles.label}>Khách hàng</span><strong>{booking.display_name}</strong><small>{booking.display_phone}</small></div>
-      <div><span className={styles.label}>Lịch đặt</span><strong>{booking.reservation_at ? formatDate(booking.reservation_at) : 'Chưa xác định'}</strong><small>{booking.guest_count} khách · {booking.seating_area}</small></div>
-      <div><span className={styles.label}>Ghi chú</span><span>{booking.note || 'Không có'}</span></div>
-      <div><span className={styles.label}>Trạng thái</span><RequestStatusForm kind="booking" requestId={booking.id} currentStatus={booking.status} /></div>
+      <div><span className={styles.label}><LocalizedText vi="Mã" en="Reference" /></span><Link href={`/admin/requests/${booking.id}?kind=booking`} className={styles.detailLink}><strong>{reference('BK', booking.reference_number)}</strong></Link></div>
+      <div><span className={styles.label}><LocalizedText vi="Khách hàng" en="Customer" /></span><strong>{booking.display_name}</strong><small>{booking.display_phone}</small></div>
+      <div><span className={styles.label}><LocalizedText vi="Lịch đặt" en="Booking time" /></span><strong>{booking.reservation_at ? formatDate(booking.reservation_at) : 'Chưa xác định'}</strong><small>{booking.guest_count} khách · {booking.seating_area}</small></div>
+      <div><span className={styles.label}><LocalizedText vi="Ghi chú" en="Note" /></span><span>{booking.note || 'Không có'}</span></div>
+      <div className={styles.requestWorkflowCell}><span className={styles.label}><LocalizedText vi="Tiến trình đặt bàn" en="Booking progress" /></span><RequestStatusForm kind="booking" requestId={booking.id} currentStatus={booking.status} variant="compact" /></div>
     </article>
   ))}</div>;
 }
@@ -76,11 +83,11 @@ function CustomerList({ requests }: { requests: RequestRow[] }) {
   if (requests.length === 0) return <div className={styles.stateBox}>Chưa có yêu cầu khách hàng phù hợp.</div>;
   return <div className={styles.requestList}>{requests.map((request) => (
     <article key={request.id} className={styles.requestRow}>
-      <div><span className={styles.label}>Mã / Loại</span><Link href={`/admin/requests/${request.id}?kind=customer`} className={styles.detailLink}><strong>{reference(request.request_type === 'contact' ? 'CT' : request.request_type === 'rsvp' ? 'EV' : 'BQ', request.reference_number)}</strong></Link><small>{request.request_type}</small></div>
-      <div><span className={styles.label}>Liên hệ</span><strong>{request.display_name}</strong><small>{request.display_phone}{request.contact_email ? ` · ${request.contact_email}` : ''}</small></div>
-      <div><span className={styles.label}>Nội dung</span><span>{detailForRequest(request)}</span></div>
-      <div><span className={styles.label}>Ngày nhận</span><span>{formatDate(request.created_at)}</span></div>
-      <div><span className={styles.label}>Trạng thái</span><RequestStatusForm kind="customer" requestId={request.id} currentStatus={request.status} /></div>
+      <div><span className={styles.label}><LocalizedText vi="Mã / Loại" en="Reference / Type" /></span><Link href={`/admin/requests/${request.id}?kind=customer`} className={styles.detailLink}><strong>{reference(request.request_type === 'contact' ? 'CT' : request.request_type === 'rsvp' ? 'EV' : 'BQ', request.reference_number)}</strong></Link><small>{request.request_type}</small></div>
+      <div><span className={styles.label}><LocalizedText vi="Liên hệ" en="Contact" /></span><strong>{request.display_name}</strong><small>{request.display_phone}{request.contact_email ? ` · ${request.contact_email}` : ''}</small></div>
+      <div><span className={styles.label}><LocalizedText vi="Nội dung" en="Details" /></span><span>{detailForRequest(request)}</span></div>
+      <div><span className={styles.label}><LocalizedText vi="Ngày nhận" en="Received" /></span><span>{formatDate(request.created_at)}</span></div>
+      <div className={styles.requestWorkflowCell}><span className={styles.label}><LocalizedText vi="Tiến trình yêu cầu" en="Request progress" /></span><RequestStatusForm kind="customer" requestId={request.id} currentStatus={request.status} variant="compact" /></div>
     </article>
   ))}</div>;
 }
@@ -125,11 +132,14 @@ export default async function AdminRequestsPage({ searchParams }: PageProps) {
     <main className={`wrap ${styles.page}`}>
       <header className={styles.header}>
         <div>
-          <Link href="/admin" className={styles.backLink}><ArrowLeft size={16} /> Tổng quan</Link>
-          <h1>Booking & Customer Requests</h1>
-          <p>Dữ liệu production, chỉ dành cho tài khoản admin.</p>
+          <Link href="/admin" className={styles.backLink}><ArrowLeft size={16} /> <LocalizedText vi="Tổng quan" en="Overview" /></Link>
+          <h1><LocalizedText vi="Đặt bàn & yêu cầu khách hàng" en="Booking & customer requests" /></h1>
+          <p><LocalizedText vi="Dữ liệu production, chỉ dành cho tài khoản admin." en="Production data, available to admins only." /></p>
         </div>
-        <div><Link href="/admin/notifications" className={styles.detailLink}><Bell size={16} /> Trung tâm thông báo</Link><span className={styles.total}>{count} yêu cầu</span></div>
+        <div className={styles.requestHeaderActions}>
+          <Link href="/admin/notifications" className={styles.detailLink}><Bell size={16} /> <LocalizedText vi="Trung tâm thông báo" en="Notification center" /></Link>
+          <span className={styles.resultCount}><strong>{count}</strong> <LocalizedText vi="kết quả" en="results" /></span>
+        </div>
       </header>
 
       <nav className={styles.tabs} aria-label="Loại yêu cầu">
@@ -137,28 +147,28 @@ export default async function AdminRequestsPage({ searchParams }: PageProps) {
           <Inbox size={17} /> Tất cả
         </Link>
         <Link href={pageLink('bookings', 'all', 1)} className={view === 'bookings' ? styles.activeTab : ''}>
-          <CalendarDays size={17} /> Đặt bàn
+          <CalendarDays size={17} /> <LocalizedText vi="Đặt bàn" en="Bookings" />
         </Link>
         <Link href={pageLink('leads', 'all', 1)} className={view === 'leads' ? styles.activeTab : ''}>
-          <Inbox size={17} /> Liên hệ, RSVP & B2B
+          <Inbox size={17} /> <LocalizedText vi="Liên hệ, RSVP & B2B" en="Contact, RSVP & B2B" />
         </Link>
       </nav>
 
       <form className={styles.searchForm} action="/admin/requests" method="get">
         <input type="hidden" name="view" value={view} />
         <input type="hidden" name="status" value={status} />
-        <label htmlFor="request-search">Tìm theo mã yêu cầu, số điện thoại hoặc tên khách</label>
+        <label htmlFor="request-search"><LocalizedText vi="Tìm theo mã yêu cầu, số điện thoại hoặc tên khách" en="Search by reference, phone or customer name" /></label>
         <div>
           <input id="request-search" name="q" defaultValue={search} maxLength={50} />
           <button type="submit"><Search size={16} /> <LocalizedText vi="Tìm" en="Search" /></button>
-          {search && <Link href={pageLink(view, status, 1)}>Xóa lọc</Link>}
+          {search && <Link href={pageLink(view, status, 1)}><LocalizedText vi="Xóa lọc" en="Clear" /></Link>}
         </div>
       </form>
 
       <div className={styles.filters} aria-label="Lọc trạng thái">
         {statuses.map((item) => (
             <Link key={item} href={pageLink(view, item, 1, search)} className={status === item ? styles.activeFilter : ''}>
-            {item === 'all' ? 'Tất cả' : item.replace('_', ' ')}
+            <LocalizedText {...statusFilterLabel(item, view)} />
           </Link>
         ))}
       </div>
@@ -166,8 +176,8 @@ export default async function AdminRequestsPage({ searchParams }: PageProps) {
         <div className={styles.stateBox} role="alert">Không thể tải dữ liệu yêu cầu. Vui lòng thử lại.</div>
       ) : view === 'all' ? (
         <div>
-          <section aria-labelledby="booking-results-title"><header className={styles.sectionHeader}><h2 id="booking-results-title">Đặt bàn</h2><span>{bookings.length} kết quả</span></header><BookingList bookings={bookings} /></section>
-          <section aria-labelledby="lead-results-title"><header className={styles.sectionHeader}><h2 id="lead-results-title">Liên hệ, RSVP & B2B</h2><span>{requests.length} kết quả</span></header><CustomerList requests={requests} /></section>
+          <section aria-labelledby="booking-results-title"><header className={styles.sectionHeader}><h2 id="booking-results-title"><LocalizedText vi="Đặt bàn" en="Bookings" /></h2><span>{bookings.length} <LocalizedText vi="kết quả" en="results" /></span></header><BookingList bookings={bookings} /></section>
+          <section aria-labelledby="lead-results-title"><header className={styles.sectionHeader}><h2 id="lead-results-title"><LocalizedText vi="Liên hệ, RSVP & B2B" en="Contact, RSVP & B2B" /></h2><span>{requests.length} <LocalizedText vi="kết quả" en="results" /></span></header><CustomerList requests={requests} /></section>
         </div>
       ) : view === 'bookings' ? <BookingList bookings={bookings} /> : <CustomerList requests={requests} />}
 

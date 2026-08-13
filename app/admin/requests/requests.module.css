@@ -44,6 +44,30 @@
   white-space: nowrap;
 }
 
+.requestHeaderActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+  min-width: max-content;
+}
+
+.resultCount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  color: var(--brown);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.resultCount strong {
+  color: var(--brown-dark);
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+}
+
 .tabs {
   display: flex;
   gap: 6px;
@@ -171,6 +195,13 @@
   overflow: hidden;
 }
 
+.requestWorkflowCell {
+  grid-column: 1 / -1;
+  padding-top: 14px;
+  border-top: 1px solid var(--gray-200);
+  overflow: hidden;
+}
+
 .requestRow:last-child {
   border-bottom: 0;
 }
@@ -236,6 +267,19 @@
 .orderWorkflow {
   width: 100%;
   min-width: 0;
+}
+
+.requestWorkflow {
+  width: 100%;
+  min-width: 0;
+}
+
+.requestWorkflowDetail {
+  padding-top: 2px;
+}
+
+.requestWorkflow .orderProgress {
+  grid-template-columns: repeat(3, minmax(78px, 1fr));
 }
 
 .orderProgress {
@@ -321,6 +365,91 @@
   gap: 10px 18px;
   padding-top: 12px;
   border-top: 1px solid var(--gray-200);
+}
+
+.requestStatusForm {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto;
+  align-items: center;
+  gap: 10px 18px;
+  padding-top: 12px;
+  border-top: 1px solid var(--gray-200);
+}
+
+.requestWorkflowCell .requestStatusForm {
+  padding-top: 10px;
+  border-top: 0;
+}
+
+.requestStatusActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.requestSecondaryButton {
+  min-height: 40px;
+  border: 1px solid #e4c7c7;
+  border-radius: 6px;
+  padding: 0 12px;
+  background: #fff;
+  color: #991b1b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.requestSecondaryButton:hover:not(:disabled) {
+  background: #fff5f5;
+}
+
+.requestSecondaryButton:focus-visible {
+  outline: 3px solid rgb(245 127 47 / 28%);
+  outline-offset: 2px;
+}
+
+.requestSecondaryButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.requestTerminalState {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #ecfdf5;
+  color: #166534;
+  font-size: 12px;
+}
+
+.requestTerminalState > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.requestTerminalState span {
+  color: var(--brown);
+  font-size: 11px;
+}
+
+.requestTerminalNegative {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.requestStatusForm .actionError,
+.requestStatusForm .actionSuccess {
+  grid-column: 1 / -1;
 }
 
 .orderStatusSummary {
@@ -830,10 +959,18 @@
 
   .header {
     align-items: flex-start;
+    flex-direction: column;
   }
 
   .header h1 {
     font-size: 21px;
+  }
+
+  .requestHeaderActions {
+    width: 100%;
+    min-width: 0;
+    justify-content: space-between;
+    flex-wrap: wrap;
   }
 
   .tabs {
@@ -857,6 +994,10 @@
     grid-template-columns: 1fr;
   }
 
+  .requestStatusForm {
+    grid-template-columns: 1fr;
+  }
+
   .orderStatusActions {
     justify-content: stretch;
   }
@@ -865,6 +1006,15 @@
   .paymentWait,
   .completedState {
     flex: 1 1 190px;
+  }
+
+  .requestStatusActions {
+    justify-content: stretch;
+  }
+
+  .requestStatusActions .nextStatusButton,
+  .requestStatusActions .requestSecondaryButton {
+    flex: 1 1 150px;
   }
 
   .cancelOrderButton {
@@ -877,6 +1027,10 @@
 
   .detailWorkflowHeader {
     flex-direction: column;
+  }
+
+  .requestWorkflow .orderProgress {
+    grid-template-columns: repeat(3, minmax(88px, 1fr));
   }
 
   .catalogRow {

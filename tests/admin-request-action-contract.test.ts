@@ -38,4 +38,6 @@ test('admin requests page is guarded, filtered, and paginated', () => {
   assert.doesNotMatch(pageSource, /Promise\.all\(\[bookingsPromise, requestsPromise\]\)/);
   assert.match(pageSource, /pageLink\(view, status, 1\)/);
   assert.doesNotMatch(pageSource, /\.select\('\*'/);
+  assert.match(pageSource, /requestHeaderActions/);
+  assert.match(pageSource, /resultCount/);
 });
