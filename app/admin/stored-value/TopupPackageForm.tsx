@@ -6,6 +6,7 @@ import type { Database } from '@/lib/supabase/database.types';
 import { upsertAdminTopupPackage } from './actions';
 import { initialStoredValueAdminState } from './stored-value-state';
 import styles from '../requests/requests.module.css';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type Package = Database['public']['Tables']['topup_packages']['Row'];
 
@@ -23,7 +24,7 @@ export default function TopupPackageForm({ item }: { item?: Package }) {
       </div>
       <div className={styles.editorChecks}>
         <label><input type="checkbox" name="isActive" defaultChecked={item?.is_active ?? false} /> Hiển thị</label>
-        <button type="submit" className={styles.saveButton} disabled={pending}>{pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}<span>{pending ? 'Đang lưu' : item ? 'Cập nhật gói' : 'Tạo gói'}</span></button>
+        <button type="submit" className={styles.saveButton} disabled={pending}>{pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}<span><LocalizedText vi={pending ? 'Đang lưu' : item ? 'Cập nhật gói' : 'Tạo gói'} en={pending ? 'Saving...' : item ? 'Update package' : 'Create package'} /></span></button>
       </div>
       {state.status !== 'idle' && <span className={state.status === 'error' ? styles.actionError : styles.actionSuccess} role={state.status === 'error' ? 'alert' : 'status'} aria-live={state.status === 'error' ? 'assertive' : 'polite'}>{state.message}</span>}
     </form>

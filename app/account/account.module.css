@@ -551,7 +551,9 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-top: 6px;
+  min-height: 40px;
+  padding: 8px 0;
+  margin-top: 2px;
 }
 
 .logoutBtn:hover {

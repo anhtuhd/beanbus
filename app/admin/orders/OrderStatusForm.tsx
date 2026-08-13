@@ -5,6 +5,7 @@ import { Check, LoaderCircle } from 'lucide-react';
 import { updateAdminOrderStatus } from './actions';
 import styles from '../requests/requests.module.css';
 import type { Database } from '@/lib/supabase/database.types';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type OrderStatus = Database['public']['Enums']['order_status'];
 type PaymentMethod = Database['public']['Enums']['order_payment_method'];
@@ -56,7 +57,7 @@ export default function OrderStatusForm({ currentStatus, orderId, paymentMethod,
       </select>
       <button type="submit" className={styles.saveButton} disabled={pending} title="Lưu trạng thái đơn">
         {pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}
-        <span>{pending ? 'Đang lưu' : 'Lưu'}</span>
+        <span><LocalizedText vi={pending ? 'Đang lưu' : 'Lưu'} en={pending ? 'Saving...' : 'Save'} /></span>
       </button>
       {state.status !== 'idle' && (
         <span className={state.status === 'error' ? styles.actionError : styles.actionSuccess} role={state.status === 'error' ? 'alert' : 'status'} aria-live={state.status === 'error' ? 'assertive' : 'polite'}>

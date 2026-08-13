@@ -72,7 +72,7 @@ export default function AdminClient() {
 
   const handleBookingStatusChange = (booking: Booking, status: Booking['status']) => {
     updateBookingStatus(booking.id, status);
-    setDemoActionMessage(`Đã cập nhật trạng thái đặt bàn ${booking.id}.`);
+    setDemoActionMessage(t(`Đã cập nhật trạng thái đặt bàn ${booking.id}.`, `Booking ${booking.id} status updated.`));
   };
 
   const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -200,11 +200,11 @@ export default function AdminClient() {
               onChange={(e) => setOrderFilter(e.target.value)}
             >
               <option value="all">{t('Tất cả trạng thái', 'All Statuses')}</option>
-              <option value="pending">Pending (Chờ duyệt)</option>
-              <option value="confirmed">Confirmed (Đã xác nhận)</option>
-              <option value="preparing">Preparing (Đang pha chế)</option>
-              <option value="ready">Ready (Sẵn sàng)</option>
-              <option value="completed">Completed (Hoàn thành)</option>
+              <option value="pending">{t('Chờ duyệt', 'Pending')}</option>
+              <option value="confirmed">{t('Đã xác nhận', 'Confirmed')}</option>
+              <option value="preparing">{t('Đang pha chế', 'Preparing')}</option>
+              <option value="ready">{t('Sẵn sàng', 'Ready')}</option>
+              <option value="completed">{t('Hoàn thành', 'Completed')}</option>
             </select>
           </div>
 
@@ -212,13 +212,13 @@ export default function AdminClient() {
             <table className={styles.adminTable}>
               <thead>
                 <tr>
-                  <th>Mã đơn</th>
-                  <th>Khách hàng</th>
-                  <th>Loại đơn</th>
-                  <th>Tổng tiền</th>
-                  <th>Thanh toán</th>
-                  <th>Trạng thái đơn</th>
-                  <th>Cập nhật nhanh</th>
+                  <th>{t('Mã đơn', 'Order code')}</th>
+                  <th>{t('Khách hàng', 'Customer')}</th>
+                  <th>{t('Loại đơn', 'Order type')}</th>
+                  <th>{t('Tổng tiền', 'Total')}</th>
+                  <th>{t('Thanh toán', 'Payment')}</th>
+                  <th>{t('Trạng thái đơn', 'Order status')}</th>
+                  <th>{t('Cập nhật nhanh', 'Quick update')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -229,7 +229,7 @@ export default function AdminClient() {
                       <div><strong>{o.customerName}</strong></div>
                       <span className={styles.subText}>{o.customerPhone}</span>
                     </td>
-                    <td>{o.orderType === 'pickup' ? '🛍️ Pickup' : '🛵 Delivery'}</td>
+                    <td>{o.orderType === 'pickup' ? `🛍️ ${t('Nhận tại quán', 'Pickup')}` : `🛵 ${t('Giao hàng', 'Delivery')}`}</td>
                     <td className={styles.priceTd}>{o.finalTotal.toLocaleString('vi-VN')}đ</td>
                     <td>
                       <span className={`${styles.badge} ${o.paymentStatus === 'paid' ? styles.bgPaid : styles.bgPending}`}>
@@ -283,12 +283,12 @@ export default function AdminClient() {
             <table className={styles.adminTable}>
               <thead>
                 <tr>
-                  <th>Hình ảnh</th>
-                  <th>Tên món</th>
-                  <th>Danh mục</th>
-                  <th>Giá bán</th>
-                  <th>Trạng thái bán</th>
-                  <th>Thao tác</th>
+                  <th>{t('Hình ảnh', 'Image')}</th>
+                  <th>{t('Tên món', 'Item name')}</th>
+                  <th>{t('Danh mục', 'Category')}</th>
+                  <th>{t('Giá bán', 'Price')}</th>
+                  <th>{t('Trạng thái bán', 'Availability')}</th>
+                  <th>{t('Thao tác', 'Actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -300,7 +300,7 @@ export default function AdminClient() {
                     <td className={styles.priceTd}>{item.price.toLocaleString('vi-VN')}đ</td>
                     <td>
                       <span className={`${styles.badge} ${item.isAvailable ? styles.bgPaid : styles.bgPending}`}>
-                        {item.isAvailable ? 'Còn hàng' : 'Tạm hết'}
+                        {item.isAvailable ? t('Còn hàng', 'Available') : t('Tạm hết', 'Sold out')}
                       </span>
                     </td>
                     <td>
@@ -308,7 +308,7 @@ export default function AdminClient() {
                         className="btn btn-dark btn-sm"
                         onClick={() => handleToggleAvailable(item.id)}
                       >
-                        {item.isAvailable ? 'Đánh dấu Hết Hàng' : 'Đánh dấu Còn Hàng'}
+                        {item.isAvailable ? t('Đánh dấu Hết Hàng', 'Mark as sold out') : t('Đánh dấu Còn Hàng', 'Mark as available')}
                       </button>
                     </td>
                   </tr>
@@ -327,13 +327,13 @@ export default function AdminClient() {
             <table className={styles.adminTable}>
               <thead>
                 <tr>
-                  <th>Mã đặt bàn</th>
-                  <th>Tên khách hàng</th>
-                  <th>Số ĐT</th>
-                  <th>Ngày & Giờ</th>
-                  <th>Số khách</th>
-                  <th>Khu vực</th>
-                  <th>Trạng thái</th>
+                  <th>{t('Mã đặt bàn', 'Booking code')}</th>
+                  <th>{t('Tên khách hàng', 'Customer')}</th>
+                  <th>{t('Số ĐT', 'Phone')}</th>
+                  <th>{t('Ngày & Giờ', 'Date & time')}</th>
+                  <th>{t('Số khách', 'Guests')}</th>
+                  <th>{t('Khu vực', 'Area')}</th>
+                  <th>{t('Trạng thái', 'Status')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -343,18 +343,18 @@ export default function AdminClient() {
                     <td>{b.name}</td>
                     <td>{b.phone}</td>
                     <td>{b.date} ({b.time})</td>
-                    <td>{b.guestCount} người</td>
+                    <td>{b.guestCount} {t('người', 'guests')}</td>
                     <td>{b.seatingArea}</td>
                     <td>
                       <select
                         className={styles.statusSelect}
                         value={b.status}
-                        aria-label={`Trạng thái đặt bàn ${b.id}`}
+                        aria-label={t(`Trạng thái đặt bàn ${b.id}`, `Booking ${b.id} status`)}
                         onChange={(event) => handleBookingStatusChange(b, event.target.value as Booking['status'])}
                       >
-                        <option value="confirmed">Đã xác nhận</option>
-                        <option value="completed">Hoàn tất</option>
-                        <option value="cancelled">Đã hủy</option>
+                        <option value="confirmed">{t('Đã xác nhận', 'Confirmed')}</option>
+                        <option value="completed">{t('Hoàn tất', 'Completed')}</option>
+                        <option value="cancelled">{t('Đã hủy', 'Cancelled')}</option>
                       </select>
                     </td>
                   </tr>
@@ -404,7 +404,7 @@ export default function AdminClient() {
               </div>
 
               <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
-                <span>Thêm Món Ngay</span>
+                <span>{t('Thêm Món Ngay', 'Add item now')}</span>
               </button>
             </form>
           </div>

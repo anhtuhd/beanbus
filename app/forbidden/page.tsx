@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { LockKeyhole } from 'lucide-react';
 import styles from '@/app/account/account.module.css';
 import { BRAND_ASSETS } from '@/lib/brand/assets';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 export default function ForbiddenPage() {
   return (
@@ -21,7 +22,7 @@ export default function ForbiddenPage() {
           <p>Tài khoản này không có quyền mở khu vực quản trị.</p>
         </div>
         <Link href="/account" className={`btn btn-dark ${styles.fullButton}`}>
-          Về tài khoản
+          <LocalizedText vi="Về tài khoản" en="Back to account" />
         </Link>
       </div>
     </div>

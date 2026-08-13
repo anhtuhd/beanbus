@@ -6,6 +6,7 @@ import type { Database } from '@/lib/supabase/database.types';
 import { upsertAdminVoucher } from './actions';
 import { initialVoucherState } from './voucher-state';
 import styles from '../requests/requests.module.css';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type Voucher = Pick<Database['public']['Tables']['vouchers']['Row'], 'code' | 'discount_type' | 'discount_value' | 'minimum_subtotal_vnd' | 'maximum_discount_vnd' | 'starts_at' | 'ends_at' | 'usage_limit' | 'is_active'>;
 
@@ -32,7 +33,7 @@ export default function VoucherEditorForm({ voucher }: { voucher?: Voucher }) {
       </div>
       <div className={styles.editorChecks}>
         <label><input type="checkbox" name="isActive" defaultChecked={voucher?.is_active ?? true} /> Đang hoạt động</label>
-        <button type="submit" className={styles.saveButton} disabled={pending}>{pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}<span>{pending ? 'Đang lưu' : 'Lưu voucher'}</span></button>
+        <button type="submit" className={styles.saveButton} disabled={pending}>{pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}<span><LocalizedText vi={pending ? 'Đang lưu' : 'Lưu voucher'} en={pending ? 'Saving...' : 'Save voucher'} /></span></button>
       </div>
       {state.status !== 'idle' && <span className={state.status === 'error' ? styles.actionError : styles.actionSuccess} role={state.status === 'error' ? 'alert' : 'status'} aria-live={state.status === 'error' ? 'assertive' : 'polite'}>{state.message}</span>}
     </form>

@@ -5,6 +5,7 @@ import { Check, LoaderCircle } from 'lucide-react';
 import { updateAdminCommercePolicy } from './actions';
 import { initialCommercePolicyState } from './policy-state';
 import styles from '../requests/requests.module.css';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type Props = {
   refundEnabled: boolean;
@@ -52,7 +53,7 @@ export default function CommercePolicyForm({
         <label><input type="checkbox" name="loyaltyReverseOnRefund" defaultChecked={loyaltyReverseOnRefund} /> Đảo điểm khi hoàn tiền</label>
         <button type="submit" className={styles.saveButton} disabled={pending}>
           {pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}
-          <span>{pending ? 'Đang lưu' : 'Lưu chính sách'}</span>
+          <span><LocalizedText vi={pending ? 'Đang lưu' : 'Lưu chính sách'} en={pending ? 'Saving...' : 'Save policy'} /></span>
         </button>
       </div>
       <p className={styles.helperText}>Voucher và điểm chỉ thay đổi một lần theo trạng thái đơn; mọi lần cập nhật policy được ghi audit.</p>

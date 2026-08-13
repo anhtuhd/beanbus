@@ -10,6 +10,7 @@ import { boundedPage } from '@/lib/pagination';
 import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { isNextOptimizedImage } from '@/lib/media/image';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 type ContentRow = {
@@ -111,7 +112,7 @@ export default async function AdminContentPage({ searchParams }: Props) {
       <form className={styles.searchForm} action="/admin/content" method="get">
         <input type="hidden" name="type" value={type} /><input type="hidden" name="state" value={state} />
         <label htmlFor="content-search">Tìm theo tiêu đề</label>
-        <div><input id="content-search" name="q" defaultValue={search} maxLength={80} /><button><Search size={16} /> Tìm</button></div>
+        <div><input id="content-search" name="q" defaultValue={search} maxLength={80} /><button><Search size={16} /> <LocalizedText vi="Tìm" en="Search" /></button></div>
       </form>
       <div className={styles.filters} aria-label="Lọc trạng thái công bố">
         {['all', 'published', 'draft'].map((item) => (

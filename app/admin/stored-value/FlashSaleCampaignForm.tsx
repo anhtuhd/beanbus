@@ -6,6 +6,7 @@ import type { Database } from '@/lib/supabase/database.types';
 import { upsertAdminFlashSaleCampaign } from './actions';
 import { initialStoredValueAdminState } from './stored-value-state';
 import styles from '../requests/requests.module.css';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type Campaign = Database['public']['Tables']['flash_sale_campaigns']['Row'];
 
@@ -34,7 +35,7 @@ export default function FlashSaleCampaignForm({ item }: { item?: Campaign }) {
       </div>
       <div className={styles.editorChecks}>
         <label><input type="checkbox" name="isActive" defaultChecked={item?.is_active ?? false} /> Hoạt động</label>
-        <button type="submit" className={styles.saveButton} disabled={pending}>{pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}<span>{pending ? 'Đang lưu' : item ? 'Cập nhật campaign' : 'Tạo campaign'}</span></button>
+        <button type="submit" className={styles.saveButton} disabled={pending}>{pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}<span><LocalizedText vi={pending ? 'Đang lưu' : item ? 'Cập nhật campaign' : 'Tạo campaign'} en={pending ? 'Saving...' : item ? 'Update campaign' : 'Create campaign'} /></span></button>
       </div>
       {state.status !== 'idle' && <span className={state.status === 'error' ? styles.actionError : styles.actionSuccess} role={state.status === 'error' ? 'alert' : 'status'} aria-live={state.status === 'error' ? 'assertive' : 'polite'}>{state.message}</span>}
     </form>

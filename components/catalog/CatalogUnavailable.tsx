@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { CircleAlert, RefreshCw } from 'lucide-react';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type Props = {
   retryHref: string;
@@ -17,9 +18,9 @@ export default function CatalogUnavailable({ retryHref, title, description }: Pr
         <div className="errorActions">
           <Link href={retryHref} className="btn btn-primary">
             <RefreshCw size={16} aria-hidden="true" />
-            Thử lại
+            <LocalizedText vi="Thử lại" en="Try again" />
           </Link>
-          <Link href="/contact" className="btn btn-dark">Liên hệ Beanbus</Link>
+          <Link href="/contact" className="btn btn-dark"><LocalizedText vi="Liên hệ Beanbus" en="Contact Beanbus" /></Link>
         </div>
       </div>
     </main>

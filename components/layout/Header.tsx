@@ -251,14 +251,14 @@ export const Header: React.FC = () => {
             <button
               className={lang === 'vi' ? styles.activeLang : ''}
               onClick={() => setLang('vi')}
-              title="Tiếng Việt"
+              title={t('Tiếng Việt', 'Vietnamese')}
             >
               VI
             </button>
             <button
               className={lang === 'en' ? styles.activeLang : ''}
               onClick={() => setLang('en')}
-              title="English"
+              title={t('Tiếng Anh', 'English')}
             >
               EN
             </button>
@@ -268,7 +268,7 @@ export const Header: React.FC = () => {
           <button
             className={styles.cartBtn}
             onClick={() => setIsCartOpen(true)}
-            aria-label="Giỏ hàng"
+            aria-label={t('Giỏ hàng', 'Cart')}
           >
             <ShoppingBag size={20} />
             {cartCount > 0 && <span className={styles.cartBadge}>{cartCount}</span>}

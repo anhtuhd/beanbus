@@ -5,6 +5,7 @@ import { Check, LoaderCircle, RotateCcw } from 'lucide-react';
 import { refundAdminOrder } from './refund-actions';
 import { initialRefundOrderState } from './refund-state';
 import styles from '../requests/requests.module.css';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 export default function RefundOrderForm({ orderId, amountVnd }: { orderId: string; amountVnd: number }) {
   const [state, formAction, pending] = useActionState(refundAdminOrder, initialRefundOrderState);
@@ -19,7 +20,7 @@ export default function RefundOrderForm({ orderId, amountVnd }: { orderId: strin
       <input type="hidden" name="orderId" value={orderId} />
       <button type="submit" className={styles.archiveButton} disabled={pending} title="Hoàn tiền SePay">
         {pending ? <LoaderCircle size={16} className={styles.spinner} /> : <RotateCcw size={16} />}
-        <span>{pending ? 'Đang xử lý' : 'Hoàn tiền SePay'}</span>
+        <span><LocalizedText vi={pending ? 'Đang xử lý' : 'Hoàn tiền SePay'} en={pending ? 'Processing' : 'Refund via SePay'} /></span>
       </button>
       {state.status !== 'idle' && <span className={state.status === 'error' ? styles.actionError : styles.actionSuccess} role={state.status === 'error' ? 'alert' : 'status'} aria-live={state.status === 'error' ? 'assertive' : 'polite'}>{state.status === 'success' ? <Check size={14} /> : null}{state.message}</span>}
     </form>

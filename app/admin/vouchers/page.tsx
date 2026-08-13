@@ -6,6 +6,7 @@ import { boundedPage } from '@/lib/pagination';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import VoucherEditorForm from './VoucherEditorForm';
 import styles from '../requests/requests.module.css';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type Voucher = Pick<Database['public']['Tables']['vouchers']['Row'], 'code' | 'discount_type' | 'discount_value' | 'minimum_subtotal_vnd' | 'maximum_discount_vnd' | 'starts_at' | 'ends_at' | 'usage_limit' | 'is_active' | 'usage_count'>;
 type PageProps = { searchParams: Promise<{ page?: string | string[]; q?: string | string[] }> };
@@ -56,7 +57,7 @@ export default async function AdminVouchersPage({ searchParams }: PageProps) {
         <label htmlFor="voucher-search">Tìm theo mã voucher</label>
         <div>
           <input id="voucher-search" name="q" defaultValue={search} maxLength={40} />
-          <button type="submit"><Search size={16} /> Tìm</button>
+          <button type="submit"><Search size={16} /> <LocalizedText vi="Tìm" en="Search" /></button>
           {search && <Link href={pageLink(1, '')}>Xóa lọc</Link>}
         </div>
       </form>

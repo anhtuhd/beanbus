@@ -6,6 +6,7 @@ import type { Database } from '@/lib/supabase/database.types';
 import { upsertAdminEvent } from './event-actions';
 import { initialContentEditorState } from './content-editor-state';
 import styles from '../requests/requests.module.css';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type Event = Pick<Database['public']['Tables']['events']['Row'], 'id' | 'slug' | 'title_vi' | 'title_en' | 'summary_vi' | 'summary_en' | 'description_vi' | 'description_en' | 'starts_at' | 'ends_at' | 'time_label' | 'location' | 'image_url' | 'max_seats' | 'is_featured' | 'is_published' | 'sort_order'>;
 
@@ -42,7 +43,7 @@ export default function EventEditorForm({ event }: { event?: Event }) {
       <div className={styles.editorChecks}>
         <label><input type="checkbox" name="isFeatured" defaultChecked={event?.is_featured ?? false} /> Nổi bật</label>
         <label><input type="checkbox" name="isPublished" defaultChecked={event?.is_published ?? false} /> Công khai</label>
-        <button type="submit" className={styles.saveButton} disabled={pending}>{pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}<span>{pending ? 'Đang lưu' : 'Lưu sự kiện'}</span></button>
+        <button type="submit" className={styles.saveButton} disabled={pending}>{pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}<span><LocalizedText vi={pending ? 'Đang lưu' : 'Lưu sự kiện'} en={pending ? 'Saving...' : 'Save event'} /></span></button>
       </div>
       {state.status !== 'idle' && <span className={state.status === 'error' ? styles.actionError : styles.actionSuccess} role={state.status === 'error' ? 'alert' : 'status'} aria-live={state.status === 'error' ? 'assertive' : 'polite'}>{state.message}</span>}
     </form>

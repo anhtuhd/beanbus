@@ -192,3 +192,51 @@
   min-width: 20px;
   text-align: center;
 }
+
+@media (max-width: 600px) {
+  .modal {
+    max-height: calc(100vh - 32px);
+    border-radius: 14px;
+  }
+
+  .header,
+  .body,
+  .footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .body {
+    gap: 18px;
+  }
+
+  .productBanner {
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .image {
+    width: 76px;
+    height: 76px;
+    flex: 0 0 76px;
+  }
+
+  .optionsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer {
+    flex-wrap: wrap;
+  }
+
+  .footer > :last-child {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .footer > :last-child > * {
+    width: 100%;
+    justify-content: center;
+  }
+}

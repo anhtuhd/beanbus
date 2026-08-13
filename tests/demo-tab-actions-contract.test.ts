@@ -13,6 +13,6 @@ test('demo member requests and admin booking status actions stay wired to the fi
   assert.match(account, /cancelBooking\(bookingId\)/);
   assert.match(account, /Hủy đặt bàn/);
   assert.match(admin, /updateBookingStatus/);
-  assert.match(admin, /aria-label=\{`Trạng thái đặt bàn \$\{b\.id\}`\}/);
+  assert.match(admin, /aria-label=\{t\(`Trạng thái đặt bàn \$\{b\.id\}`/);
   assert.match(context, /updateBookingStatus: \(bookingId: string, status: Booking\['status'\]\)/);
 });

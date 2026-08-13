@@ -4,6 +4,7 @@ import { useActionState } from 'react';
 import { Megaphone, Send } from 'lucide-react';
 import { initialAnnouncementState, publishAnnouncement } from './actions';
 import styles from '@/components/notifications/notification-center.module.css';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 export default function AnnouncementForm() {
   const [state, action, pending] = useActionState(publishAnnouncement, initialAnnouncementState);
@@ -16,7 +17,7 @@ export default function AnnouncementForm() {
       <label>Nội dung tiếng Anh<textarea name="bodyEn" minLength={10} maxLength={1000} rows={4} required /></label>
       <label>Đường dẫn nội bộ (không bắt buộc)<input name="href" placeholder="/events" pattern="^/(?!/).*" /></label>
       <label className={styles.checkRow}><input type="checkbox" name="sendEmail" /> Gửi email cho hội viên đã đăng ký tin cửa hàng</label>
-      <button type="submit" className={styles.primaryButton} disabled={pending}><Send size={16} /> {pending ? 'Đang gửi' : 'Phát hành thông báo'}</button>
+      <button type="submit" className={styles.primaryButton} disabled={pending}><Send size={16} /> <LocalizedText vi={pending ? 'Đang gửi' : 'Phát hành thông báo'} en={pending ? 'Sending' : 'Publish announcement'} /></button>
       {state.status !== 'idle' && <p className={styles.feedback} role={state.status === 'error' ? 'alert' : 'status'}>{state.message}</p>}
     </form>
   );

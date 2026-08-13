@@ -223,3 +223,10 @@
     right: 16px;
   }
 }
+
+@media (max-width: 380px) {
+  .trigger {
+    width: 36px;
+    height: 36px;
+  }
+}

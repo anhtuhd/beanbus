@@ -462,8 +462,8 @@ export default function AccountClient({
 
           {canUseStoredValue && (
             <div className={styles.featureLinks} aria-label={t('Chương trình thanh toán điểm', 'Stored-value programs')}>
-              <Link href="/account/topup" className={styles.featureLink}><span>Nạp điểm</span><ArrowRight size={15} /></Link>
-              <Link href="/flash-sale" className={styles.featureLink}><span>Flash-sale</span><ArrowRight size={15} /></Link>
+              <Link href="/account/topup" className={styles.featureLink}><span>{t('Nạp điểm', 'Top up points')}</span><ArrowRight size={15} /></Link>
+              <Link href="/flash-sale" className={styles.featureLink}><span>{t('Flash-sale', 'Flash sale')}</span><ArrowRight size={15} /></Link>
             </div>
           )}
 
@@ -513,7 +513,7 @@ export default function AccountClient({
                   <div key={order.id} className={styles.orderCard}>
                     <div className={styles.orderHead}>
                       <div>
-                        <Link href={`/account/orders/${order.id}`} className={styles.orderLink}>Đơn #{order.code}</Link>
+                        <Link href={`/account/orders/${order.id}`} className={styles.orderLink}>{t('Đơn', 'Order')} #{order.code}</Link>
                         <span className={styles.orderDate}>{formatDate(order.createdAt)}</span>
                       </div>
                       <span className={`${styles.statusBadge} ${styles[`status_${order.status}`]}`}>{statusLabel(order.status, t)}</span>
@@ -549,7 +549,7 @@ export default function AccountClient({
                 <div key={o.id} className={styles.orderCard}>
                   <div className={styles.orderHead}>
                     <div>
-                      <strong>Đơn #{o.id}</strong>
+                      <strong>{t('Đơn', 'Order')} #{o.id}</strong>
                       <span className={styles.orderDate}>{o.createdAt.substring(0, 10)}</span>
                     </div>
                     <span className={`${styles.statusBadge} ${styles[o.status]}`}>

@@ -7,6 +7,7 @@ import {
   updateCustomerRequestStatus,
 } from './actions';
 import styles from './requests.module.css';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type Props = {
   currentStatus: string;
@@ -57,7 +58,7 @@ export default function RequestStatusForm({ currentStatus, kind, requestId }: Pr
       </select>
       <button type="submit" className={styles.saveButton} disabled={pending} title="Lưu trạng thái">
         {pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}
-        <span>{pending ? 'Đang lưu' : 'Lưu'}</span>
+        <span><LocalizedText vi={pending ? 'Đang lưu' : 'Lưu'} en={pending ? 'Saving...' : 'Save'} /></span>
       </button>
       {state.status !== 'idle' && (
         <span className={state.status === 'error' ? styles.actionError : styles.actionSuccess} role={state.status === 'error' ? 'alert' : 'status'} aria-live={state.status === 'error' ? 'assertive' : 'polite'}>

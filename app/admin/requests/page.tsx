@@ -7,6 +7,7 @@ import { requireAdmin } from '@/lib/auth/session';
 import { boundedPage } from '@/lib/pagination';
 import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type BookingRow = Pick<
   Database['public']['Tables']['booking_requests']['Row'],
@@ -204,7 +205,7 @@ export default async function AdminRequestsPage({ searchParams }: PageProps) {
         <label htmlFor="request-search">Tìm theo mã yêu cầu, số điện thoại hoặc tên khách</label>
         <div>
           <input id="request-search" name="q" defaultValue={search} maxLength={50} />
-          <button type="submit"><Search size={16} /> Tìm</button>
+          <button type="submit"><Search size={16} /> <LocalizedText vi="Tìm" en="Search" /></button>
           {search && <Link href={pageLink(view, status, 1)}>Xóa lọc</Link>}
         </div>
       </form>

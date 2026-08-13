@@ -28,3 +28,20 @@ for (const viewport of [
     await page.screenshot({ path: `/tmp/beanbus-admin-${viewport.name}.png`, fullPage: true });
   });
 }
+
+test('about content and product customizer fit on a 320px viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+
+  await page.goto('/about');
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+
+  await page.goto('/menu/cd-1');
+  await page.getByRole('button', { name: 'Chọn món' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Cold-drip Quế Hoa' });
+
+  await expect.poll(() => dialog.evaluate((element) => ({
+    scrollWidth: element.scrollWidth,
+    clientWidth: element.clientWidth,
+    right: element.getBoundingClientRect().right,
+  }))).toEqual({ scrollWidth: 280, clientWidth: 280, right: 300 });
+});

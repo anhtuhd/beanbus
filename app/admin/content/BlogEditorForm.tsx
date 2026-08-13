@@ -6,6 +6,7 @@ import type { Database } from '@/lib/supabase/database.types';
 import { upsertAdminBlogPost } from './blog-actions';
 import { initialContentEditorState } from './content-editor-state';
 import styles from '../requests/requests.module.css';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type BlogPost = Pick<Database['public']['Tables']['blog_posts']['Row'], 'id' | 'slug' | 'title_vi' | 'title_en' | 'category_vi' | 'category_en' | 'author' | 'read_time_vi' | 'read_time_en' | 'excerpt_vi' | 'excerpt_en' | 'content_vi' | 'content_en' | 'cover_image_url' | 'is_published' | 'sort_order'>;
 
@@ -34,7 +35,7 @@ export default function BlogEditorForm({ post }: { post?: BlogPost }) {
       </div>
       <div className={styles.editorChecks}>
         <label><input type="checkbox" name="isPublished" defaultChecked={post?.is_published ?? false} /> Công khai</label>
-        <button type="submit" className={styles.saveButton} disabled={pending}>{pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}<span>{pending ? 'Đang lưu' : 'Lưu bài viết'}</span></button>
+        <button type="submit" className={styles.saveButton} disabled={pending}>{pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}<span><LocalizedText vi={pending ? 'Đang lưu' : 'Lưu bài viết'} en={pending ? 'Saving...' : 'Save post'} /></span></button>
       </div>
       {state.status !== 'idle' && <span className={state.status === 'error' ? styles.actionError : styles.actionSuccess} role={state.status === 'error' ? 'alert' : 'status'} aria-live={state.status === 'error' ? 'assertive' : 'polite'}>{state.message}</span>}
     </form>

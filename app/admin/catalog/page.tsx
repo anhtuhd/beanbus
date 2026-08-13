@@ -9,6 +9,7 @@ import { boundedPage } from '@/lib/pagination';
 import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { isNextOptimizedImage } from '@/lib/media/image';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type ProductRow = Pick<
   Database['public']['Tables']['products']['Row'],
@@ -100,7 +101,7 @@ export default async function AdminCatalogPage({ searchParams }: PageProps) {
         <label htmlFor="catalog-search">Tìm theo tên sản phẩm</label>
         <div>
           <input id="catalog-search" name="q" defaultValue={search} maxLength={80} />
-          <button type="submit"><Search size={16} /> Tìm</button>
+          <button type="submit"><Search size={16} /> <LocalizedText vi="Tìm" en="Search" /></button>
           {search && <Link href={catalogLink(state, category, 1, '')}>Xóa lọc</Link>}
         </div>
       </form>

@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, CheckCircle, Clock3, Copy, LoaderCircle, QrCode, ShieldCheck } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 import { createStoredValuePayment, getStoredValuePaymentStatus, type StoredValueActionResult } from './stored-value-actions';
 import type { StoredValueCatalogItem, StoredValueKind } from '@/lib/stored-value/queries';
 import styles from './stored-value.module.css';
@@ -43,6 +44,7 @@ export default function StoredValueClient({
   const [pendingItemId, setPendingItemId] = useState<string | null>(null);
   const [actionError, setActionError] = useState('');
   const [copied, setCopied] = useState(false);
+  const { t } = useLanguage();
   const pollingRef = useRef(false);
   const idempotencyKeysRef = useRef<Record<string, string>>({});
 
@@ -97,7 +99,7 @@ export default function StoredValueClient({
     <div className="wrap">
       <div className={styles.header}>
         <div>
-          <Link href="/account" className={styles.backLink}><ArrowLeft size={16} /> Về tài khoản</Link>
+          <Link href="/account" className={styles.backLink}><ArrowLeft size={16} /> {t('Về tài khoản', 'Back to account')}</Link>
           <p className="eyebrow">Beanbus Member</p>
           <h1>{title}</h1>
           <p className={styles.lede}>{description}</p>
@@ -135,7 +137,7 @@ export default function StoredValueClient({
               <div>
                 <span>Nội dung chuyển khoản</span>
                 <strong className={styles.codeValue}>{purchase.payment_code}
-                  <button type="button" onClick={copyCode} aria-label="Sao chép nội dung chuyển khoản" title="Sao chép nội dung chuyển khoản">
+                  <button type="button" onClick={copyCode} aria-label={t('Sao chép nội dung chuyển khoản', 'Copy transfer memo')} title={t('Sao chép nội dung chuyển khoản', 'Copy transfer memo')}>
                     {copied ? <CheckCircle size={15} /> : <Copy size={15} />}
                   </button>
                 </strong>
@@ -162,7 +164,7 @@ export default function StoredValueClient({
                 {item.remainingQuantity !== null && <small>Còn {item.remainingQuantity} suất</small>}
                 <button type="button" className="btn btn-primary" onClick={() => handleCreate(item)} disabled={pendingItemId !== null}>
                   {pendingItemId === item.id ? <LoaderCircle size={16} className={styles.spin} /> : <QrCode size={16} />}
-                  {pendingItemId === item.id ? 'Đang khởi tạo...' : 'Tạo mã thanh toán'}
+                  {pendingItemId === item.id ? t('Đang khởi tạo...', 'Initializing...') : t('Tạo mã thanh toán', 'Create payment code')}
                 </button>
               </article>
             ))}

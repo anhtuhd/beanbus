@@ -6,6 +6,7 @@ import type { Database } from '@/lib/supabase/database.types';
 import { upsertAdminReward } from './actions';
 import { initialRewardAdminState } from './reward-state';
 import styles from '../requests/requests.module.css';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type Reward = Pick<Database['public']['Tables']['loyalty_rewards']['Row'], 'id' | 'name_vi' | 'name_en' | 'points_cost' | 'discount_type' | 'discount_value' | 'minimum_subtotal_vnd' | 'maximum_discount_vnd' | 'is_active'>;
 
@@ -22,7 +23,7 @@ export default function RewardEditorForm({ reward }: { reward?: Reward }) {
       <label>Đơn tối thiểu<input name="minimumSubtotalVnd" type="number" min="0" step="1000" defaultValue={reward?.minimum_subtotal_vnd ?? 0} required /></label>
       <label>Giảm tối đa<input name="maximumDiscountVnd" type="number" min="1" step="1000" defaultValue={reward?.maximum_discount_vnd ?? ''} /></label>
     </div>
-    <div className={styles.editorChecks}><label><input type="checkbox" name="isActive" defaultChecked={reward?.is_active ?? false} /> Hiển thị cho hội viên</label><button type="submit" className={styles.saveButton} disabled={pending}>{pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}<span>{pending ? 'Đang lưu' : 'Lưu reward'}</span></button></div>
+    <div className={styles.editorChecks}><label><input type="checkbox" name="isActive" defaultChecked={reward?.is_active ?? false} /> Hiển thị cho hội viên</label><button type="submit" className={styles.saveButton} disabled={pending}>{pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}<span><LocalizedText vi={pending ? 'Đang lưu' : 'Lưu reward'} en={pending ? 'Saving...' : 'Save reward'} /></span></button></div>
     {state.status !== 'idle' && <span className={state.status === 'error' ? styles.actionError : styles.actionSuccess} role={state.status === 'error' ? 'alert' : 'status'} aria-live={state.status === 'error' ? 'assertive' : 'polite'}>{state.message}</span>}
   </form>;
 }

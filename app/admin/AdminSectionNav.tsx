@@ -17,21 +17,22 @@ import {
 import { getAppMode, isNotificationsEnabled } from '@/lib/env';
 import { isStoredValueConfigured } from '@/lib/stored-value/config';
 import styles from './admin.module.css';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 const sections = [
-  { href: '/admin', label: 'Tổng quan', icon: LayoutDashboard },
-  { href: '/admin/orders', label: 'Đơn hàng', icon: ShoppingBag },
-  { href: '/admin/requests', label: 'Yêu cầu', icon: Inbox },
-  { href: '/admin/catalog', label: 'Catalog', icon: Coffee },
-  { href: '/admin/content', label: 'Nội dung', icon: FileText },
-  { href: '/admin/members', label: 'Hội viên', icon: Users },
-  { href: '/admin/loyalty', label: 'Loyalty', icon: Coins },
-  { href: '/admin/vouchers', label: 'Voucher', icon: Ticket },
-  { href: '/admin/rewards', label: 'Rewards', icon: Gift },
-  { href: '/admin/policies', label: 'Chính sách', icon: Settings2 },
-  { href: '/admin/notifications', label: 'Thông báo', icon: Bell },
-  { href: '/admin/security', label: 'Bảo mật', icon: KeyRound },
-  { href: '/admin/stored-value', label: 'Stored-value', icon: WalletCards },
+  { href: '/admin', vi: 'Tổng quan', en: 'Overview', icon: LayoutDashboard },
+  { href: '/admin/orders', vi: 'Đơn hàng', en: 'Orders', icon: ShoppingBag },
+  { href: '/admin/requests', vi: 'Yêu cầu', en: 'Requests', icon: Inbox },
+  { href: '/admin/catalog', vi: 'Catalog', en: 'Catalog', icon: Coffee },
+  { href: '/admin/content', vi: 'Nội dung', en: 'Content', icon: FileText },
+  { href: '/admin/members', vi: 'Hội viên', en: 'Members', icon: Users },
+  { href: '/admin/loyalty', vi: 'Loyalty', en: 'Loyalty', icon: Coins },
+  { href: '/admin/vouchers', vi: 'Voucher', en: 'Vouchers', icon: Ticket },
+  { href: '/admin/rewards', vi: 'Rewards', en: 'Rewards', icon: Gift },
+  { href: '/admin/policies', vi: 'Chính sách', en: 'Policies', icon: Settings2 },
+  { href: '/admin/notifications', vi: 'Thông báo', en: 'Notifications', icon: Bell },
+  { href: '/admin/security', vi: 'Bảo mật', en: 'Security', icon: KeyRound },
+  { href: '/admin/stored-value', vi: 'Stored-value', en: 'Stored value', icon: WalletCards },
 ] as const;
 
 export default function AdminSectionNav() {
@@ -46,11 +47,11 @@ export default function AdminSectionNav() {
 
   return (
     <div className={`wrap ${styles.adminNavWrap}`}>
-      <nav className={styles.adminNav} aria-label="Điều hướng khu vực quản trị">
-        {sectionsWithFlags.map(({ href, label, icon: Icon }) => (
+      <nav className={styles.adminNav} aria-label="Admin navigation">
+        {sectionsWithFlags.map(({ href, vi, en, icon: Icon }) => (
           <Link key={href} href={href} className={styles.adminNavLink}>
             <Icon size={15} aria-hidden="true" />
-            <span>{label}</span>
+            <span><LocalizedText vi={vi} en={en} /></span>
           </Link>
         ))}
       </nav>

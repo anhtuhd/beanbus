@@ -7,6 +7,7 @@ import { requireAdmin } from '@/lib/auth/session';
 import { boundedPage } from '@/lib/pagination';
 import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type OrderRow = Pick<
   Database['public']['Tables']['orders']['Row'],
@@ -114,7 +115,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
         <label htmlFor="order-search">Tìm theo mã đơn, số điện thoại hoặc tên khách</label>
         <div>
           <input id="order-search" name="q" defaultValue={search} maxLength={50} />
-          <button type="submit"><Search size={16} /> Tìm</button>
+          <button type="submit"><Search size={16} /> <LocalizedText vi="Tìm" en="Search" /></button>
           {search && <Link href={orderLink(status, 1, '')}>Xóa lọc</Link>}
         </div>
       </form>

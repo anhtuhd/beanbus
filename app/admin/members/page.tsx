@@ -7,6 +7,7 @@ import { boundedPage } from '@/lib/pagination';
 import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import MemberRoleForm from './MemberRoleForm';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type MemberRow = Pick<
   Database['public']['Tables']['profiles']['Row'],
@@ -76,7 +77,7 @@ export default async function AdminMembersPage({ searchParams }: Props) {
         <label htmlFor="member-search">Tìm theo mã hội viên, số điện thoại, email hoặc tên</label>
         <div>
           <input id="member-search" name="q" defaultValue={search} maxLength={80} />
-          <button><Search size={16} /> Tìm</button>
+          <button><Search size={16} /> <LocalizedText vi="Tìm" en="Search" /></button>
           {search && <Link href={membersLink(role, 1, '')}>Xóa lọc</Link>}
         </div>
       </form>

@@ -28,6 +28,10 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
+
   const setLang = (newLang: Language) => {
     setLangState(newLang);
     localStorage.setItem('beanbus_lang', newLang);

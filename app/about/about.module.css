@@ -34,6 +34,10 @@
   align-items: center;
 }
 
+.storyGrid > * {
+  min-width: 0;
+}
+
 .textSide h2 {
   font-size: 32px;
   font-weight: 800;
@@ -104,12 +108,18 @@
   grid-template-columns: 1fr 1fr;
   gap: 40px;
   align-items: center;
+  min-width: 0;
+}
+
+.rText {
+  min-width: 0;
 }
 
 .rText h2 {
   color: var(--green);
   font-size: 28px;
   margin-bottom: 16px;
+  overflow-wrap: anywhere;
 }
 
 .rText p {
@@ -117,6 +127,20 @@
   font-size: 15px;
   line-height: 1.7;
   margin-bottom: 24px;
+}
+
+.rText :global(.btn) {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+}
+
+.rText :global(.btn) > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .rImg {
@@ -136,6 +160,11 @@
 }
 
 @media (max-width: 600px) {
+  .roasteryShowcase {
+    padding: 24px 16px;
+    gap: 20px;
+  }
+
   .stepsGrid {
     grid-template-columns: 1fr;
   }

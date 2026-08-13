@@ -6,6 +6,7 @@ import { updateMemberRole } from './actions';
 import { initialMemberRoleActionState } from './state';
 import styles from '../requests/requests.module.css';
 import type { Database } from '@/lib/supabase/database.types';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type Props = {
   userId: string;
@@ -25,7 +26,7 @@ export default function MemberRoleForm({ userId, role }: Props) {
       </select>
       <button type="submit" className={styles.saveButton} disabled={pending} title="Lưu quyền hội viên">
         {pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}
-        <span>{pending ? 'Đang lưu' : 'Lưu'}</span>
+        <span><LocalizedText vi={pending ? 'Đang lưu' : 'Lưu'} en={pending ? 'Saving...' : 'Save'} /></span>
       </button>
       {state.status !== 'idle' && (
         <span className={state.status === 'error' ? styles.actionError : styles.actionSuccess} role={state.status === 'error' ? 'alert' : 'status'} aria-live={state.status === 'error' ? 'assertive' : 'polite'}>

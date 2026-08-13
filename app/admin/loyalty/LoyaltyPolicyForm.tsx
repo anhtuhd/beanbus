@@ -5,6 +5,7 @@ import { Check, LoaderCircle } from 'lucide-react';
 import { updateAdminLoyaltyPolicy } from './actions';
 import { initialLoyaltyPolicyState } from './loyalty-state';
 import styles from '../requests/requests.module.css';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 export default function LoyaltyPolicyForm({ enabled, earnBps, codEligible }: { enabled: boolean; earnBps: number; codEligible: boolean }) {
   const [state, formAction, pending] = useActionState(updateAdminLoyaltyPolicy, initialLoyaltyPolicyState);
@@ -16,7 +17,7 @@ export default function LoyaltyPolicyForm({ enabled, earnBps, codEligible }: { e
       <div className={styles.editorChecks}>
         <label><input type="checkbox" name="enabled" defaultChecked={enabled} /> Kích hoạt loyalty</label>
         <label><input type="checkbox" name="codEligible" defaultChecked={codEligible} /> COD được tích điểm sau hoàn thành</label>
-        <button type="submit" className={styles.saveButton} disabled={pending}>{pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}<span>{pending ? 'Đang lưu' : 'Lưu policy'}</span></button>
+        <button type="submit" className={styles.saveButton} disabled={pending}>{pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}<span><LocalizedText vi={pending ? 'Đang lưu' : 'Lưu policy'} en={pending ? 'Saving...' : 'Save policy'} /></span></button>
       </div>
       <p className={styles.helperText}>1 bps = 0,01% giá trị đơn; ví dụ 100 bps = 1 điểm trên mỗi 100đ đủ điều kiện.</p>
       {state.status !== 'idle' && <span className={state.status === 'error' ? styles.actionError : styles.actionSuccess} role={state.status === 'error' ? 'alert' : 'status'} aria-live={state.status === 'error' ? 'assertive' : 'polite'}>{state.message}</span>}

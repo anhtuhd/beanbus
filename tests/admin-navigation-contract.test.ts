@@ -25,7 +25,7 @@ test('production admin routes share a protected navigation and demo stays on the
   assert.match(navigation, /getAppMode\(\) === 'demo'/);
   assert.match(navigation, /isStoredValueConfigured\(\)/);
   assert.match(navigation, /section\.href !== '\/admin\/stored-value'/);
-  assert.match(navigation, /aria-label="Điều hướng khu vực quản trị"/);
+  assert.match(navigation, /aria-label="Admin navigation"/);
 });
 
 test('admin dashboard does not advertise disabled stored-value controls', () => {

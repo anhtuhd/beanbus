@@ -6,6 +6,7 @@ import type { Database } from '@/lib/supabase/database.types';
 import { upsertAdminProduct } from './product-actions';
 import { initialProductEditorState } from './product-editor-state';
 import styles from '../requests/requests.module.css';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type Product = Pick<Database['public']['Tables']['products']['Row'], 'id' | 'category_id' | 'option_set_id' | 'name_vi' | 'name_en' | 'description_vi' | 'description_en' | 'price_vnd' | 'image_url' | 'badge' | 'tasting_notes' | 'sort_order' | 'is_available' | 'is_published'>;
 type Category = { id: string; name_vi: string };
@@ -36,7 +37,7 @@ export default function ProductEditorForm({ product, categories, optionSets }: {
       <div className={styles.editorChecks}>
         <label><input type="checkbox" name="isAvailable" defaultChecked={product?.is_available ?? true} /> Đang bán</label>
         <label><input type="checkbox" name="isPublished" defaultChecked={product?.is_published ?? false} /> Công khai</label>
-        <button type="submit" className={styles.saveButton} disabled={pending}>{pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}<span>{pending ? 'Đang lưu' : 'Lưu sản phẩm'}</span></button>
+        <button type="submit" className={styles.saveButton} disabled={pending}>{pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}<span><LocalizedText vi={pending ? 'Đang lưu' : 'Lưu sản phẩm'} en={pending ? 'Saving...' : 'Save product'} /></span></button>
       </div>
       {state.status !== 'idle' && <span className={state.status === 'error' ? styles.actionError : styles.actionSuccess} role={state.status === 'error' ? 'alert' : 'status'} aria-live={state.status === 'error' ? 'assertive' : 'polite'}>{state.message}</span>}
     </form>

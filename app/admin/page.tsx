@@ -9,6 +9,7 @@ import { requireAdmin } from '@/lib/auth/session';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { isStoredValueConfigured } from '@/lib/stored-value/config';
 import { BRAND_ASSETS } from '@/lib/brand/assets';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 function KpiCard({ label, value, icon, href }: { label: string; value: number; icon: ReactNode; href?: string }) {
   const content = (
@@ -62,17 +63,17 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
         <div className={styles.adminActions}>
-          <Link href="/admin/orders" className="btn btn-primary btn-sm"><ShoppingBag size={16} /> Orders</Link>
-          <Link href="/admin/requests" className="btn btn-dark btn-sm"><Inbox size={16} /> Booking & Requests</Link>
-          <Link href="/admin/catalog" className="btn btn-dark btn-sm"><Coffee size={16} /> Catalog</Link>
-          <Link href="/admin/content" className="btn btn-dark btn-sm"><FileText size={16} /> Events & Blog</Link>
-          <Link href="/admin/members" className="btn btn-dark btn-sm"><Users size={16} /> Members</Link>
-          <Link href="/admin/loyalty" className="btn btn-dark btn-sm"><Coins size={16} /> Loyalty</Link>
-          <Link href="/admin/vouchers" className="btn btn-dark btn-sm"><Ticket size={16} /> Vouchers</Link>
-          <Link href="/admin/rewards" className="btn btn-dark btn-sm"><Gift size={16} /> Rewards</Link>
-          <Link href="/admin/policies" className="btn btn-dark btn-sm"><Settings2 size={16} /> Chính sách</Link>
-          {notificationsEnabled && <Link href="/admin/notifications" className="btn btn-dark btn-sm"><Bell size={16} /> Thông báo</Link>}
-          {storedValueConfigured && <Link href="/admin/stored-value" className="btn btn-dark btn-sm"><Coins size={16} /> Stored-value</Link>}
+          <Link href="/admin/orders" className="btn btn-primary btn-sm"><ShoppingBag size={16} /> <LocalizedText vi="Đơn hàng" en="Orders" /></Link>
+          <Link href="/admin/requests" className="btn btn-dark btn-sm"><Inbox size={16} /> <LocalizedText vi="Yêu cầu" en="Requests" /></Link>
+          <Link href="/admin/catalog" className="btn btn-dark btn-sm"><Coffee size={16} /> <LocalizedText vi="Catalog" en="Catalog" /></Link>
+          <Link href="/admin/content" className="btn btn-dark btn-sm"><FileText size={16} /> <LocalizedText vi="Nội dung" en="Content" /></Link>
+          <Link href="/admin/members" className="btn btn-dark btn-sm"><Users size={16} /> <LocalizedText vi="Hội viên" en="Members" /></Link>
+          <Link href="/admin/loyalty" className="btn btn-dark btn-sm"><Coins size={16} /> <LocalizedText vi="Loyalty" en="Loyalty" /></Link>
+          <Link href="/admin/vouchers" className="btn btn-dark btn-sm"><Ticket size={16} /> <LocalizedText vi="Voucher" en="Vouchers" /></Link>
+          <Link href="/admin/rewards" className="btn btn-dark btn-sm"><Gift size={16} /> <LocalizedText vi="Phần thưởng" en="Rewards" /></Link>
+          <Link href="/admin/policies" className="btn btn-dark btn-sm"><Settings2 size={16} /> <LocalizedText vi="Chính sách" en="Policies" /></Link>
+          {notificationsEnabled && <Link href="/admin/notifications" className="btn btn-dark btn-sm"><Bell size={16} /> <LocalizedText vi="Thông báo" en="Notifications" /></Link>}
+          {storedValueConfigured && <Link href="/admin/stored-value" className="btn btn-dark btn-sm"><Coins size={16} /> <LocalizedText vi="Stored-value" en="Stored value" /></Link>}
         </div>
       </div>
       {dataError && <p className={styles.dashboardNotice} role="alert">Không thể tải đầy đủ số liệu tổng quan.</p>}

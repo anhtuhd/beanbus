@@ -6,6 +6,7 @@ import { boundedPage } from '@/lib/pagination';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import RewardEditorForm from './RewardEditorForm';
 import styles from '../requests/requests.module.css';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type Reward = Pick<Database['public']['Tables']['loyalty_rewards']['Row'], 'id' | 'name_vi' | 'name_en' | 'points_cost' | 'discount_type' | 'discount_value' | 'minimum_subtotal_vnd' | 'maximum_discount_vnd' | 'is_active'>;
 type PageProps = { searchParams: Promise<{ page?: string | string[]; q?: string | string[] }> };
@@ -43,7 +44,7 @@ export default async function AdminRewardsPage({ searchParams }: PageProps) {
       <label htmlFor="reward-search">Tìm theo mã hoặc tên reward</label>
       <div>
         <input id="reward-search" name="q" defaultValue={search} maxLength={80} />
-        <button type="submit"><Search size={16} /> Tìm</button>
+        <button type="submit"><Search size={16} /> <LocalizedText vi="Tìm" en="Search" /></button>
         {search && <Link href={pageLink(1, '')}>Xóa lọc</Link>}
       </div>
     </form>

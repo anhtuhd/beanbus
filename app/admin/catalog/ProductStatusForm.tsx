@@ -4,6 +4,7 @@ import { useActionState } from 'react';
 import { Archive, Check, LoaderCircle } from 'lucide-react';
 import { updateAdminProductStatus } from './actions';
 import styles from '../requests/requests.module.css';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type Props = {
   isAvailable: boolean;
@@ -23,11 +24,11 @@ export default function ProductStatusForm({ isAvailable, isPublished, productId 
       <label><input type="checkbox" name="isPublished" defaultChecked={isPublished} disabled={pending} /> Công khai</label>
       <button type="submit" className={styles.saveButton} disabled={pending} title="Lưu trạng thái sản phẩm">
         {pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}
-        <span>{pending ? 'Đang lưu' : 'Lưu'}</span>
+        <span><LocalizedText vi={pending ? 'Đang lưu' : 'Lưu'} en={pending ? 'Saving...' : 'Save'} /></span>
       </button>
       <button type="submit" name="intent" value="archive" className={styles.archiveButton} disabled={pending || (!isAvailable && !isPublished)} title="Lưu trữ sản phẩm, không xóa dữ liệu đơn cũ">
         <Archive size={16} />
-        <span>{pending ? 'Đang lưu' : (!isAvailable && !isPublished ? 'Đã lưu trữ' : 'Lưu trữ')}</span>
+        <span><LocalizedText vi={pending ? 'Đang lưu' : (!isAvailable && !isPublished ? 'Đã lưu trữ' : 'Lưu trữ')} en={pending ? 'Saving...' : (!isAvailable && !isPublished ? 'Archived' : 'Archive')} /></span>
       </button>
       {state.status !== 'idle' && (
         <span className={state.status === 'error' ? styles.actionError : styles.actionSuccess} role={state.status === 'error' ? 'alert' : 'status'} aria-live={state.status === 'error' ? 'assertive' : 'polite'}>

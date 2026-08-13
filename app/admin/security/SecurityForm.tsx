@@ -8,6 +8,7 @@ import {
 } from './actions';
 import { initialPasswordManagementState } from './security-state';
 import styles from '../admin.module.css';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type Props = { recovery: boolean };
 
@@ -49,7 +50,7 @@ export default function SecurityForm({ recovery }: Props) {
           </div>
           <button type="submit" className="btn btn-primary btn-sm" disabled={updatePending}>
             <Save size={16} aria-hidden="true" />
-            {updatePending ? 'Đang cập nhật...' : 'Cập nhật mật khẩu'}
+            <LocalizedText vi={updatePending ? 'Đang cập nhật...' : 'Cập nhật mật khẩu'} en={updatePending ? 'Updating...' : 'Update password'} />
           </button>
           {updateState.status !== 'idle' && (
             <p className={updateState.status === 'error' ? styles.actionError : styles.actionSuccess} role={updateState.status === 'error' ? 'alert' : 'status'} aria-live="polite">
@@ -71,7 +72,7 @@ export default function SecurityForm({ recovery }: Props) {
           <form action={resetAction} className={styles.form}>
             <button type="submit" className="btn btn-dark btn-sm" disabled={resetPending}>
               <Mail size={16} aria-hidden="true" />
-              {resetPending ? 'Đang gửi...' : 'Gửi email reset'}
+              <LocalizedText vi={resetPending ? 'Đang gửi...' : 'Gửi email reset'} en={resetPending ? 'Sending...' : 'Send reset email'} />
             </button>
             {resetState.status !== 'idle' && (
               <p className={resetState.status === 'error' ? styles.actionError : styles.actionSuccess} role={resetState.status === 'error' ? 'alert' : 'status'} aria-live="polite">

@@ -50,10 +50,10 @@ export default function HomeClient({ products }: { products: Product[] }) {
   const bestSellers = products.filter((p) => p.badge === 'best' || p.badge === 'signature').slice(0, 4);
 
   const galleryImages = [
-    { src: BRAND_ASSETS.galleryOne, caption: 'Không gian quán Beanbus Hải Phòng' },
-    { src: BRAND_ASSETS.galleryTwo, caption: 'Trạm pha chế Espresso Bar' },
-    { src: BRAND_ASSETS.galleryThree, caption: 'Cupping & Nếm thử cà phê tại xưởng' },
-    { src: BRAND_ASSETS.galleryFour, caption: 'Khách hàng thưởng thức đồ uống tại Beanbus' },
+    { src: BRAND_ASSETS.galleryOne, captionVi: 'Không gian quán Beanbus Hải Phòng', captionEn: 'Beanbus café space in Hải Phòng' },
+    { src: BRAND_ASSETS.galleryTwo, captionVi: 'Trạm pha chế Espresso Bar', captionEn: 'The Espresso Bar' },
+    { src: BRAND_ASSETS.galleryThree, captionVi: 'Cupping & Nếm thử cà phê tại xưởng', captionEn: 'Cupping and tasting at the roastery' },
+    { src: BRAND_ASSETS.galleryFour, captionVi: 'Khách hàng thưởng thức đồ uống tại Beanbus', captionEn: 'Guests enjoying drinks at Beanbus' },
   ];
 
   const handleOpenQuote = (bean?: CoffeeBean) => {
@@ -445,10 +445,10 @@ export default function HomeClient({ products }: { products: Product[] }) {
           </div>
           <div className={styles.galleryGrid}>
             {galleryImages.map((img, idx) => (
-              <button key={idx} type="button" className={styles.galleryCard} onClick={() => setLightboxImg(img.src)} aria-label={`${t('Xem ảnh', 'View image')}: ${img.caption}`}>
+              <button key={idx} type="button" className={styles.galleryCard} onClick={() => setLightboxImg(img.src)} aria-label={`${t('Xem ảnh', 'View image')}: ${lang === 'en' ? img.captionEn : img.captionVi}`}>
                 <Image
                   src={img.src}
-                  alt={img.caption}
+                  alt={lang === 'en' ? img.captionEn : img.captionVi}
                   width={640}
                   height={480}
                   sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 25vw"
@@ -456,7 +456,7 @@ export default function HomeClient({ products }: { products: Product[] }) {
                 />
                 <div className={styles.galleryOverlay}>
                   <Maximize2 size={24} color="#fff" />
-                  <span>{img.caption}</span>
+                  <span>{lang === 'en' ? img.captionEn : img.captionVi}</span>
                 </div>
               </button>
             ))}
