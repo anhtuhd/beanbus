@@ -31,5 +31,23 @@ begin
 end;
 $$;
 
+create function public.get_admin_notification_failures(p_limit integer default 50)
+returns table (
+  id uuid,
+  notification_id uuid,
+  recipient_email text,
+  attempt_count integer,
+  last_error_code text,
+  updated_at timestamptz
+)
+language sql
+security definer
+set search_path = ''
+as $$
+  select * from public.get_admin_notification_failures(p_limit, 0);
+$$;
+
 revoke all on function public.get_admin_notification_failures(integer, integer) from public, anon, authenticated;
 grant execute on function public.get_admin_notification_failures(integer, integer) to authenticated;
+revoke all on function public.get_admin_notification_failures(integer) from public, anon, authenticated;
+grant execute on function public.get_admin_notification_failures(integer) to authenticated;
