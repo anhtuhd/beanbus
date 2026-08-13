@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(57);
+select plan(59);
 
 select has_table('public', 'guest_notification_sessions', 'guest sessions table exists');
 select has_table('public', 'guest_order_access', 'guest order access table exists');
@@ -53,6 +53,14 @@ select is(
   'server can link an issued guest receipt'
 );
 select is((select count(*) from public.guest_order_access where guest_session_id = '33333333-3333-4333-8333-333333333333'), 1::bigint, 'guest order access is stored once');
+select is((select count(*) from public.guest_notifications where guest_session_id = '33333333-3333-4333-8333-333333333333'), 1::bigint, 'linking a guest order creates an initial notification');
+select is(
+  (select body_vi from public.guest_notifications where guest_session_id = '33333333-3333-4333-8333-333333333333'),
+  (select format('Đơn %s đã được tiếp nhận, tổng 35,000đ.', order_code)
+   from public.orders
+   where id = '11111111-1111-4111-8111-111111111111'),
+  'initial guest notification uses the final order total'
+);
 select is(
   public.link_guest_order_notifications('44444444-4444-4444-8444-444444444444', '11111111-1111-4111-8111-111111111111'),
   false,
@@ -75,15 +83,15 @@ select is(
 select is((select active from public.fcm_installations where fid = 'abcdefghijklmnopqrstuvwx'), true, 'rejected unlink keeps the installation active');
 
 update public.orders set status = 'confirmed' where id = '11111111-1111-4111-8111-111111111111';
-select is((select count(*) from public.guest_notifications where guest_session_id = '33333333-3333-4333-8333-333333333333'), 1::bigint, 'status change creates one guest notification');
+select is((select count(*) from public.guest_notifications where guest_session_id = '33333333-3333-4333-8333-333333333333'), 2::bigint, 'status change creates one additional guest notification');
 select is((select count(*) from public.push_outbox where guest_notification_id in (select id from public.guest_notifications where guest_session_id = '33333333-3333-4333-8333-333333333333')), 1::bigint, 'status notification queues one push');
 
 update public.orders set payment_status = 'paid' where id = '11111111-1111-4111-8111-111111111111';
-select is((select count(*) from public.guest_notifications where guest_session_id = '33333333-3333-4333-8333-333333333333'), 2::bigint, 'payment change creates a second guest notification');
+select is((select count(*) from public.guest_notifications where guest_session_id = '33333333-3333-4333-8333-333333333333'), 3::bigint, 'payment change creates an additional guest notification');
 select is((select count(*) from public.push_outbox where guest_notification_id in (select id from public.guest_notifications where guest_session_id = '33333333-3333-4333-8333-333333333333')), 2::bigint, 'payment notification queues a second push');
 
 update public.orders set payment_status = 'paid' where id = '11111111-1111-4111-8111-111111111111';
-select is((select count(*) from public.guest_notifications where guest_session_id = '33333333-3333-4333-8333-333333333333'), 2::bigint, 'unchanged payment status is not duplicated');
+select is((select count(*) from public.guest_notifications where guest_session_id = '33333333-3333-4333-8333-333333333333'), 3::bigint, 'unchanged payment status is not duplicated');
 
 create temporary table claimed_push as
 select * from public.claim_push_notification_batch(50, '55555555-5555-4555-8555-555555555555', null);
@@ -184,6 +192,15 @@ end;
 $$;
 select is((select count(*) from public.fcm_installation_recipients where user_id = '66666666-6666-4666-8666-666666666666'), 10::bigint, 'member is capped at ten installations');
 
+do $$
+begin
+  perform public.register_fcm_installation(
+    'lease-fid-abcdefghijkl-1', 'vi', null,
+    '33333333-3333-4333-8333-333333333333'
+  );
+end;
+$$;
+
 insert into public.guest_notifications (
   guest_session_id, kind, title_vi, title_en, body_vi, body_en, href, order_id, dedupe_key
 )
@@ -199,12 +216,19 @@ select
   'lease-test';
 update public.push_outbox as outbox
 set status = 'processing', attempt_count = 5, locked_until = now() - interval '1 minute'
-where outbox.installation_id = (select id from public.fcm_installations where fid = 'guest-fid-abcdefghijkl-4')
+where outbox.installation_id = (select id from public.fcm_installations where fid = 'lease-fid-abcdefghijkl-1')
   and outbox.guest_notification_id = (select id from public.guest_notifications where dedupe_key = 'lease-test');
 create temporary table lease_claims as
 select * from public.claim_push_notification_batch(50, '88888888-8888-4888-8888-888888888888', null);
-select is((select count(*) from lease_claims where fid = 'guest-fid-abcdefghijkl-4'), 0::bigint, 'expired fifth lease is not claimed again');
-select is((select status from public.push_outbox where attempt_count = 5 and last_error_code = 'LEASE_EXHAUSTED' limit 1), 'failed', 'expired fifth lease is terminally failed');
+select is((select count(*) from lease_claims where fid = 'lease-fid-abcdefghijkl-1'), 0::bigint, 'expired fifth lease is not claimed again');
+select is(
+  (select status
+   from public.push_outbox
+   where guest_notification_id = (select id from public.guest_notifications where dedupe_key = 'lease-test')
+     and installation_id = (select id from public.fcm_installations where fid = 'lease-fid-abcdefghijkl-1')),
+  'failed',
+  'expired fifth lease is terminally failed'
+);
 
 select * from finish();
 rollback;

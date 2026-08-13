@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap;
-select plan(58);
+select plan(60);
 
 select has_table('public', 'notifications', 'notifications table exists');
 select has_table('public', 'notification_preferences', 'notification preferences table exists');
@@ -233,6 +233,36 @@ select is(
   (select reason from public.email_suppressions where email = 'notification-member@beanbus.test'),
   'bounced',
   'early bounce creates a hard suppression'
+);
+
+insert into public.orders (
+  id, order_code, idempotency_key, customer_name, customer_phone, fulfillment, pickup_at,
+  subtotal_vnd, discount_vnd, total_vnd, payment_method
+)
+values (
+  '12121212-1212-4121-8121-121212121212', 'DH-260813TEST01', '13131313-1313-4131-8131-131313131313',
+  'Priced Order', '+84912345678', 'pickup', now() + interval '1 hour',
+  0, 0, 0, 'cod'
+);
+
+select is(
+  (select count(*) from public.notifications where kind = 'order_created' and source_id = '12121212-1212-4121-8121-121212121212'),
+  0::bigint,
+  'unpriced order does not notify admins with a zero total'
+);
+
+update public.orders
+set subtotal_vnd = 40000, discount_vnd = 0, total_vnd = 40000
+where id = '12121212-1212-4121-8121-121212121212';
+
+select is(
+  (select body_vi from public.notifications
+   where recipient_user_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+     and source_id = '12121212-1212-4121-8121-121212121212'),
+  (select format('Đơn %s từ Priced Order, tổng 40,000đ.', order_code)
+   from public.orders
+   where id = '12121212-1212-4121-8121-121212121212'),
+  'priced order notification uses the canonical total'
 );
 
 insert into public.booking_requests (

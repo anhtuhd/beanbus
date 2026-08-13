@@ -1020,7 +1020,7 @@ export type Database = {
           guest_session_id: string;
           href: string;
           id: string;
-          kind: 'order_status_changed' | 'order_payment_changed';
+          kind: 'order_created' | 'order_status_changed' | 'order_payment_changed';
           order_id: string;
           read_at: string | null;
           title_en: string;

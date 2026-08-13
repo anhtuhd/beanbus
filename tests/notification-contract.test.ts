@@ -6,6 +6,14 @@ const migration = readFileSync(
   new URL('../supabase/migrations/20260812040545_notification_center.sql', import.meta.url),
   'utf8',
 );
+const orderTotalMigration = readFileSync(
+  new URL('../supabase/migrations/20260813043121_fix_order_notification_total.sql', import.meta.url),
+  'utf8',
+);
+const guestOrderNotificationMigration = readFileSync(
+  new URL('../supabase/migrations/20260813050600_fix_guest_order_notifications.sql', import.meta.url),
+  'utf8',
+);
 const staffRequestMigration = readFileSync(
   new URL('../supabase/migrations/20260812050000_staff_request_notifications.sql', import.meta.url),
   'utf8',
@@ -57,6 +65,22 @@ test('order and event triggers fan out idempotent notifications', () => {
   assert.match(staffRequestMigration, /create trigger customer_requests_create_notifications/i);
   assert.match(staffRequestMigration, /booking_request_created/i);
   assert.match(staffRequestMigration, /customer_request_created/i);
+});
+
+test('new order notifications wait for server pricing', () => {
+  assert.match(orderTotalMigration, /after insert or update of subtotal_vnd, discount_vnd, total_vnd on public\.orders/i);
+  assert.match(orderTotalMigration, /new\.subtotal_vnd = 0[\s\S]*new\.discount_vnd = 0[\s\S]*new\.total_vnd = 0/i);
+  assert.match(guestOrderNotificationMigration, /create or replace function public\.notify_new_order/i);
+  assert.doesNotMatch(guestOrderNotificationMigration, /new\.total_vnd is not distinct from old\.total_vnd/i);
+  assert.match(orderTotalMigration, /order_created:/i);
+});
+
+test('guest order linking creates an initial notification with the final total', () => {
+  assert.match(guestOrderNotificationMigration, /guest_notifications_kind_check/i);
+  assert.match(guestOrderNotificationMigration, /after insert on public\.guest_order_access/i);
+  assert.match(guestOrderNotificationMigration, /'order_created'/i);
+  assert.match(guestOrderNotificationMigration, /orders\.total_vnd/i);
+  assert.match(guestOrderNotificationMigration, /guest_order_created:/i);
 });
 
 test('email worker and feature flags are wired without public secrets', () => {
