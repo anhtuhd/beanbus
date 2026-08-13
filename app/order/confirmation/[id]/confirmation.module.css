@@ -7,6 +7,73 @@
   max-width: 860px;
 }
 
+.loadingHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.loadingCircle,
+.loadingLine,
+.loadingPanel {
+  display: block;
+  background: linear-gradient(90deg, #f1ece8 25%, #faf7f4 50%, #f1ece8 75%);
+  background-size: 200% 100%;
+  animation: confirmationLoading 1.4s ease-in-out infinite;
+}
+
+.loadingCircle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+}
+
+.loadingLine {
+  height: 18px;
+  border-radius: 4px;
+}
+
+.loadingTitle {
+  width: min(320px, 80%);
+  height: 32px;
+}
+
+.loadingSubtitle {
+  width: min(220px, 60%);
+}
+
+.loadingPanel {
+  min-height: 180px;
+  border-radius: var(--radius);
+}
+
+.loadingPayment {
+  min-height: 290px;
+}
+
+.loadingTracking {
+  min-height: 130px;
+}
+
+.loadingColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+@keyframes confirmationLoading {
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingCircle,
+  .loadingLine,
+  .loadingPanel {
+    animation: none;
+  }
+}
+
 .headerBox {
   display: flex;
   flex-direction: column;
@@ -388,6 +455,11 @@
   .detailsGrid {
     grid-template-columns: 1fr;
   }
+
+  .loadingColumns {
+    grid-template-columns: 1fr;
+  }
+
   .actionsRow {
     flex-direction: column;
   }

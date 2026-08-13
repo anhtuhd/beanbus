@@ -7,9 +7,9 @@ const directory = readFileSync('app/admin/orders/page.tsx', 'utf8');
 
 test('admin order detail is guarded, read-only, and exposes audited history', () => {
   assert.match(page, /await requireAdmin\(\)/);
-  assert.match(page, /from\('order_items'\)\.select\(/);
-  assert.match(page, /from\('order_item_options'\)\.select\(/);
-  assert.match(page, /from\('order_status_history'\)\.select\(/);
+  assert.match(page, /order_items\([\s\S]*order_item_options\(/);
+  assert.match(page, /order_status_history\(/);
+  assert.equal((page.match(/\.from\(/g) ?? []).length, 1);
   assert.match(page, /OrderStatusForm/);
   assert.match(page, /PAYMENT_METHOD_LABEL/);
   assert.match(page, /PAYMENT_STATUS_LABEL/);

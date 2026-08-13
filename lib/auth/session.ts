@@ -7,18 +7,10 @@ import { toSessionProfile, type SessionProfile } from './types';
 
 export const getCurrentProfile = cache(async (): Promise<SessionProfile | null> => {
   const supabase = await createServerSupabaseClient();
-  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
-  const userId = claimsData?.claims?.sub;
+  const { data, error } = await supabase.rpc('get_current_profile');
+  const profile = data?.[0];
 
-  if (claimsError || !userId) return null;
-
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id, member_number, full_name, phone, email, birthday, avatar_url, role, created_at, updated_at')
-    .eq('id', userId)
-    .maybeSingle();
-
-  if (profileError || !profile) return null;
+  if (error || !profile) return null;
 
   return toSessionProfile(profile);
 });

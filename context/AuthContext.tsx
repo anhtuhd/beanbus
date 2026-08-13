@@ -118,19 +118,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode; mode: AppMode }
       const loadProfile = async () => {
         const version = ++loadVersion;
         try {
-          const { data: claimsData } = await supabase.auth.getClaims();
-          const userId = claimsData?.claims?.sub;
-
-          if (!userId) {
-            if (active && version === loadVersion) setUser(null);
-            return;
-          }
-
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('id, member_number, full_name, phone, email, birthday, avatar_url, role, created_at, updated_at')
-            .eq('id', userId)
-            .maybeSingle();
+          const { data } = await supabase.rpc('get_current_profile');
+          const profile = data?.[0];
 
           if (active && version === loadVersion) setUser(profile ? toUserProfile(toSessionProfile(profile)) : null);
         } catch {

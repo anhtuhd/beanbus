@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowLeft, Search, Ticket } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Ticket, X } from 'lucide-react';
 import type { Database } from '@/lib/supabase/database.types';
 import { requireAdmin } from '@/lib/auth/session';
 import { boundedPage } from '@/lib/pagination';
@@ -9,16 +9,17 @@ import styles from '../requests/requests.module.css';
 import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type Voucher = Pick<Database['public']['Tables']['vouchers']['Row'], 'code' | 'discount_type' | 'discount_value' | 'minimum_subtotal_vnd' | 'maximum_discount_vnd' | 'starts_at' | 'ends_at' | 'usage_limit' | 'is_active' | 'usage_count'>;
-type PageProps = { searchParams: Promise<{ page?: string | string[]; q?: string | string[] }> };
+type PageProps = { searchParams: Promise<{ page?: string | string[]; q?: string | string[]; edit?: string | string[] }> };
 const PAGE_SIZE = 20;
 
 function first(value: string | string[] | undefined): string {
   return Array.isArray(value) ? value[0] ?? '' : value ?? '';
 }
 
-function pageLink(page: number, search: string): string {
+function pageLink(page: number, search: string, edit = ''): string {
   const params = new URLSearchParams({ page: String(page) });
   if (search) params.set('q', search);
+  if (edit) params.set('edit', edit);
   return `/admin/vouchers?${params.toString()}`;
 }
 
@@ -30,6 +31,7 @@ export default async function AdminVouchersPage({ searchParams }: PageProps) {
   await requireAdmin();
   const params = await searchParams;
   const search = first(params.q).trim().slice(0, 40).toUpperCase();
+  const edit = first(params.edit).trim().slice(0, 64).toUpperCase();
   const requestedPage = Number.parseInt(first(params.page), 10);
   const page = boundedPage(requestedPage);
   const supabase = await createServerSupabaseClient();
@@ -37,6 +39,8 @@ export default async function AdminVouchersPage({ searchParams }: PageProps) {
   if (search) query = query.ilike('code', `%${search.replace(/[\\%_]/g, '\\$&')}%`);
   const result = await query.range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   const vouchers: Voucher[] = result.data ?? [];
+  const editingVoucher = edit === 'NEW' ? undefined : vouchers.find((voucher) => voucher.code === edit);
+  const editorOpen = edit === 'NEW' || Boolean(editingVoucher);
   const totalPages = Math.max(1, Math.ceil((result.count ?? 0) / PAGE_SIZE));
 
   return (
@@ -47,12 +51,20 @@ export default async function AdminVouchersPage({ searchParams }: PageProps) {
           <h1><Ticket size={24} /> Voucher Operations</h1>
           <p>Quản lý voucher dùng trong checkout; mọi thay đổi được ghi audit.</p>
         </div>
-        <span className={styles.total}>{result.count ?? 0} voucher</span>
+        <div className={styles.headerActions}>
+          <span className={styles.total}>{result.count ?? 0} voucher</span>
+          <Link href={pageLink(page, search, 'NEW')} className={styles.primaryLink}><Plus size={16} /> Thêm voucher</Link>
+        </div>
       </header>
-      <details className={styles.editorDetails}>
-        <summary>Thêm voucher</summary>
-        <VoucherEditorForm />
-      </details>
+      {editorOpen && (
+        <section className={styles.editorDetails} aria-labelledby="voucher-editor-title">
+          <div className={styles.editorHeading}>
+            <h2 id="voucher-editor-title">{editingVoucher ? `Chỉnh sửa ${editingVoucher.code}` : 'Thêm voucher'}</h2>
+            <Link href={pageLink(page, search)} aria-label="Đóng trình chỉnh sửa"><X size={18} /></Link>
+          </div>
+          <VoucherEditorForm voucher={editingVoucher} />
+        </section>
+      )}
       <form className={styles.searchForm} action="/admin/vouchers" method="get">
         <label htmlFor="voucher-search">Tìm theo mã voucher</label>
         <div>
@@ -69,10 +81,7 @@ export default async function AdminVouchersPage({ searchParams }: PageProps) {
               <div><span className={styles.label}>Điều kiện</span><strong>Từ {voucher.minimum_subtotal_vnd.toLocaleString('vi-VN')}đ</strong><small>{voucher.maximum_discount_vnd ? `Tối đa ${voucher.maximum_discount_vnd.toLocaleString('vi-VN')}đ` : 'Không giới hạn mức giảm'}</small></div>
               <div><span className={styles.label}>Thời hạn</span><strong>{formatDate(voucher.starts_at)} → {formatDate(voucher.ends_at)}</strong><small>Dùng {voucher.usage_count}{voucher.usage_limit ? ` / ${voucher.usage_limit}` : ''}</small></div>
               <div><span className={styles.label}>Trạng thái</span><strong>{voucher.is_active ? 'Đang hoạt động' : 'Tạm tắt'}</strong></div>
-              <details className={styles.inlineEditor}>
-                <summary>Chỉnh sửa voucher</summary>
-                <VoucherEditorForm voucher={voucher} />
-              </details>
+              <Link href={pageLink(page, search, voucher.code)} className={styles.detailLink}>Chỉnh sửa voucher</Link>
             </article>
           ))}
         </div>

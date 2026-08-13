@@ -9,17 +9,7 @@ import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { LocalizedText } from '@/components/ui/LocalizedText';
 
-type BookingRow = Pick<
-  Database['public']['Tables']['booking_requests']['Row'],
-  'id' | 'reference_number' | 'customer_name' | 'customer_phone' | 'reservation_at' |
-  'guest_count' | 'seating_area' | 'note' | 'status' | 'created_at'
->;
-type CustomerRow = Pick<
-  Database['public']['Tables']['customer_requests']['Row'],
-  'id' | 'reference_number' | 'request_type' | 'contact_name' | 'contact_phone' |
-  'contact_email' | 'subject_reference' | 'organization' | 'volume_range' | 'message' |
-  'status' | 'created_at'
->;
+type RequestRow = Database['public']['Views']['admin_request_feed']['Row'];
 
 type PageProps = {
   searchParams: Promise<{
@@ -62,32 +52,32 @@ function reference(prefix: string, number: number): string {
   return `${prefix}-${String(number).padStart(6, '0')}`;
 }
 
-function detailForRequest(request: CustomerRow): string {
+function detailForRequest(request: RequestRow): string {
   if (request.request_type === 'contact') return request.message ?? 'Không có nội dung';
   if (request.request_type === 'rsvp') return `Sự kiện: ${request.subject_reference ?? 'Không xác định'}`;
   const volume = request.volume_range === 'over_100' ? '>100 kg/tháng' : `${request.volume_range?.replace('_', '-')} kg/tháng`;
   return [request.organization, request.subject_reference && `Hạt: ${request.subject_reference}`, volume].filter(Boolean).join(' · ');
 }
 
-function BookingList({ bookings }: { bookings: BookingRow[] }) {
+function BookingList({ bookings }: { bookings: RequestRow[] }) {
   if (bookings.length === 0) return <div className={styles.stateBox}>Chưa có yêu cầu đặt bàn phù hợp.</div>;
   return <div className={styles.requestList}>{bookings.map((booking) => (
     <article key={booking.id} className={styles.requestRow}>
       <div><span className={styles.label}>Mã</span><Link href={`/admin/requests/${booking.id}?kind=booking`} className={styles.detailLink}><strong>{reference('BK', booking.reference_number)}</strong></Link></div>
-      <div><span className={styles.label}>Khách hàng</span><strong>{booking.customer_name}</strong><small>{booking.customer_phone}</small></div>
-      <div><span className={styles.label}>Lịch đặt</span><strong>{formatDate(booking.reservation_at)}</strong><small>{booking.guest_count} khách · {booking.seating_area}</small></div>
+      <div><span className={styles.label}>Khách hàng</span><strong>{booking.display_name}</strong><small>{booking.display_phone}</small></div>
+      <div><span className={styles.label}>Lịch đặt</span><strong>{booking.reservation_at ? formatDate(booking.reservation_at) : 'Chưa xác định'}</strong><small>{booking.guest_count} khách · {booking.seating_area}</small></div>
       <div><span className={styles.label}>Ghi chú</span><span>{booking.note || 'Không có'}</span></div>
       <div><span className={styles.label}>Trạng thái</span><RequestStatusForm kind="booking" requestId={booking.id} currentStatus={booking.status} /></div>
     </article>
   ))}</div>;
 }
 
-function CustomerList({ requests }: { requests: CustomerRow[] }) {
+function CustomerList({ requests }: { requests: RequestRow[] }) {
   if (requests.length === 0) return <div className={styles.stateBox}>Chưa có yêu cầu khách hàng phù hợp.</div>;
   return <div className={styles.requestList}>{requests.map((request) => (
     <article key={request.id} className={styles.requestRow}>
       <div><span className={styles.label}>Mã / Loại</span><Link href={`/admin/requests/${request.id}?kind=customer`} className={styles.detailLink}><strong>{reference(request.request_type === 'contact' ? 'CT' : request.request_type === 'rsvp' ? 'EV' : 'BQ', request.reference_number)}</strong></Link><small>{request.request_type}</small></div>
-      <div><span className={styles.label}>Liên hệ</span><strong>{request.contact_name}</strong><small>{request.contact_phone}{request.contact_email ? ` · ${request.contact_email}` : ''}</small></div>
+      <div><span className={styles.label}>Liên hệ</span><strong>{request.display_name}</strong><small>{request.display_phone}{request.contact_email ? ` · ${request.contact_email}` : ''}</small></div>
       <div><span className={styles.label}>Nội dung</span><span>{detailForRequest(request)}</span></div>
       <div><span className={styles.label}>Ngày nhận</span><span>{formatDate(request.created_at)}</span></div>
       <div><span className={styles.label}>Trạng thái</span><RequestStatusForm kind="customer" requestId={request.id} currentStatus={request.status} /></div>
@@ -108,70 +98,25 @@ export default async function AdminRequestsPage({ searchParams }: PageProps) {
   const page = boundedPage(requestedPage);
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
-  const queryFrom = view === 'all' ? 0 : from;
   const supabase = await createServerSupabaseClient();
-
-  let bookings: BookingRow[] = [];
-  let requests: CustomerRow[] = [];
-  let count = 0;
-  let failed = false;
-
-  const bookingsPromise = view === 'leads' ? null : (async () => {
-    let query = supabase
-      .from('booking_requests')
-      .select('id, reference_number, customer_name, customer_phone, reservation_at, guest_count, seating_area, note, status, created_at', { count: 'exact' })
-      .order('created_at', { ascending: false });
-    if (status !== 'all') query = query.eq('status', status as BookingRow['status']);
-    if (search) {
-      const phone = normalizeVietnameseMobile(search);
-      if (/^\d{1,9}$/.test(search)) query = query.eq('reference_number', Number(search));
-      else if (phone) query = query.eq('customer_phone', phone);
-      else query = query.ilike('customer_name', `%${escapeLike(search)}%`);
-    }
-    return query.range(queryFrom, to);
-  })();
-
-  const requestsPromise = view === 'bookings' ? null : (async () => {
-    let query = supabase
-      .from('customer_requests')
-      .select('id, reference_number, request_type, contact_name, contact_phone, contact_email, subject_reference, organization, volume_range, message, status, created_at', { count: 'exact' })
-      .order('created_at', { ascending: false });
-    if (status !== 'all') query = query.eq('status', status as CustomerRow['status']);
-    if (search) {
-      const phone = normalizeVietnameseMobile(search);
-      if (/^\d{1,9}$/.test(search)) query = query.eq('reference_number', Number(search));
-      else if (phone) query = query.eq('contact_phone', phone);
-      else query = query.ilike('contact_name', `%${escapeLike(search)}%`);
-    }
-    return query.range(queryFrom, to);
-  })();
-
-  const [bookingResult, customerResult] = await Promise.all([bookingsPromise, requestsPromise]);
-  if (bookingResult) {
-    const result = bookingResult;
-    bookings = result.data ?? [];
-    count += result.count ?? 0;
-    failed = failed || Boolean(result.error);
+  let query = supabase
+    .from('admin_request_feed')
+    .select('kind, id, reference_number, request_type, display_name, display_phone, contact_email, reservation_at, guest_count, seating_area, note, subject_reference, organization, volume_range, message, status, created_at', { count: 'exact' })
+    .order('created_at', { ascending: false });
+  if (view !== 'all') query = query.eq('kind', view === 'bookings' ? 'booking' : 'customer');
+  if (status !== 'all') query = query.eq('status', status);
+  if (search) {
+    const phone = normalizeVietnameseMobile(search);
+    if (/^\d{1,9}$/.test(search)) query = query.eq('reference_number', Number(search));
+    else if (phone) query = query.eq('display_phone', phone);
+    else query = query.ilike('display_name', `%${escapeLike(search)}%`);
   }
-  if (customerResult) {
-    const result = customerResult;
-    requests = result.data ?? [];
-    count += result.count ?? 0;
-    failed = failed || Boolean(result.error);
-  }
-
-  if (view === 'all') {
-    const combined: Array<
-      | { kind: 'booking'; row: BookingRow; createdAt: string }
-      | { kind: 'customer'; row: CustomerRow; createdAt: string }
-    > = [
-      ...bookings.map((row) => ({ kind: 'booking' as const, row, createdAt: row.created_at })),
-      ...requests.map((row) => ({ kind: 'customer' as const, row, createdAt: row.created_at })),
-    ].sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt));
-    const visible = combined.slice(from, to + 1);
-    bookings = visible.filter((item): item is { kind: 'booking'; row: BookingRow; createdAt: string } => item.kind === 'booking').map((item) => item.row);
-    requests = visible.filter((item): item is { kind: 'customer'; row: CustomerRow; createdAt: string } => item.kind === 'customer').map((item) => item.row);
-  }
+  const result = await query.range(from, to);
+  const rows = result.data ?? [];
+  const bookings = rows.filter((row) => row.kind === 'booking');
+  const requests = rows.filter((row) => row.kind === 'customer');
+  const count = result.count ?? 0;
+  const failed = Boolean(result.error);
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
   const statuses = view === 'bookings' ? BOOKING_STATUSES : view === 'leads' ? CUSTOMER_STATUSES : ALL_STATUSES;

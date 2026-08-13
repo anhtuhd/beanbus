@@ -17,6 +17,7 @@ import { BRAND_ASSETS } from '@/lib/brand/assets';
 const montserrat = localFont({
   variable: '--font-montserrat',
   display: 'swap',
+  preload: false,
   src: [
     { path: './fonts/Montserrat-SemiBold.ttf', weight: '600', style: 'normal' },
     { path: './fonts/Montserrat-Bold.otf', weight: '700', style: 'normal' },
@@ -28,6 +29,7 @@ const montserrat = localFont({
 const poppins = localFont({
   variable: '--font-poppins',
   display: 'swap',
+  preload: false,
   src: [
     { path: './fonts/Poppins-Regular.ttf', weight: '400', style: 'normal' },
     { path: './fonts/Poppins-Medium.ttf', weight: '500', style: 'normal' },

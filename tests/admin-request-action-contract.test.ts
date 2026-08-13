@@ -24,7 +24,8 @@ test('admin requests page is guarded, filtered, and paginated', () => {
   assert.match(pageSource, /await requireAdmin\(\)/);
   assert.match(pageSource, /PAGE_SIZE = 20/);
   assert.match(pageSource, /normalizeVietnameseMobile\(search\)/);
-  assert.match(pageSource, /\.range\(queryFrom, to\)/);
+  assert.match(pageSource, /\.from\('admin_request_feed'\)/);
+  assert.match(pageSource, /\.range\(from, to\)/);
   assert.match(pageSource, /RequestStatusForm/);
   assert.doesNotMatch(pageSource, /notification_status', 'failed'/);
   assert.doesNotMatch(pageSource, /Thông báo lỗi/);
@@ -33,8 +34,8 @@ test('admin requests page is guarded, filtered, and paginated', () => {
   assert.match(pageSource, /ALL_STATUSES/);
   assert.match(pageSource, /view === 'bookings' \? BOOKING_STATUSES : view === 'leads' \? CUSTOMER_STATUSES : ALL_STATUSES/);
   assert.match(pageSource, /pageLink\('all', 'all'/);
-  assert.match(pageSource, /combined\.slice\(from, to \+ 1\)/);
-  assert.match(pageSource, /Promise\.all\(\[bookingsPromise, requestsPromise\]\)/);
+  assert.doesNotMatch(pageSource, /combined\.slice/);
+  assert.doesNotMatch(pageSource, /Promise\.all\(\[bookingsPromise, requestsPromise\]\)/);
   assert.match(pageSource, /pageLink\(view, status, 1\)/);
   assert.doesNotMatch(pageSource, /\.select\('\*'/);
 });

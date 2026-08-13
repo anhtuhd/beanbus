@@ -576,6 +576,11 @@
   font-weight: 800;
 }
 
+.contentRow > .detailLink {
+  grid-column: 1 / -1;
+  width: fit-content;
+}
+
 .positiveValue { color: #166534; }
 .negativeValue { color: #991b1b; }
 
@@ -631,6 +636,56 @@
 
 .editorDetails {
   padding: 14px 16px;
+}
+
+.headerActions,
+.editorHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.headerActions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.primaryLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: var(--orange);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.editorHeading {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.editorHeading h2 {
+  margin: 0;
+  color: var(--brown-dark);
+  font-size: 16px;
+}
+
+.editorHeading a {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--brown);
+}
+
+.editorHeading a:hover {
+  background: var(--gray-100);
 }
 
 .editorList {

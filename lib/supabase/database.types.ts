@@ -1078,8 +1078,35 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      admin_request_feed: {
+        Row: {
+          contact_email: string | null;
+          created_at: string;
+          display_name: string;
+          display_phone: string;
+          guest_count: number | null;
+          id: string;
+          kind: 'booking' | 'customer';
+          message: string | null;
+          note: string | null;
+          organization: string | null;
+          reference_number: number;
+          request_type: string;
+          reservation_at: string | null;
+          seating_area: string | null;
+          status: string;
+          subject_reference: string | null;
+          volume_range: string | null;
+        };
+        Relationships: [];
+      };
+    };
     Functions: {
+      get_current_profile: {
+        Args: Record<string, never>;
+        Returns: Database['public']['Tables']['profiles']['Row'][];
+      };
       cancel_owned_booking_request: {
         Args: {
           p_request_id: string;

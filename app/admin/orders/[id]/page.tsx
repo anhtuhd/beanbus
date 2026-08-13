@@ -23,6 +23,10 @@ type StatusHistory = Pick<
   Database['public']['Tables']['order_status_history']['Row'],
   'id' | 'from_status' | 'to_status' | 'actor_type' | 'created_at'
 >;
+type OrderDetail = Pick<Order, 'id' | 'order_code' | 'order_number' | 'customer_name' | 'customer_phone' | 'fulfillment' | 'pickup_at' | 'delivery_address' | 'note' | 'voucher_code' | 'subtotal_vnd' | 'discount_vnd' | 'total_vnd' | 'payment_method' | 'payment_status' | 'status' | 'created_at'> & {
+  order_items: Array<OrderItem & { order_item_options: ItemOption[] }>;
+  order_status_history: StatusHistory[];
+};
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -64,24 +68,24 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
   const supabase = await createServerSupabaseClient();
   const orderResult = await supabase
     .from('orders')
-    .select('id, order_code, order_number, customer_name, customer_phone, fulfillment, pickup_at, delivery_address, note, voucher_code, subtotal_vnd, discount_vnd, total_vnd, payment_method, payment_status, status, created_at')
+    .select(`
+      id, order_code, order_number, customer_name, customer_phone, fulfillment,
+      pickup_at, delivery_address, note, voucher_code, subtotal_vnd, discount_vnd,
+      total_vnd, payment_method, payment_status, status, created_at,
+      order_items(
+        id, product_name_vi, product_name_en, quantity, unit_price_vnd,
+        line_total_vnd, special_note,
+        order_item_options(order_item_id, option_name_vi, extra_price_vnd)
+      ),
+      order_status_history(id, from_status, to_status, actor_type, created_at)
+    `)
     .eq('id', id)
     .maybeSingle();
   if (orderResult.error || !orderResult.data) notFound();
-  const order = orderResult.data as Pick<Order, 'id' | 'order_code' | 'order_number' | 'customer_name' | 'customer_phone' | 'fulfillment' | 'pickup_at' | 'delivery_address' | 'note' | 'voucher_code' | 'subtotal_vnd' | 'discount_vnd' | 'total_vnd' | 'payment_method' | 'payment_status' | 'status' | 'created_at'>;
-
-  const [itemsResult, historyResult] = await Promise.all([
-    supabase.from('order_items').select('id, product_name_vi, product_name_en, quantity, unit_price_vnd, line_total_vnd, special_note').eq('order_id', id),
-    supabase.from('order_status_history').select('id, from_status, to_status, actor_type, created_at').eq('order_id', id).order('created_at', { ascending: false }),
-  ]);
-  const items = (itemsResult.data ?? []) as OrderItem[];
-  const itemIds = items.map((item) => item.id);
-  const optionsResult = itemIds.length
-    ? await supabase.from('order_item_options').select('order_item_id, option_name_vi, extra_price_vnd').in('order_item_id', itemIds)
-    : { data: [], error: null };
-  const options = (optionsResult.data ?? []) as ItemOption[];
-  const history = (historyResult.data ?? []) as StatusHistory[];
-  const dataError = Boolean(itemsResult.error || optionsResult.error || historyResult.error);
+  const order = orderResult.data as unknown as OrderDetail;
+  const items = order.order_items ?? [];
+  const history = [...(order.order_status_history ?? [])]
+    .sort((left, right) => Date.parse(right.created_at) - Date.parse(left.created_at));
 
   return (
     <main className={`wrap ${styles.page}`}>
@@ -93,8 +97,6 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
           <p>Tạo lúc {formatDate(order.created_at)}</p>
         </div>
       </header>
-
-      {dataError && <div className={styles.stateBox} role="alert">Một phần chi tiết đơn hàng chưa thể tải.</div>}
 
       <section className={styles.detailWorkflow} aria-labelledby="order-workflow-title">
         <div className={styles.detailWorkflowHeader}>
@@ -115,7 +117,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
               {items.map((item) => (
                 <div key={item.id}>
                   <dt>{item.product_name_vi} x{item.quantity}</dt>
-                  <dd>{formatMoney(item.line_total_vnd)}<small>{item.unit_price_vnd.toLocaleString('vi-VN')}đ / món{item.special_note ? ` · ${item.special_note}` : ''}{options.filter((option) => option.order_item_id === item.id).map((option) => ` · ${option.option_name_vi}`).join('')}</small></dd>
+                  <dd>{formatMoney(item.line_total_vnd)}<small>{item.unit_price_vnd.toLocaleString('vi-VN')}đ / món{item.special_note ? ` · ${item.special_note}` : ''}{item.order_item_options.map((option) => ` · ${option.option_name_vi}`).join('')}</small></dd>
                 </div>
               ))}
             </div>

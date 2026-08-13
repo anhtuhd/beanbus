@@ -274,12 +274,16 @@ export const Header: React.FC = () => {
             {cartCount > 0 && <span className={styles.cartBadge}>{cartCount}</span>}
           </button>
 
-          <NotificationBell
-            isAdmin={isAdmin}
-            isAuthReady={isAuthReady}
-            isLoggedIn={isLoggedIn}
-            userId={user?.id ?? null}
-          />
+          {process.env.NEXT_PUBLIC_ENABLE_NOTIFICATIONS === 'true' && (
+            <div className={styles.notificationSlot}>
+              <NotificationBell
+                isAdmin={isAdmin}
+                isAuthReady={isAuthReady}
+                isLoggedIn={isLoggedIn}
+                userId={user?.id ?? null}
+              />
+            </div>
+          )}
 
           {/* ACCOUNT DROPDOWN */}
           <div className={styles.accountDropdownWrapper} onBlur={closeMenuOnBlur} onKeyDown={closeMenuOnEscape}>

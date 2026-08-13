@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(11);
+select plan(14);
 
 select has_table('public', 'profiles', 'profiles table exists');
 select ok(
@@ -57,6 +57,12 @@ select is(
   0,
   'member cannot read another profile'
 );
+select has_function('public', 'get_current_profile', array[]::text[], 'current profile RPC exists');
+select is(
+  (select count(*)::integer from public.get_current_profile()),
+  1,
+  'current profile RPC returns exactly the member profile'
+);
 
 update public.profiles set full_name = 'Member One Updated'
 where id = '11111111-1111-4111-8111-111111111111';
@@ -87,6 +93,11 @@ where id = '11111111-1111-4111-8111-111111111111';
 set local role authenticated;
 set local request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
 select is((select count(*)::integer from public.profiles), 2, 'admin can read all profiles');
+select is(
+  (select count(*)::integer from public.get_current_profile()),
+  1,
+  'current profile RPC does not return every profile to an admin'
+);
 
 reset role;
 set local role anon;
