@@ -160,6 +160,17 @@
   align-items: start;
 }
 
+.orderRow {
+  grid-template-columns: 0.75fr 1fr 1.25fr 0.9fr;
+}
+
+.orderWorkflowCell {
+  grid-column: 1 / -1;
+  padding-top: 14px;
+  border-top: 1px solid var(--gray-200);
+  overflow: hidden;
+}
+
 .requestRow:last-child {
   border-bottom: 0;
 }
@@ -220,6 +231,231 @@
   display: grid;
   grid-template-columns: minmax(120px, 1fr) auto;
   gap: 6px;
+}
+
+.orderWorkflow {
+  width: 100%;
+  min-width: 0;
+}
+
+.orderProgress {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(78px, 1fr));
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 4px 0 14px;
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: thin;
+}
+
+.orderStep {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  min-width: 78px;
+  color: var(--brown);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.orderStep:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: 16px;
+  left: calc(50% + 20px);
+  width: calc(100% - 40px);
+  height: 2px;
+  background: var(--gray-300);
+}
+
+.orderStep_complete:not(:last-child)::after {
+  background: var(--green-dark);
+}
+
+.orderStepIcon {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 2px solid var(--gray-300);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--brown);
+}
+
+.orderStep_complete {
+  color: var(--green-deep);
+}
+
+.orderStep_complete .orderStepIcon {
+  border-color: var(--green-dark);
+  background: var(--green);
+  color: var(--green-deep);
+}
+
+.orderStep_current {
+  color: var(--orange-hover);
+  font-weight: 800;
+}
+
+.orderStep_current .orderStepIcon {
+  border-color: var(--orange);
+  background: var(--orange);
+  color: #fff;
+  box-shadow: 0 0 0 4px var(--orange-light);
+}
+
+.orderStatusForm {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto;
+  align-items: center;
+  gap: 10px 18px;
+  padding-top: 12px;
+  border-top: 1px solid var(--gray-200);
+}
+
+.orderStatusSummary {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.orderStatusSummary strong {
+  color: var(--brown-dark);
+  font-size: 13px;
+}
+
+.orderStatusSummary span {
+  color: var(--brown);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+.orderStatusActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.nextStatusButton,
+.cancelOrderButton {
+  min-height: 40px;
+  border-radius: 6px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.nextStatusButton {
+  border: 1px solid var(--orange);
+  background: var(--orange);
+  color: #fff;
+}
+
+.nextStatusButton:hover:not(:disabled) {
+  border-color: var(--orange-hover);
+  background: var(--orange-hover);
+}
+
+.cancelOrderButton {
+  border: 1px solid #e4c7c7;
+  background: #fff;
+  color: #991b1b;
+}
+
+.cancelOrderButton:hover:not(:disabled) {
+  background: #fff5f5;
+}
+
+.nextStatusButton:focus-visible,
+.cancelOrderButton:focus-visible {
+  outline: 3px solid rgb(245 127 47 / 28%);
+  outline-offset: 2px;
+}
+
+.nextStatusButton:disabled,
+.cancelOrderButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.paymentWait,
+.completedState,
+.cancelledState {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.paymentWait {
+  background: #fff7ed;
+  color: #9a4c12;
+}
+
+.completedState {
+  background: #ecfdf5;
+  color: #166534;
+}
+
+.cancelledState {
+  margin-top: 10px;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.orderStatusForm .actionError,
+.orderStatusForm .actionSuccess {
+  grid-column: 1 / -1;
+}
+
+.detailWorkflow {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.detailWorkflowHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.detailWorkflowHeader h2 {
+  margin: 0;
+  color: var(--brown-dark);
+  font-size: 17px;
+}
+
+.detailWorkflowHeader p {
+  margin: 3px 0 0;
+  color: var(--brown);
+  font-size: 11.5px;
 }
 
 .productStatusForm {
@@ -520,6 +756,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .orderRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .catalogRow {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -552,6 +792,36 @@
   .requestRow {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+
+  .orderRow {
+    grid-template-columns: 1fr;
+  }
+
+  .orderStatusForm {
+    grid-template-columns: 1fr;
+  }
+
+  .orderStatusActions {
+    justify-content: stretch;
+  }
+
+  .nextStatusButton,
+  .paymentWait,
+  .completedState {
+    flex: 1 1 190px;
+  }
+
+  .cancelOrderButton {
+    flex: 1 1 100px;
+  }
+
+  .detailWorkflow {
+    padding: 14px;
+  }
+
+  .detailWorkflowHeader {
+    flex-direction: column;
   }
 
   .catalogRow {

@@ -9,6 +9,10 @@ const css = readFileSync('app/admin/admin.module.css', 'utf8');
 test('production admin dashboard is guarded and surfaces notification failures', () => {
   assert.match(page, /await requireAdmin\(\)/);
   assert.match(page, /get_admin_notification_summary/);
+  assert.match(page, /labelVi="Tổng đơn hàng" labelEn="Total orders"/);
+  assert.match(page, /labelEn="Total orders"/);
+  assert.match(page, /labelEn="Unread notifications"/);
+  assert.match(page, /permissioned workflows/);
   assert.match(page, /Thông báo chưa đọc/);
   assert.match(page, /Email gửi lỗi/);
   assert.match(page, /notificationStats\?\.unread_count/);

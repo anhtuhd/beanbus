@@ -11,13 +11,13 @@ import { isStoredValueConfigured } from '@/lib/stored-value/config';
 import { BRAND_ASSETS } from '@/lib/brand/assets';
 import { LocalizedText } from '@/components/ui/LocalizedText';
 
-function KpiCard({ label, value, icon, href }: { label: string; value: number; icon: ReactNode; href?: string }) {
+function KpiCard({ labelVi, labelEn, value, icon, href }: { labelVi: string; labelEn: string; value: number; icon: ReactNode; href?: string }) {
   const content = (
       <div className={styles.kpiIcon}>{icon}</div>
   );
   const info = (
       <div className={styles.kpiInfo}>
-        <span className={styles.kpiLabel}>{label}</span>
+        <span className={styles.kpiLabel}><LocalizedText vi={labelVi} en={labelEn} /></span>
         <span className={styles.kpiValue}>{value.toLocaleString('vi-VN')}</span>
       </div>
   );
@@ -59,7 +59,7 @@ export default async function AdminDashboardPage() {
           />
           <div>
             <h1>Beanbus Operations</h1>
-            <p>Quản lý dữ liệu production qua các luồng được phân quyền.</p>
+            <p><LocalizedText vi="Quản lý dữ liệu production qua các luồng được phân quyền." en="Manage production data through permissioned workflows." /></p>
           </div>
         </div>
         <div className={styles.adminActions}>
@@ -76,14 +76,14 @@ export default async function AdminDashboardPage() {
           {storedValueConfigured && <Link href="/admin/stored-value" className="btn btn-dark btn-sm"><Coins size={16} /> <LocalizedText vi="Stored-value" en="Stored value" /></Link>}
         </div>
       </div>
-      {dataError && <p className={styles.dashboardNotice} role="alert">Không thể tải đầy đủ số liệu tổng quan.</p>}
+      {dataError && <p className={styles.dashboardNotice} role="alert"><LocalizedText vi="Không thể tải đầy đủ số liệu tổng quan." en="Some dashboard data could not be loaded." /></p>}
       <div className={styles.kpiGrid}>
-        <KpiCard label="Tổng đơn hàng" value={orders.count ?? 0} icon={<ShoppingBag size={22} />} href="/admin/orders" />
-        <KpiCard label="Đơn chờ xử lý" value={pendingOrders.count ?? 0} icon={<CalendarClock size={22} />} href="/admin/orders?status=pending" />
-        <KpiCard label="Yêu cầu chờ xử lý" value={(pendingBookings.count ?? 0) + (pendingLeads.count ?? 0)} icon={<Inbox size={22} />} href="/admin/requests?view=all&status=pending" />
-        <KpiCard label="Hội viên" value={members.count ?? 0} icon={<Users size={22} />} href="/admin/members" />
-        {notificationsEnabled && <KpiCard label="Thông báo chưa đọc" value={notificationStats?.unread_count ?? 0} icon={<Bell size={22} />} href="/admin/notifications" />}
-        {notificationsEnabled && <KpiCard label="Email gửi lỗi" value={notificationStats?.failed_email_count ?? 0} icon={<AlertTriangle size={22} />} href="/admin/notifications" />}
+        <KpiCard labelVi="Tổng đơn hàng" labelEn="Total orders" value={orders.count ?? 0} icon={<ShoppingBag size={22} />} href="/admin/orders" />
+        <KpiCard labelVi="Đơn chờ xử lý" labelEn="Pending orders" value={pendingOrders.count ?? 0} icon={<CalendarClock size={22} />} href="/admin/orders?status=pending" />
+        <KpiCard labelVi="Yêu cầu chờ xử lý" labelEn="Pending requests" value={(pendingBookings.count ?? 0) + (pendingLeads.count ?? 0)} icon={<Inbox size={22} />} href="/admin/requests?view=all&status=pending" />
+        <KpiCard labelVi="Hội viên" labelEn="Members" value={members.count ?? 0} icon={<Users size={22} />} href="/admin/members" />
+        {notificationsEnabled && <KpiCard labelVi="Thông báo chưa đọc" labelEn="Unread notifications" value={notificationStats?.unread_count ?? 0} icon={<Bell size={22} />} href="/admin/notifications" />}
+        {notificationsEnabled && <KpiCard labelVi="Email gửi lỗi" labelEn="Failed emails" value={notificationStats?.failed_email_count ?? 0} icon={<AlertTriangle size={22} />} href="/admin/notifications" />}
       </div>
     </div>
   );

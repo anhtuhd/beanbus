@@ -8,6 +8,7 @@ import RefundOrderForm from '../RefundOrderForm';
 import { requireAdmin } from '@/lib/auth/session';
 import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type Order = Database['public']['Tables']['orders']['Row'];
 type OrderItem = Pick<
@@ -91,13 +92,20 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
           <h1>Đơn #{order.order_code}</h1>
           <p>Tạo lúc {formatDate(order.created_at)}</p>
         </div>
-        <div>
-          <OrderStatusForm orderId={order.id} currentStatus={order.status} paymentMethod={order.payment_method} paymentStatus={order.payment_status} />
-          {order.payment_method === 'sepay_qr' && order.payment_status === 'paid' && <RefundOrderForm orderId={order.id} amountVnd={order.total_vnd} />}
-        </div>
       </header>
 
       {dataError && <div className={styles.stateBox} role="alert">Một phần chi tiết đơn hàng chưa thể tải.</div>}
+
+      <section className={styles.detailWorkflow} aria-labelledby="order-workflow-title">
+        <div className={styles.detailWorkflowHeader}>
+          <div>
+            <h2 id="order-workflow-title"><LocalizedText vi="Tiến trình xử lý đơn" en="Order workflow" /></h2>
+            <p><LocalizedText vi="Bấm hành động chính để chuyển đơn sang bước kế tiếp." en="Use the primary action to move the order to its next step." /></p>
+          </div>
+          {order.payment_method === 'sepay_qr' && order.payment_status === 'paid' && <RefundOrderForm orderId={order.id} amountVnd={order.total_vnd} />}
+        </div>
+        <OrderStatusForm orderId={order.id} currentStatus={order.status} paymentMethod={order.payment_method} paymentStatus={order.payment_status} />
+      </section>
 
       <section className={detailStyles.orderDetailGrid} aria-label="Chi tiết đơn hàng">
         <div className={detailStyles.orderDetailPanel}>

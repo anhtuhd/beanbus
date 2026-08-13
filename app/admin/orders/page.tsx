@@ -135,12 +135,12 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
       ) : (
         <div className={styles.requestList}>
           {orders.map((order) => (
-            <article key={order.id} className={styles.requestRow}>
+            <article key={order.id} className={`${styles.requestRow} ${styles.orderRow}`}>
               <div><span className={styles.label}>Mã / Thời gian</span><Link href={`/admin/orders/${order.id}`} className={styles.detailLink}><strong>{order.order_code}</strong></Link><small>{formatDate(order.created_at)}</small></div>
               <div><span className={styles.label}>Khách hàng</span><strong>{order.customer_name}</strong><small>{order.customer_phone}</small></div>
               <div><span className={styles.label}>Nhận hàng</span><strong>{order.fulfillment === 'pickup' ? 'Nhận tại quán' : 'Giao hàng'}</strong><small>{order.pickup_at ? formatDate(order.pickup_at) : order.delivery_address}</small></div>
               <div><span className={styles.label}>Thanh toán</span><strong>{formatMoney(order.total_vnd)}</strong><small>{PAYMENT_METHOD_LABEL[order.payment_method] ?? order.payment_method} · {PAYMENT_STATUS_LABEL[order.payment_status] ?? order.payment_status}</small></div>
-              <div><span className={styles.label}>Trạng thái</span><OrderStatusForm orderId={order.id} currentStatus={order.status} paymentMethod={order.payment_method} paymentStatus={order.payment_status} /></div>
+              <div className={styles.orderWorkflowCell}><span className={styles.label}><LocalizedText vi="Tiến trình xử lý" en="Order progress" /></span><OrderStatusForm orderId={order.id} currentStatus={order.status} paymentMethod={order.payment_method} paymentStatus={order.payment_status} /></div>
             </article>
           ))}
         </div>
