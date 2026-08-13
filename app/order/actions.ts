@@ -7,6 +7,7 @@ import { getSepayConfig } from '@/lib/payments/sepay-config';
 import { createAdminSupabaseClient } from '@/lib/supabase/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { verifyFormCaptcha } from '@/lib/security/turnstile';
+import { linkGuestOrderNotifications } from '@/lib/notifications/guest-session';
 
 export type CreateOrderResult =
   | {
@@ -82,6 +83,15 @@ export async function createProductionOrder(input: unknown): Promise<CreateOrder
       reason: receiptError ? 'database_error' : 'missing_result',
     });
     return { ok: false, error: 'ORDER_RECEIPT_FAILED', reference: correlationId };
+  }
+
+  const { data: claimsData } = await supabase.auth.getClaims();
+  if (!claimsData?.claims?.sub) {
+    try {
+      await linkGuestOrderNotifications(order.order_id);
+    } catch {
+      // Guest notifications are optional and must never block checkout.
+    }
   }
 
   if (parsed.data.paymentMethod === 'sepay_qr') {

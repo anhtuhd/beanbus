@@ -673,6 +673,7 @@ export type Database = {
           payment_method: Database['public']['Enums']['order_payment_method'];
           payment_status: Database['public']['Enums']['order_payment_status'];
           pickup_at: string | null;
+          receipt_token: string;
           status: Database['public']['Enums']['order_status'];
           subtotal_vnd: number;
           total_vnd: number;
@@ -695,6 +696,7 @@ export type Database = {
           payment_method: Database['public']['Enums']['order_payment_method'];
           payment_status?: Database['public']['Enums']['order_payment_status'];
           pickup_at?: string | null;
+          receipt_token?: string;
           status?: Database['public']['Enums']['order_status'];
           subtotal_vnd?: number;
           total_vnd?: number;
@@ -913,7 +915,7 @@ export type Database = {
           dedupe_key: string;
           href: string | null;
           id: string;
-          kind: 'order_created' | 'order_status_changed' | 'event_published' | 'store_announcement' | 'booking_request_created' | 'customer_request_created';
+          kind: 'order_created' | 'order_status_changed' | 'order_payment_changed' | 'event_published' | 'store_announcement' | 'booking_request_created' | 'booking_request_status_changed' | 'customer_request_created' | 'customer_request_status_changed';
           read_at: string | null;
           recipient_user_id: string;
           source_id: string;
@@ -931,6 +933,10 @@ export type Database = {
           email_event_updates: boolean;
           email_order_updates: boolean;
           email_store_updates: boolean;
+          push_event_updates: boolean;
+          push_order_updates: boolean;
+          push_request_updates: boolean;
+          push_store_updates: boolean;
           updated_at: string;
           user_id: string;
         };
@@ -989,6 +995,84 @@ export type Database = {
       };
       email_suppressions: {
         Row: { created_at: string; email: string; reason: 'bounced' | 'complained' };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      guest_notification_sessions: {
+        Row: { created_at: string; expires_at: string; id: string; last_seen_at: string };
+        Insert: { id: string; created_at?: string; expires_at?: string; last_seen_at?: string };
+        Update: Partial<Database['public']['Tables']['guest_notification_sessions']['Insert']>;
+        Relationships: [];
+      };
+      guest_order_access: {
+        Row: { created_at: string; guest_session_id: string; order_id: string };
+        Insert: { created_at?: string; guest_session_id: string; order_id: string };
+        Update: never;
+        Relationships: [];
+      };
+      guest_notifications: {
+        Row: {
+          body_en: string;
+          body_vi: string;
+          created_at: string;
+          dedupe_key: string;
+          guest_session_id: string;
+          href: string;
+          id: string;
+          kind: 'order_status_changed' | 'order_payment_changed';
+          order_id: string;
+          read_at: string | null;
+          title_en: string;
+          title_vi: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      fcm_installations: {
+        Row: {
+          active: boolean;
+          created_at: string;
+          fid: string;
+          id: string;
+          last_seen_at: string;
+          locale: 'vi' | 'en';
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      fcm_installation_recipients: {
+        Row: {
+          created_at: string;
+          guest_session_id: string | null;
+          id: string;
+          installation_id: string;
+          user_id: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      push_outbox: {
+        Row: {
+          attempt_count: number;
+          available_at: string;
+          created_at: string;
+          guest_notification_id: string | null;
+          id: string;
+          installation_id: string;
+          last_error_code: string | null;
+          locked_by: string | null;
+          locked_until: string | null;
+          notification_id: string | null;
+          payload: Json;
+          provider_message_id: string | null;
+          status: 'pending' | 'processing' | 'sent' | 'failed' | 'cancelled';
+          updated_at: string;
+        };
         Insert: never;
         Update: never;
         Relationships: [];
@@ -1536,6 +1620,53 @@ export type Database = {
           p_email_store_updates: boolean;
         };
         Returns: Database['public']['Tables']['notification_preferences']['Row'];
+      };
+      update_push_notification_preferences: {
+        Args: {
+          p_push_event_updates: boolean;
+          p_push_order_updates: boolean;
+          p_push_request_updates: boolean;
+          p_push_store_updates: boolean;
+        };
+        Returns: Database['public']['Tables']['notification_preferences']['Row'];
+      };
+      link_guest_order_notifications: {
+        Args: { p_guest_session_id: string; p_order_id: string };
+        Returns: boolean;
+      };
+      register_fcm_installation: {
+        Args: { p_fid: string; p_guest_session_id: string | null; p_locale: string; p_user_id: string | null };
+        Returns: string;
+      };
+      unlink_fcm_installation: {
+        Args: { p_disable?: boolean; p_fid: string; p_guest_session_id: string | null; p_user_id: string | null };
+        Returns: boolean;
+      };
+      unlink_user_fcm_installations: {
+        Args: { p_user_id: string };
+        Returns: number;
+      };
+      mark_guest_notifications_read: {
+        Args: { p_guest_session_id: string; p_notification_id?: string | null };
+        Returns: number;
+      };
+      claim_push_notification_batch: {
+        Args: { p_allowed_fids?: string[] | null; p_limit: number; p_worker_id: string };
+        Returns: {
+          attempt_count: number;
+          fid: string;
+          installation_id: string;
+          outbox_id: string;
+          payload: Json;
+        }[];
+      };
+      complete_push_notification: {
+        Args: { p_outbox_id: string; p_provider_message_id: string };
+        Returns: boolean;
+      };
+      fail_push_notification: {
+        Args: { p_error_code: string; p_outbox_id: string; p_retryable: boolean };
+        Returns: boolean;
       };
       publish_store_announcement: {
         Args: {

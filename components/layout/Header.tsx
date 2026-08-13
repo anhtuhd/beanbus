@@ -150,7 +150,7 @@ export const Header: React.FC = () => {
   const pathname = usePathname();
   const { lang, setLang, t } = useLanguage();
   const { cartCount, setIsCartOpen } = useCart();
-  const { user, isLoggedIn } = useAuth();
+  const { user, isLoggedIn, isAuthReady } = useAuth();
   const isAdmin = user?.role === 'admin';
   const [mobileMenuPath, setMobileMenuPath] = useState<string | null>(null);
   const [hash, setHash] = useState('');
@@ -274,7 +274,12 @@ export const Header: React.FC = () => {
             {cartCount > 0 && <span className={styles.cartBadge}>{cartCount}</span>}
           </button>
 
-          <NotificationBell isAdmin={isAdmin} isLoggedIn={isLoggedIn} userId={user?.id ?? null} />
+          <NotificationBell
+            isAdmin={isAdmin}
+            isAuthReady={isAuthReady}
+            isLoggedIn={isLoggedIn}
+            userId={user?.id ?? null}
+          />
 
           {/* ACCOUNT DROPDOWN */}
           <div className={styles.accountDropdownWrapper} onBlur={closeMenuOnBlur} onKeyDown={closeMenuOnEscape}>

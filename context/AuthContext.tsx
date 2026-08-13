@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
+import { currentWebPushFid } from '@/lib/notifications/firebase-client';
 import { toSessionProfile, toUserProfile } from '@/lib/auth/types';
 import type { AppMode } from '@/lib/env';
 import type { Tier, UserProfile } from '@/lib/auth/types';
@@ -21,6 +22,7 @@ export interface PointsTransaction {
 interface AuthContextType {
   user: UserProfile | null;
   isLoggedIn: boolean;
+  isAuthReady: boolean;
   loginWithPhone: (phone: string, otp: string) => Promise<boolean>;
   loginWithGoogle: () => Promise<boolean>;
   logout: () => void;
@@ -101,6 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode; mode: AppMode }
 }) => {
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(mode === 'demo' ? DEFAULT_USER : null);
+  const [isAuthReady, setIsAuthReady] = useState(mode === 'demo');
   const [transactions, setTransactions] = useState<PointsTransaction[]>(
     mode === 'demo' ? INITIAL_TRANSACTIONS : []
   );
@@ -110,32 +113,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode; mode: AppMode }
     if (mode === 'production') {
       const supabase = createBrowserSupabaseClient();
       let active = true;
+      let loadVersion = 0;
 
       const loadProfile = async () => {
-        const { data: claimsData } = await supabase.auth.getClaims();
-        const userId = claimsData?.claims?.sub;
+        const version = ++loadVersion;
+        try {
+          const { data: claimsData } = await supabase.auth.getClaims();
+          const userId = claimsData?.claims?.sub;
 
-        if (!userId) {
-          if (active) setUser(null);
-          return;
+          if (!userId) {
+            if (active && version === loadVersion) setUser(null);
+            return;
+          }
+
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id, member_number, full_name, phone, email, birthday, avatar_url, role, created_at, updated_at')
+            .eq('id', userId)
+            .maybeSingle();
+
+          if (active && version === loadVersion) setUser(profile ? toUserProfile(toSessionProfile(profile)) : null);
+        } catch {
+          if (active && version === loadVersion) setUser(null);
+        } finally {
+          if (active && version === loadVersion) setIsAuthReady(true);
         }
-
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id, member_number, full_name, phone, email, birthday, avatar_url, role, created_at, updated_at')
-          .eq('id', userId)
-          .maybeSingle();
-
-        if (active) setUser(profile ? toUserProfile(toSessionProfile(profile)) : null);
       };
 
       void loadProfile();
       const { data: listener } = supabase.auth.onAuthStateChange(() => {
+        setIsAuthReady(false);
         window.setTimeout(() => void loadProfile(), 0);
       });
 
       return () => {
         active = false;
+        loadVersion += 1;
         listener.subscription.unsubscribe();
       };
     }
@@ -158,6 +171,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode; mode: AppMode }
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      setIsAuthReady(true);
     }
   }, [mode]);
   /* eslint-enable react-hooks/set-state-in-effect */
@@ -223,11 +238,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode; mode: AppMode }
 
   const logout = () => {
     if (mode === 'production') {
-      void createBrowserSupabaseClient().auth.signOut().then(() => {
-        setUser(null);
-        router.replace('/');
-        router.refresh();
-      });
+      void (async () => {
+        try {
+          if (user && process.env.NEXT_PUBLIC_ENABLE_WEB_PUSH === 'true') {
+            const fid = currentWebPushFid();
+            if (fid) {
+              await fetch('/api/push/installations', {
+                method: 'DELETE',
+                credentials: 'same-origin',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ fid, scope: 'current-user' }),
+              }).catch(() => undefined);
+            }
+          }
+          await createBrowserSupabaseClient().auth.signOut();
+        } finally {
+          setUser(null);
+          router.replace('/');
+          router.refresh();
+        }
+      })();
       return;
     }
 
@@ -348,6 +378,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode; mode: AppMode }
       value={{
         user,
         isLoggedIn: !!user,
+        isAuthReady,
         loginWithPhone,
         loginWithGoogle,
         logout,

@@ -11,10 +11,13 @@ type NotificationRow = {
   kind:
     | 'order_created'
     | 'order_status_changed'
+    | 'order_payment_changed'
     | 'event_published'
     | 'store_announcement'
     | 'booking_request_created'
-    | 'customer_request_created';
+    | 'booking_request_status_changed'
+    | 'customer_request_created'
+    | 'customer_request_status_changed';
   title_vi: string;
   body_vi: string;
   href: string | null;

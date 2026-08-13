@@ -12,6 +12,7 @@ on:
           - dispatch-notification-emails
           - resend-webhook
           - email-unsubscribe
+          - dispatch-fcm-notifications
           - all
 
 concurrency:
@@ -58,8 +59,9 @@ jobs:
               deploy dispatch-notification-emails
               deploy resend-webhook
               deploy email-unsubscribe
+              deploy dispatch-fcm-notifications
               ;;
-            dispatch-notification-emails|resend-webhook|email-unsubscribe)
+            dispatch-notification-emails|resend-webhook|email-unsubscribe|dispatch-fcm-notifications)
               deploy "$FUNCTION"
               ;;
             *)

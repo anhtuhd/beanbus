@@ -19,6 +19,15 @@ const SEPAY_RECONCILIATION_KEYS = ['SEPAY_API_KEY', 'CRON_SECRET'] as const;
 const PHONE_AUTH_KEYS = ['NEXT_PUBLIC_TURNSTILE_SITE_KEY'] as const;
 const FORM_CAPTCHA_KEYS = ['NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'TURNSTILE_SECRET_KEY'] as const;
 const PASSWORD_AUTH_KEYS = ['PASSWORD_RECOVERY_SECRET'] as const;
+const GUEST_NOTIFICATION_KEYS = ['GUEST_NOTIFICATION_SECRET', 'SUPABASE_SECRET_KEY'] as const;
+const WEB_PUSH_KEYS = [
+  'NEXT_PUBLIC_FIREBASE_API_KEY',
+  'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
+  'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
+  'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
+  'NEXT_PUBLIC_FIREBASE_APP_ID',
+  'NEXT_PUBLIC_FIREBASE_VAPID_KEY',
+] as const;
 
 export type AppMode = 'demo' | 'production';
 
@@ -47,6 +56,10 @@ export function assertProductionEnv(env: Environment = process.env): void {
   if (env.NEXT_PUBLIC_ENABLE_SEPAY_RECONCILIATION === 'true' && env.NEXT_PUBLIC_ENABLE_SEPAY !== 'true') {
     throw new Error('NEXT_PUBLIC_ENABLE_SEPAY_RECONCILIATION requires NEXT_PUBLIC_ENABLE_SEPAY=true');
   }
+  if ((env.NEXT_PUBLIC_ENABLE_GUEST_NOTIFICATIONS === 'true' || env.NEXT_PUBLIC_ENABLE_WEB_PUSH === 'true')
+    && env.NEXT_PUBLIC_ENABLE_NOTIFICATIONS !== 'true') {
+    throw new Error('NEXT_PUBLIC_ENABLE_GUEST_NOTIFICATIONS or NEXT_PUBLIC_ENABLE_WEB_PUSH requires NEXT_PUBLIC_ENABLE_NOTIFICATIONS=true');
+  }
 
   const requiredKeys = [
     ...CORE_PRODUCTION_KEYS,
@@ -55,6 +68,8 @@ export function assertProductionEnv(env: Environment = process.env): void {
     ...(env.NEXT_PUBLIC_ENABLE_PHONE_AUTH === 'true' ? PHONE_AUTH_KEYS : []),
     ...(env.NEXT_PUBLIC_ENABLE_FORM_CAPTCHA === 'true' ? FORM_CAPTCHA_KEYS : []),
     ...(env.NEXT_PUBLIC_ENABLE_PASSWORD_AUTH === 'true' ? PASSWORD_AUTH_KEYS : []),
+    ...(env.NEXT_PUBLIC_ENABLE_GUEST_NOTIFICATIONS === 'true' ? GUEST_NOTIFICATION_KEYS : []),
+    ...(env.NEXT_PUBLIC_ENABLE_WEB_PUSH === 'true' ? WEB_PUSH_KEYS : []),
   ];
   const missing = requiredKeys.filter((key) => !env[key]?.trim());
 

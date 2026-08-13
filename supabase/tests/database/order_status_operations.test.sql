@@ -55,8 +55,8 @@ select is(
   'confirmed',
   'admin confirms a pending COD order'
 );
-select is((select count(*)::integer from public.order_status_history), 1, 'admin transition writes one audit row');
-select is((select actor_type from public.order_status_history), 'admin', 'admin transition records admin actor type');
+select is((select count(*)::integer from public.order_status_history where order_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'), 1, 'admin transition writes one audit row');
+select is((select actor_type from public.order_status_history where order_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'), 'admin', 'admin transition records admin actor type');
 select is(
   (select updated_order_status::text from public.update_order_status(
     'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'confirmed'
@@ -64,7 +64,7 @@ select is(
   'confirmed',
   'same order status is idempotent'
 );
-select is((select count(*)::integer from public.order_status_history), 1, 'idempotent order retry adds no audit row');
+select is((select count(*)::integer from public.order_status_history where order_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'), 1, 'idempotent order retry adds no audit row');
 select throws_like(
   $$select * from public.update_order_status('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'ready')$$,
   '%INVALID_ORDER_TRANSITION%',

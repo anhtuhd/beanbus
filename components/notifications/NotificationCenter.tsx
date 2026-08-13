@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Bell, Check, CheckCheck, Mail, Save } from 'lucide-react';
+import { Bell, Check, CheckCheck, Mail, Save, Smartphone } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/database.types';
@@ -56,6 +56,10 @@ export default function NotificationCenter({
       email_order_updates: true,
       email_event_updates: false,
       email_store_updates: false,
+      push_order_updates: true,
+      push_request_updates: true,
+      push_event_updates: false,
+      push_store_updates: false,
       created_at: '',
       updated_at: '',
     }),
@@ -125,6 +129,22 @@ export default function NotificationCenter({
     setMessage('Đã lưu lựa chọn email.');
   };
 
+  const savePushPreferences = async () => {
+    const supabase = createBrowserSupabaseClient();
+    const { data, error } = await supabase.rpc('update_push_notification_preferences', {
+      p_push_order_updates: preferences.push_order_updates,
+      p_push_request_updates: preferences.push_request_updates,
+      p_push_event_updates: preferences.push_event_updates,
+      p_push_store_updates: preferences.push_store_updates,
+    });
+    if (error || !data) {
+      setMessage('Không thể lưu lựa chọn thông báo thiết bị.');
+      return;
+    }
+    setPreferences(data);
+    setMessage('Đã lưu lựa chọn thông báo thiết bị.');
+  };
+
   return (
     <div className={`wrap ${styles.page}`}>
       <header className={styles.header}>
@@ -168,7 +188,8 @@ export default function NotificationCenter({
       )}
 
       {!isAdmin && (
-        <section className={styles.preferences}>
+        <>
+          <section className={styles.preferences}>
             <div className={styles.preferenceHeading}>
             <Mail size={19} />
             <div><h2>{t('Lựa chọn email', 'Email preferences')}</h2><p>{t('Email cập nhật đơn hàng luôn được bật để không bỏ lỡ thông tin giao dịch.', 'Order update emails stay enabled so you do not miss transaction details.')}</p></div>
@@ -177,7 +198,21 @@ export default function NotificationCenter({
           <label className={styles.checkRow}><input type="checkbox" checked={preferences.email_event_updates} onChange={(event) => setPreferences({ ...preferences, email_event_updates: event.target.checked })} /> {t('Email sự kiện Beanbus', 'Beanbus event emails')}</label>
           <label className={styles.checkRow}><input type="checkbox" checked={preferences.email_store_updates} onChange={(event) => setPreferences({ ...preferences, email_store_updates: event.target.checked })} /> {t('Email thông báo từ cửa hàng', 'Store announcement emails')}</label>
           <button type="button" className={styles.primaryButton} onClick={() => void savePreferences()}><Save size={16} /> {t('Lưu lựa chọn', 'Save preferences')}</button>
-        </section>
+          </section>
+          {process.env.NEXT_PUBLIC_ENABLE_WEB_PUSH === 'true' && (
+            <section className={styles.preferences}>
+              <div className={styles.preferenceHeading}>
+                <Smartphone size={19} />
+                <div><h2>{t('Thông báo thiết bị', 'Device notifications')}</h2><p>{t('Chọn loại cập nhật được gửi tới trình duyệt đã bật thông báo.', 'Choose which updates are sent to browsers with notifications enabled.')}</p></div>
+              </div>
+              <label className={styles.checkRow}><input type="checkbox" checked={preferences.push_order_updates} onChange={(event) => setPreferences({ ...preferences, push_order_updates: event.target.checked })} /> {t('Trạng thái và thanh toán đơn hàng', 'Order and payment updates')}</label>
+              <label className={styles.checkRow}><input type="checkbox" checked={preferences.push_request_updates} onChange={(event) => setPreferences({ ...preferences, push_request_updates: event.target.checked })} /> {t('Đặt bàn và yêu cầu', 'Bookings and requests')}</label>
+              <label className={styles.checkRow}><input type="checkbox" checked={preferences.push_event_updates} onChange={(event) => setPreferences({ ...preferences, push_event_updates: event.target.checked })} /> {t('Sự kiện Beanbus', 'Beanbus events')}</label>
+              <label className={styles.checkRow}><input type="checkbox" checked={preferences.push_store_updates} onChange={(event) => setPreferences({ ...preferences, push_store_updates: event.target.checked })} /> {t('Thông báo từ cửa hàng', 'Store announcements')}</label>
+              <button type="button" className={styles.primaryButton} onClick={() => void savePushPreferences()}><Save size={16} /> {t('Lưu lựa chọn', 'Save preferences')}</button>
+            </section>
+          )}
+        </>
       )}
 
       {isAdmin && (

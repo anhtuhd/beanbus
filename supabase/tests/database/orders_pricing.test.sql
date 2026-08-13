@@ -55,9 +55,9 @@ select is(
 );
 
 reset role;
-select is((select count(*)::integer from public.orders), 1, 'repeated idempotency key creates one order');
+select is((select count(*)::integer from public.orders where idempotency_key = '55555555-5555-4555-8555-555555555555'), 1, 'repeated idempotency key creates one order');
 select is((select usage_count from public.vouchers where code = 'BEANBUS10'), 1, 'idempotent retry consumes voucher once');
-select is((select unit_price_vnd from public.order_items), 45000, 'order item stores the canonical unit-price snapshot');
+select is((select unit_price_vnd from public.order_items where order_id = (select order_id from created_order)), 45000, 'order item stores the canonical unit-price snapshot');
 
 set local role anon;
 select throws_like(

@@ -44,6 +44,7 @@
     "supabase/functions/dispatch-notification-emails/index.ts",
     "supabase/functions/resend-webhook/index.ts",
     "supabase/functions/email-unsubscribe/index.ts",
+    "supabase/functions/dispatch-fcm-notifications/index.ts",
     "supabase/functions/send-zalo-otp/index.ts",
     "supabase/functions/refresh-zalo-token/index.ts"
   ]

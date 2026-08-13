@@ -26,7 +26,7 @@ const nextConfig: NextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
           {
             key: 'Content-Security-Policy-Report-Only',
-            value: `default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; img-src 'self' data: blob: https:; script-src 'self' 'unsafe-inline'${developmentScriptPolicy} https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https:; frame-src 'self' https://challenges.cloudflare.com https://www.google.com; font-src 'self' data: https:;`,
+            value: `default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; img-src 'self' data: blob: https:; script-src 'self' 'unsafe-inline'${developmentScriptPolicy} https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https:; frame-src 'self' https://challenges.cloudflare.com https://www.google.com; font-src 'self' data: https:; worker-src 'self' blob:;`,
           },
           ...(productionHttps ? [{
             key: 'Strict-Transport-Security',

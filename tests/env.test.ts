@@ -137,3 +137,47 @@ test('assertProductionEnv requires SePay reconciliation credentials only when en
     CRON_SECRET: 'cron-secret-123456',
   }));
 });
+
+test('guest notifications require server-only cookie and Supabase credentials', () => {
+  const coreEnv = {
+    NEXT_PUBLIC_APP_MODE: 'production',
+    NEXT_PUBLIC_SITE_URL: 'https://www.beanbus.store',
+    NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co',
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'public-key',
+    NEXT_PUBLIC_ENABLE_NOTIFICATIONS: 'true',
+    NEXT_PUBLIC_ENABLE_GUEST_NOTIFICATIONS: 'true',
+  };
+
+  assert.throws(() => assertProductionEnv(coreEnv), /GUEST_NOTIFICATION_SECRET, SUPABASE_SECRET_KEY/);
+  assert.doesNotThrow(() => assertProductionEnv({
+    ...coreEnv,
+    GUEST_NOTIFICATION_SECRET: 'guest-secret-at-least-32-characters-long',
+    SUPABASE_SECRET_KEY: 'sb_secret_test',
+  }));
+});
+
+test('web push requires notifications and complete public Firebase configuration', () => {
+  const coreEnv = {
+    NEXT_PUBLIC_APP_MODE: 'production',
+    NEXT_PUBLIC_SITE_URL: 'https://www.beanbus.store',
+    NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co',
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'public-key',
+    NEXT_PUBLIC_ENABLE_WEB_PUSH: 'true',
+  };
+
+  assert.throws(() => assertProductionEnv(coreEnv), /requires NEXT_PUBLIC_ENABLE_NOTIFICATIONS=true/);
+  assert.throws(() => assertProductionEnv({
+    ...coreEnv,
+    NEXT_PUBLIC_ENABLE_NOTIFICATIONS: 'true',
+  }), /NEXT_PUBLIC_FIREBASE_API_KEY/);
+  assert.doesNotThrow(() => assertProductionEnv({
+    ...coreEnv,
+    NEXT_PUBLIC_ENABLE_NOTIFICATIONS: 'true',
+    NEXT_PUBLIC_FIREBASE_API_KEY: 'firebase-api-key',
+    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'beanbus.firebaseapp.com',
+    NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'beanbus',
+    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '123456789',
+    NEXT_PUBLIC_FIREBASE_APP_ID: '1:123456789:web:abc123',
+    NEXT_PUBLIC_FIREBASE_VAPID_KEY: 'vapid-public-key',
+  }));
+});
