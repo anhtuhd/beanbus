@@ -21,6 +21,7 @@ import type { MemberAccountOrder, MemberLoyaltyEntry, MemberLoyaltySummary, Memb
 import {
   Award,
   ArrowRight,
+  History,
   ShoppingBag,
   Ticket,
   LogOut,
@@ -473,6 +474,7 @@ export default function AccountClient({
             <div className={styles.featureLinks} aria-label={t('Chương trình thanh toán điểm', 'Stored-value programs')}>
               <Link href="/account/topup" className={styles.featureLink}><span>{t('Nạp điểm', 'Top up points')}</span><ArrowRight size={15} /></Link>
               <Link href="/flash-sale" className={styles.featureLink}><span>{t('Flash-sale', 'Flash sale')}</span><ArrowRight size={15} /></Link>
+              <Link href="/account/payment-history" className={styles.featureLink}><History size={15} /><span>{t('Lịch sử giao dịch', 'Transaction history')}</span></Link>
             </div>
           )}
 

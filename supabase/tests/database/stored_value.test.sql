@@ -119,7 +119,7 @@ create temporary table stored_topup_payment as
 select * from public.create_stored_value_payment(
   'topup', (select purchase_id from stored_topup_intent), 'MB', '0937936688'
 );
-select matches((select payment_code from stored_topup_payment), '^BT[0-9]+$', 'top-up payment code has the BT prefix');
+select matches((select payment_code from stored_topup_payment), '^DH-TP-[A-F0-9]{20}$', 'top-up payment code contains DH and has a random suffix');
 select is(
   (select count(*)::integer from public.create_stored_value_payment(
     'topup', (select purchase_id from stored_topup_intent), 'MB', '0937936688'
@@ -175,7 +175,7 @@ create temporary table stored_flash_payment as
 select * from public.create_stored_value_payment(
   'flash_sale', (select purchase_id from stored_flash_intent), 'MB', '0937936688'
 );
-select matches((select payment_code from stored_flash_payment), '^BF[0-9]+$', 'flash-sale payment code has the BF prefix');
+select matches((select payment_code from stored_flash_payment), '^DH-FS-[A-F0-9]{20}$', 'flash-sale payment code contains DH and has a random suffix');
 select is(
   (select outcome from public.process_stored_value_webhook(
     91002, 'MBBank', now(), '0937936688', (select payment_code from stored_flash_payment),

@@ -1945,6 +1945,23 @@ export type Database = {
           purchase_type: 'topup' | 'flash_sale';
         }[];
       };
+      get_member_payment_history: {
+        Args: { p_page?: number; p_page_size?: number };
+        Returns: {
+          amount_vnd: number;
+          created_at: string;
+          expires_at: string;
+          paid_at: string | null;
+          payment_code: string | null;
+          payment_method: string;
+          points: number;
+          reference_code: string;
+          reference_id: string;
+          source_type: string;
+          status: string;
+          total_count: number;
+        }[];
+      };
       process_stored_value_webhook: {
         Args: {
           p_account_number: string;

@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, CheckCircle, Clock3, Copy, LoaderCircle, QrCode, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock3, Copy, History, LoaderCircle, QrCode, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { createStoredValuePayment, getStoredValuePaymentStatus, type StoredValueActionResult } from './stored-value-actions';
 import type { StoredValueCatalogItem, StoredValueKind } from '@/lib/stored-value/queries';
@@ -25,7 +25,7 @@ function statusText(status: string): string {
   if (status === 'paid') return 'Đã ghi nhận thanh toán và cộng điểm.';
   if (status === 'expired') return 'Yêu cầu đã hết hạn. Bạn có thể tạo yêu cầu mới.';
   if (status === 'failed') return 'Thanh toán không thành công.';
-  return 'Đang chờ Sepay xác nhận giao dịch.';
+  return 'Đang chờ hệ thống xác nhận giao dịch.';
 }
 
 export default function StoredValueClient({
@@ -92,7 +92,7 @@ export default function StoredValueClient({
 
   const title = kind === 'topup' ? 'Nạp điểm hội viên' : 'Flash-sale điểm thưởng';
   const description = kind === 'topup'
-    ? 'Chọn gói, chuyển khoản đúng số tiền và chờ hệ thống xác nhận từ Sepay.'
+    ? 'Chọn gói, chuyển khoản đúng số tiền và chờ hệ thống xác nhận.'
     : 'Suất flash-sale được giữ trong thời gian ngắn và chỉ cộng điểm sau giao dịch đã xác minh.';
 
   return (
@@ -100,6 +100,7 @@ export default function StoredValueClient({
       <div className={styles.header}>
         <div>
           <Link href="/account" className={styles.backLink}><ArrowLeft size={16} /> {t('Về tài khoản', 'Back to account')}</Link>
+          <Link href="/account/payment-history" className={styles.backLink}><History size={16} /> {t('Lịch sử giao dịch', 'Transaction history')}</Link>
           <p className="eyebrow">Beanbus Member</p>
           <h1>{title}</h1>
           <p className={styles.lede}>{description}</p>

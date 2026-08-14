@@ -81,6 +81,7 @@ const BEANBUS_PAYMENT_CODE_PATTERNS = [
   /\bDH-[0-9]{6}[A-Za-z0-9]{6}\b/i,
   /\bDH[0-9]{6}[A-Za-z0-9]{6}\b/i,
 ];
+const STORED_VALUE_PAYMENT_CODE_PATTERN = /\b(?:DH-(?:TP|FS)-[A-F0-9]{20}|B[TF][0-9]+)\b/i;
 
 function normalizeBeanbusPaymentCode(value: string): string | null {
   for (const pattern of BEANBUS_PAYMENT_CODE_PATTERNS) {
@@ -96,6 +97,11 @@ function normalizeBeanbusPaymentCode(value: string): string | null {
 
 export function resolveSepayPaymentCode(code: string | null, content: string): string | null {
   return normalizeBeanbusPaymentCode(code ?? '') ?? normalizeBeanbusPaymentCode(content);
+}
+
+export function resolveStoredValuePaymentCode(code: string | null, content: string): string | null {
+  const match = `${code ?? ''} ${content}`.match(STORED_VALUE_PAYMENT_CODE_PATTERN)?.[0];
+  return match?.toUpperCase() ?? null;
 }
 
 export function parseSepayWebhook(value: unknown): SepayWebhook | null {

@@ -1,5 +1,5 @@
 import { getSepayConfig } from '@/lib/payments/sepay-config';
-import { isSepayTestPayload, parseSepayWebhook, parseSepayWebhookBody, resolveSepayPaymentCode, verifySepayHmac } from '@/lib/payments/sepay';
+import { isSepayTestPayload, parseSepayWebhook, parseSepayWebhookBody, resolveSepayPaymentCode, resolveStoredValuePaymentCode, verifySepayHmac } from '@/lib/payments/sepay';
 import {
   CORRELATION_HEADER,
   createCorrelationId,
@@ -81,9 +81,9 @@ export async function POST(request: Request) {
 
   try {
     const admin = createAdminSupabaseClient();
+    const storedValueCode = resolveStoredValuePaymentCode(event.code, event.content);
     const paymentCode = resolveSepayPaymentCode(event.code, event.content);
-    const storedValueCode = typeof event.code === 'string' ? event.code.trim() : null;
-    const isStoredValueCode = typeof storedValueCode === 'string' && /^B[TF][0-9]+$/i.test(storedValueCode);
+    const isStoredValueCode = Boolean(storedValueCode);
     const rpcCode = isStoredValueCode ? storedValueCode : paymentCode;
     if (isStoredValueCode && !isStoredValueConfigured()) {
       return rejectWebhook(404, correlationId, 'feature_disabled');

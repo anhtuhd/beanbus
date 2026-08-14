@@ -3,10 +3,12 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { isStoredValueConfigured } from '../lib/stored-value/config.ts';
 import { parseStoredValueIntentInput } from '../lib/stored-value/input.ts';
+import { resolveStoredValuePaymentCode } from '../lib/payments/sepay.ts';
 
 const migration = readFileSync('supabase/migrations/20260810060000_stored_value.sql', 'utf8');
 const expiryMigration = readFileSync('supabase/migrations/20260811014925_fix_stored_value_expiry_ambiguity.sql', 'utf8');
 const precedenceMigration = readFileSync('supabase/migrations/20260811050000_fix_flash_sale_error_precedence.sql', 'utf8');
+const secureCodeMigration = readFileSync('supabase/migrations/20260814100000_secure_stored_value_codes_and_history.sql', 'utf8');
 const databaseTest = readFileSync('supabase/tests/database/stored_value.test.sql', 'utf8');
 const action = readFileSync('app/account/stored-value-actions.ts', 'utf8');
 const client = readFileSync('app/account/StoredValueClient.tsx', 'utf8');
@@ -14,6 +16,7 @@ const webhook = readFileSync('app/api/webhooks/sepay/route.ts', 'utf8');
 const adminPage = readFileSync('app/admin/stored-value/page.tsx', 'utf8');
 const adminActions = readFileSync('app/admin/stored-value/actions.ts', 'utf8');
 const accountClient = readFileSync('app/account/AccountClient.tsx', 'utf8');
+const historyPage = readFileSync('app/account/payment-history/page.tsx', 'utf8');
 
 test('stored value is fail-closed behind production, Sepay, and explicit feature gates', () => {
   assert.equal(isStoredValueConfigured({ NEXT_PUBLIC_APP_MODE: 'demo', NEXT_PUBLIC_ENABLE_SEPAY: 'true', NEXT_PUBLIC_ENABLE_STORED_VALUE: 'true' }), false);
@@ -30,6 +33,19 @@ test('stored value intent input accepts only UUID identifiers and idempotency ke
   assert.equal(valid.ok, true);
   assert.equal(parseStoredValueIntentInput({ itemId: 'package', idempotencyKey: 'key' }).ok, false);
   assert.equal(parseStoredValueIntentInput(null).ok, false);
+});
+
+test('stored-value webhook codes contain DH and use an unpredictable random suffix', () => {
+  assert.equal(resolveStoredValuePaymentCode('DH-TP-0123456789ABCDEF0123', ''), 'DH-TP-0123456789ABCDEF0123');
+  assert.equal(resolveStoredValuePaymentCode(null, 'paid DH-FS-ABCDEF0123456789ABCD'), 'DH-FS-ABCDEF0123456789ABCD');
+  assert.equal(resolveStoredValuePaymentCode('DH-260812ABC123', ''), null);
+  assert.match(secureCodeMigration, /extensions\.gen_random_bytes\(10\)/i);
+  assert.match(secureCodeMigration, /DH-TP-/);
+  assert.match(secureCodeMigration, /DH-FS-/);
+});
+
+test('stored-value UI does not expose the payment provider label', () => {
+  assert.doesNotMatch(client, /Sepay/i);
 });
 
 test('stored value migration isolates payments, locks quota, and credits only from verified webhooks', () => {
@@ -78,9 +94,11 @@ test('server action owns payment configuration and client has no payment-success
   assert.doesNotMatch(client, /updateOrderStatus/);
   assert.doesNotMatch(client, /addPoints/);
   assert.match(webhook, /process_stored_value_webhook/);
-  assert.match(webhook, /\^B\[TF\]\[0-9\]\+\$/i);
+  assert.match(webhook, /resolveStoredValuePaymentCode/);
   assert.match(webhook, /isStoredValueCode && !isStoredValueConfigured\(\)/);
   assert.match(webhook, /feature_disabled/);
+  assert.match(historyPage, /getMemberPaymentHistory/);
+  assert.match(historyPage, /payment-history-title/);
 });
 
 test('admin stored-value controls are guarded and audited through RPC boundaries', () => {
