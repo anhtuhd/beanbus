@@ -7,6 +7,7 @@ import { upsertAdminBlogPost } from './blog-actions';
 import { initialContentEditorState } from './content-editor-state';
 import styles from '../requests/requests.module.css';
 import { LocalizedText } from '@/components/ui/LocalizedText';
+import MediaUploader from '@/components/admin/MediaUploader';
 
 type BlogPost = Pick<Database['public']['Tables']['blog_posts']['Row'], 'id' | 'slug' | 'title_vi' | 'title_en' | 'category_vi' | 'category_en' | 'author' | 'read_time_vi' | 'read_time_en' | 'excerpt_vi' | 'excerpt_en' | 'content_vi' | 'content_en' | 'cover_image_url' | 'is_published' | 'sort_order'>;
 
@@ -24,7 +25,7 @@ export default function BlogEditorForm({ post }: { post?: BlogPost }) {
         <label>Tác giả<input name="author" defaultValue={post?.author ?? ''} maxLength={100} required /></label>
         <label>Thời gian đọc VI<input name="readTimeVi" defaultValue={post?.read_time_vi ?? ''} maxLength={40} required /></label>
         <label>Thời gian đọc EN<input name="readTimeEn" defaultValue={post?.read_time_en ?? ''} maxLength={40} required /></label>
-        <label>Ảnh cover HTTPS<input name="coverImageUrl" type="url" defaultValue={post?.cover_image_url ?? ''} required /></label>
+        <MediaUploader kind="blog" name="coverImageUrl" defaultValue={post?.cover_image_url ?? ''} required />
         <label>Thứ tự<input name="sortOrder" type="number" min="0" step="1" defaultValue={post?.sort_order ?? 0} required /></label>
       </div>
       <div className={styles.editorTextareas}>

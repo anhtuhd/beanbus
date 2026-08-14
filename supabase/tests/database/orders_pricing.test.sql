@@ -1,12 +1,14 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(15);
+select plan(18);
 
 select has_table('public', 'vouchers', 'vouchers table exists');
 select has_table('public', 'orders', 'orders table exists');
 select has_table('public', 'order_items', 'order items table exists');
 select has_table('public', 'order_item_options', 'order item options table exists');
+select has_table('public', 'catalog_option_groups', 'catalog option groups table exists');
+select has_function('public', 'enforce_catalog_option_limits', array[]::text[], 'modifier limits trigger function exists');
 
 set local role anon;
 create temporary table created_order as
@@ -68,6 +70,20 @@ select throws_like(
   )$$,
   '%INVALID_OPTION%',
   'unknown options are rejected'
+);
+select throws_like(
+  $$do $body$
+  begin
+    perform public.create_server_priced_order(
+      '88888888-8888-4888-8888-888888888888', 'Khách Beanbus', '+84912345678',
+      'pickup', now() + interval '1 hour', null, null, 'cod', null,
+      '[{"productId":"cd-1","quantity":1,"optionIds":[]}]'::jsonb
+    );
+    set constraints all immediate;
+  end;
+  $body$;$$,
+  '%INVALID_OPTION_SELECTIONS%',
+  'required modifier groups are enforced'
 );
 
 reset role;

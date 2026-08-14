@@ -28,6 +28,13 @@ const WEB_PUSH_KEYS = [
   'NEXT_PUBLIC_FIREBASE_APP_ID',
   'NEXT_PUBLIC_FIREBASE_VAPID_KEY',
 ] as const;
+const R2_MEDIA_KEYS = [
+  'R2_ACCOUNT_ID',
+  'R2_BUCKET_NAME',
+  'R2_ACCESS_KEY_ID',
+  'R2_SECRET_ACCESS_KEY',
+  'NEXT_PUBLIC_R2_PUBLIC_BASE_URL',
+] as const;
 
 export type AppMode = 'demo' | 'production';
 
@@ -53,6 +60,9 @@ export function getSiteUrl(env: Environment = process.env): string {
 
 export function assertProductionEnv(env: Environment = process.env): void {
   if (getAppMode(env) !== 'production') return;
+  if (env.CATALOG_MENU_MODE && !['legacy', 'scheduled'].includes(env.CATALOG_MENU_MODE)) {
+    throw new Error('CATALOG_MENU_MODE must be legacy or scheduled');
+  }
   if (env.NEXT_PUBLIC_ENABLE_SEPAY_RECONCILIATION === 'true' && env.NEXT_PUBLIC_ENABLE_SEPAY !== 'true') {
     throw new Error('NEXT_PUBLIC_ENABLE_SEPAY_RECONCILIATION requires NEXT_PUBLIC_ENABLE_SEPAY=true');
   }
@@ -70,6 +80,7 @@ export function assertProductionEnv(env: Environment = process.env): void {
     ...(env.NEXT_PUBLIC_ENABLE_PASSWORD_AUTH === 'true' ? PASSWORD_AUTH_KEYS : []),
     ...(env.NEXT_PUBLIC_ENABLE_GUEST_NOTIFICATIONS === 'true' ? GUEST_NOTIFICATION_KEYS : []),
     ...(env.NEXT_PUBLIC_ENABLE_WEB_PUSH === 'true' ? WEB_PUSH_KEYS : []),
+    ...(env.NEXT_PUBLIC_ENABLE_R2_MEDIA === 'true' ? R2_MEDIA_KEYS : []),
   ];
   const missing = requiredKeys.filter((key) => !env[key]?.trim());
 

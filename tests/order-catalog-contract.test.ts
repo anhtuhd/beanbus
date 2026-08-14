@@ -12,7 +12,7 @@ test('order route loads the production catalog in the server shell', () => {
   assert.doesNotMatch(page, /['"]use client['"]/);
   assert.match(page, /getCatalog\(\)/);
   assert.match(page, /getAppMode\(\)/);
-  assert.match(page, /OrderPageView categories=\{catalog\.categories\} products=\{catalog\.products\}/);
+  assert.match(page, /OrderPageView categories=\{catalog\.categories\} products=\{catalog\.products\} menus=\{catalog\.menus\}/);
   assert.match(page, /<OrderClient categories=\{categories\} products=\{products\}/);
   assert.match(client, /catalogProducts\.filter/);
   assert.doesNotMatch(client, /PRODUCTS\.filter/);

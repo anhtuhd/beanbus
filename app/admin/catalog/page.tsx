@@ -2,7 +2,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, Search } from 'lucide-react';
 import ProductStatusForm from './ProductStatusForm';
-import ProductEditorForm from './ProductEditorForm';
 import styles from '../requests/requests.module.css';
 import { requireAdmin } from '@/lib/auth/session';
 import { boundedPage } from '@/lib/pagination';
@@ -47,12 +46,11 @@ export default async function AdminCatalogPage({ searchParams }: PageProps) {
   await requireAdmin();
   const params = await searchParams;
   const supabase = await createServerSupabaseClient();
-  const [categoriesResult, optionSetsResult] = await Promise.all([
-    supabase.from('catalog_categories').select('id, name_vi').order('sort_order'),
-    supabase.from('catalog_option_sets').select('id, name').order('created_at'),
-  ]);
+  const categoriesResult = await supabase
+    .from('catalog_categories')
+    .select('id, name_vi')
+    .order('sort_order');
   const categories = categoriesResult.data ?? [];
-  const optionSets = optionSetsResult.data ?? [];
   const categoryIds = new Set(categories.map((item) => item.id));
   const requestedCategory = first(params.category);
   const category = categoryIds.has(requestedCategory) ? requestedCategory : 'all';
@@ -87,13 +85,22 @@ export default async function AdminCatalogPage({ searchParams }: PageProps) {
           <h1>Catalog Operations</h1>
           <p>Giá và nội dung lấy từ catalog production; mọi thay đổi được ghi audit.</p>
         </div>
-        <span className={styles.total}>{count} sản phẩm</span>
+        <div className={styles.catalogTabs}>
+          <Link href="/admin/catalog" className={styles.activeFilter}>Món / Products</Link>
+          <Link href="/admin/catalog/menus">Menu Builder</Link>
+          <span className={styles.total}>{count} sản phẩm</span>
+        </div>
       </header>
 
-      <details className={styles.editorDetails}>
-        <summary>Thêm sản phẩm</summary>
-        <ProductEditorForm categories={categories} optionSets={optionSets} />
-      </details>
+      <section className={styles.editorDetails} aria-labelledby="catalog-builder-heading">
+        <div className={styles.editorCallout}>
+          <div>
+            <strong id="catalog-builder-heading">Tạo và chỉnh món trong Menu Builder</strong>
+            <p>Tên, giá, ảnh và cấu trúc menu được lưu vào bản nháp, sau đó xuất bản cùng một lần.</p>
+          </div>
+          <Link href="/admin/catalog/menus#product-library" className={styles.saveButton}>Mở Menu Builder</Link>
+        </div>
+      </section>
 
       <form className={styles.searchForm} action="/admin/catalog" method="get">
         <input type="hidden" name="state" value={state} />
@@ -122,7 +129,7 @@ export default async function AdminCatalogPage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      {result.error || categoriesResult.error || optionSetsResult.error ? (
+      {result.error || categoriesResult.error ? (
         <div className={styles.stateBox} role="alert">Không thể tải catalog.</div>
       ) : products.length === 0 ? (
         <div className={styles.stateBox}>Không có sản phẩm phù hợp.</div>
@@ -137,10 +144,7 @@ export default async function AdminCatalogPage({ searchParams }: PageProps) {
               <div><span className={styles.label}>Mã / Danh mục</span><strong>{product.id}</strong><small>{categoryNames.get(product.category_id) ?? product.category_id}</small></div>
               <div><span className={styles.label}>Giá canonical</span><strong>{product.price_vnd.toLocaleString('vi-VN')}đ</strong></div>
               <div><span className={styles.label}>Trạng thái</span><ProductStatusForm productId={product.id} isAvailable={product.is_available} isPublished={product.is_published} /></div>
-              <details className={styles.inlineEditor}>
-                <summary>Chỉnh sửa</summary>
-                <ProductEditorForm product={product} categories={categories} optionSets={optionSets} />
-              </details>
+              <Link href="/admin/catalog/menus#product-library" className={styles.inlineEditor}>Chỉnh sửa trong Menu Builder</Link>
             </article>
           ))}
         </div>

@@ -14,18 +14,24 @@ import styles from './page.module.css';
 type MenuClientProps = {
   categories: Category[];
   products: Product[];
+  menus?: Array<{ id: string; nameVi: string; nameEn: string; isOpen: boolean; products: Product[]; categories: Category[] }>;
+  storeClosed?: boolean;
 };
 
-export default function MenuClient({ categories, products }: MenuClientProps) {
+export default function MenuClient({ categories, products, menus, storeClosed = false }: MenuClientProps) {
   const { t, lang } = useLanguage();
   const { syncCatalog } = useCart();
-  useEffect(() => syncCatalog(products), [products, syncCatalog]);
+  const [activeMenuId, setActiveMenuId] = useState(menus?.find((menu) => menu.isOpen)?.id ?? menus?.[0]?.id ?? '');
+  const activeMenu = menus?.find((menu) => menu.id === activeMenuId);
+  const visibleCategories = activeMenu?.categories ?? categories;
+  const visibleProducts = activeMenu?.products ?? products;
+  useEffect(() => syncCatalog(visibleProducts), [visibleProducts, syncCatalog]);
   const [selectedCat, setSelectedCat] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc'>('default');
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
 
-  let filtered = products.filter((product) => {
+  let filtered = visibleProducts.filter((product) => {
     const matchesCategory = selectedCat === 'all' || product.categoryId === selectedCat;
     const searchable = `${product.nameVi} ${product.nameEn} ${product.tastingNotes ?? ''}`.toLowerCase();
     return matchesCategory && searchable.includes(searchQuery.toLowerCase());
@@ -54,6 +60,10 @@ export default function MenuClient({ categories, products }: MenuClientProps) {
       </div>
 
       <div className="wrap">
+        {menus && menus.length > 1 && <div className={styles.menuTabs} aria-label={t('Các menu đang hoạt động', 'Available menus')}>
+          {menus.map((menu) => <button key={menu.id} type="button" className={activeMenuId === menu.id ? styles.menuTabActive : styles.menuTab} onClick={() => { setActiveMenuId(menu.id); setSelectedCat('all'); }}>{lang === 'en' ? menu.nameEn : menu.nameVi}{menu.isOpen ? '' : ` · ${t('Đóng', 'Closed')}`}</button>)}
+        </div>}
+
         <div className={styles.controlsBar}>
           <div className={styles.searchBox}>
             <Search size={18} className={styles.searchIcon} />
@@ -81,7 +91,7 @@ export default function MenuClient({ categories, products }: MenuClientProps) {
         </div>
 
         <div className={styles.categoryTabs} aria-label={t('Danh mục', 'Categories')}>
-          {categories.map((category) => (
+          {visibleCategories.map((category) => (
             <button
               key={category.id}
               className={`${styles.tabBtn} ${selectedCat === category.id ? styles.tabActive : ''}`}
@@ -95,8 +105,8 @@ export default function MenuClient({ categories, products }: MenuClientProps) {
         {filtered.length === 0 ? (
           <div className={styles.emptyState}>
             <ShoppingBag size={48} className={styles.emptyIcon} />
-            <h3>{t('Không tìm thấy sản phẩm phù hợp', 'No products found')}</h3>
-            <p>{t('Hãy thử tìm kiếm với từ khóa khác hoặc chuyển danh mục.', 'Try searching another keyword or change category.')}</p>
+            <h3>{storeClosed && !activeMenu?.isOpen ? t('Hiện đã hết giờ phục vụ', 'The store is currently closed') : t('Không tìm thấy sản phẩm phù hợp', 'No products found')}</h3>
+            <p>{storeClosed && !activeMenu?.isOpen ? t('Menu sẽ hiển thị lại khi cửa hàng mở cửa.', 'The menu will be available again during opening hours.') : t('Hãy thử tìm kiếm với từ khóa khác hoặc chuyển danh mục.', 'Try searching another keyword or change category.')}</p>
           </div>
         ) : (
           <div className={styles.productsGrid}>

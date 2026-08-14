@@ -7,6 +7,7 @@ import { getRequestCorrelationId } from '@/lib/observability/request';
 import { logOperationalFailure } from '@/lib/observability/logger';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import type { ContentEditorState } from './content-editor-state';
+import { resolveAdminMedia } from '@/lib/media/form';
 
 const POST_ID = /^post-[a-z0-9][a-z0-9-]{0,92}$/;
 const SLUG = /^[a-z0-9][a-z0-9-]{0,119}$/;
@@ -24,7 +25,7 @@ export async function upsertAdminBlogPost(
   _previousState: ContentEditorState,
   formData: FormData
 ): Promise<ContentEditorState> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const postId = optionalText(formData, 'postId');
   const slug = text(formData, 'slug');
   const titleVi = text(formData, 'titleVi');
@@ -41,11 +42,18 @@ export async function upsertAdminBlogPost(
   const coverImageUrl = text(formData, 'coverImageUrl');
   const sortOrder = Number(text(formData, 'sortOrder') || '0');
 
-  if ((postId && !POST_ID.test(postId)) || !SLUG.test(slug) || titleVi.length < 3 || titleVi.length > 180 || titleEn.length < 3 || titleEn.length > 180 || categoryVi.length < 2 || categoryVi.length > 80 || categoryEn.length < 2 || categoryEn.length > 80 || author.length < 2 || author.length > 100 || readTimeVi.length < 2 || readTimeVi.length > 40 || readTimeEn.length < 2 || readTimeEn.length > 40 || excerptVi.length < 10 || excerptVi.length > 500 || excerptEn.length < 10 || excerptEn.length > 500 || contentVi.length < 50 || contentVi.length > 50000 || contentEn.length < 50 || contentEn.length > 50000 || !/^https:\/\//i.test(coverImageUrl) || !Number.isInteger(sortOrder) || sortOrder < 0) {
+  if ((postId && !POST_ID.test(postId)) || !SLUG.test(slug) || titleVi.length < 3 || titleVi.length > 180 || titleEn.length < 3 || titleEn.length > 180 || categoryVi.length < 2 || categoryVi.length > 80 || categoryEn.length < 2 || categoryEn.length > 80 || author.length < 2 || author.length > 100 || readTimeVi.length < 2 || readTimeVi.length > 40 || readTimeEn.length < 2 || readTimeEn.length > 40 || excerptVi.length < 10 || excerptVi.length > 500 || excerptEn.length < 10 || excerptEn.length > 500 || contentVi.length < 50 || contentVi.length > 50000 || contentEn.length < 50 || contentEn.length > 50000 || !coverImageUrl || !Number.isInteger(sortOrder) || sortOrder < 0) {
     return { status: 'error', message: 'Dữ liệu bài viết không hợp lệ.' };
   }
 
   const correlationId = await getRequestCorrelationId();
+  let resolvedCoverImageUrl: string;
+  try {
+    resolvedCoverImageUrl = await resolveAdminMedia(formData, { name: 'coverImageUrl', kind: 'blog', adminId: admin.id });
+  } catch {
+    logOperationalFailure({ correlationId, event: 'admin_operation_failed', operation: 'upsert_content', reason: 'unsupported_media_type' });
+    return { status: 'error', message: `Ảnh bài viết không hợp lệ hoặc chưa tải xong. Mã hỗ trợ: ${correlationId}` };
+  }
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.rpc('admin_upsert_blog_post', {
     p_post_id: postId,
@@ -61,7 +69,7 @@ export async function upsertAdminBlogPost(
     p_excerpt_en: excerptEn,
     p_content_vi: contentVi,
     p_content_en: contentEn,
-    p_cover_image_url: coverImageUrl,
+    p_cover_image_url: resolvedCoverImageUrl,
     p_is_published: formData.get('isPublished') === 'on',
     p_sort_order: sortOrder,
   });

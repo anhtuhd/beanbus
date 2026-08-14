@@ -7,6 +7,7 @@ import { upsertAdminProduct } from './product-actions';
 import { initialProductEditorState } from './product-editor-state';
 import styles from '../requests/requests.module.css';
 import { LocalizedText } from '@/components/ui/LocalizedText';
+import MediaUploader from '@/components/admin/MediaUploader';
 
 type Product = Pick<Database['public']['Tables']['products']['Row'], 'id' | 'category_id' | 'option_set_id' | 'name_vi' | 'name_en' | 'description_vi' | 'description_en' | 'price_vnd' | 'image_url' | 'badge' | 'tasting_notes' | 'sort_order' | 'is_available' | 'is_published'>;
 type Category = { id: string; name_vi: string };
@@ -24,7 +25,7 @@ export default function ProductEditorForm({ product, categories, optionSets }: {
         <label>Tên tiếng Việt<input name="nameVi" defaultValue={product?.name_vi ?? ''} maxLength={160} required /></label>
         <label>Tên tiếng Anh<input name="nameEn" defaultValue={product?.name_en ?? ''} maxLength={160} required /></label>
         <label>Giá (VND)<input name="priceVnd" type="number" min="0" step="1000" defaultValue={product?.price_vnd ?? 0} required /></label>
-        <label>Ảnh URL<input name="imageUrl" type="url" defaultValue={product?.image_url ?? ''} required /></label>
+        <MediaUploader kind="product" name="imageUrl" defaultValue={product?.image_url ?? ''} required />
         <label>Option set<select name="optionSetId" defaultValue={product?.option_set_id ?? ''}><option value="">Không dùng</option>{optionSets.map((set) => <option key={set.id} value={set.id}>{set.name}</option>)}</select></label>
         <label>Badge<select name="badge" defaultValue={product?.badge ?? ''}><option value="">Không có</option><option value="best">Best</option><option value="seasonal">Seasonal</option><option value="new">New</option><option value="signature">Signature</option></select></label>
         <label>Thứ tự<input name="sortOrder" type="number" min="0" step="1" defaultValue={product?.sort_order ?? 0} required /></label>

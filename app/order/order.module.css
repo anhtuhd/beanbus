@@ -238,6 +238,10 @@
   top: 98px;
 }
 
+.menuTabs { display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 2px; }
+.menuTab, .menuTabActive { flex: 0 0 auto; border: 1px solid var(--gray-300); border-radius: 6px; background: var(--white); color: var(--brown-dark); cursor: pointer; font-size: 13px; font-weight: 700; padding: 9px 12px; }
+.menuTabActive { border-color: var(--orange); background: var(--orange); color: var(--white); }
+
 .summaryHeader {
   align-items: center;
   background: var(--cream-light);

@@ -98,6 +98,8 @@ export type Database = {
           id: string;
           is_active: boolean;
           name: string;
+          name_en: string | null;
+          name_vi: string | null;
           updated_at: string;
         };
         Insert: {
@@ -105,11 +107,15 @@ export type Database = {
           id: string;
           is_active?: boolean;
           name: string;
+          name_en?: string | null;
+          name_vi?: string | null;
           updated_at?: string;
         };
         Update: {
           is_active?: boolean;
           name?: string;
+          name_en?: string | null;
+          name_vi?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -121,6 +127,7 @@ export type Database = {
           group_name: string;
           id: string;
           is_active: boolean;
+          is_default: boolean;
           name_en: string;
           name_vi: string;
           option_set_id: string;
@@ -133,6 +140,7 @@ export type Database = {
           group_name: string;
           id: string;
           is_active?: boolean;
+          is_default?: boolean;
           name_en: string;
           name_vi: string;
           option_set_id: string;
@@ -143,6 +151,7 @@ export type Database = {
           extra_price_vnd?: number;
           group_name?: string;
           is_active?: boolean;
+          is_default?: boolean;
           name_en?: string;
           name_vi?: string;
           option_set_id?: string;
@@ -155,6 +164,258 @@ export type Database = {
             columns: ['option_set_id'];
             isOneToOne: false;
             referencedRelation: 'catalog_option_sets';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      catalog_menus: {
+        Row: {
+          created_at: string;
+          id: string;
+          is_active: boolean;
+          name_en: string;
+          name_vi: string;
+          slug: string;
+          sort_order: number;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          id: string;
+          is_active?: boolean;
+          name_en: string;
+          name_vi: string;
+          slug: string;
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Update: {
+          is_active?: boolean;
+          name_en?: string;
+          name_vi?: string;
+          slug?: string;
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      catalog_menu_schedules: {
+        Row: {
+          day_of_week: number;
+          ends_at: string;
+          id: number;
+          menu_id: string;
+          starts_at: string;
+        };
+        Insert: {
+          day_of_week: number;
+          ends_at: string;
+          id?: never;
+          menu_id: string;
+          starts_at: string;
+        };
+        Update: {
+          day_of_week?: number;
+          ends_at?: string;
+          menu_id?: string;
+          starts_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'catalog_menu_schedules_menu_id_fkey';
+            columns: ['menu_id'];
+            isOneToOne: false;
+            referencedRelation: 'catalog_menus';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      catalog_menu_sections: {
+        Row: {
+          category_id: string;
+          id: string;
+          menu_id: string;
+          sort_order: number;
+        };
+        Insert: {
+          category_id: string;
+          id: string;
+          menu_id: string;
+          sort_order?: number;
+        };
+        Update: {
+          category_id?: string;
+          menu_id?: string;
+          sort_order?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'catalog_menu_sections_category_id_fkey';
+            columns: ['category_id'];
+            isOneToOne: false;
+            referencedRelation: 'catalog_categories';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'catalog_menu_sections_menu_id_fkey';
+            columns: ['menu_id'];
+            isOneToOne: false;
+            referencedRelation: 'catalog_menus';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      catalog_menu_items: {
+        Row: {
+          is_visible: boolean;
+          product_id: string;
+          section_id: string;
+          sort_order: number;
+        };
+        Insert: {
+          is_visible?: boolean;
+          product_id: string;
+          section_id: string;
+          sort_order?: number;
+        };
+        Update: {
+          is_visible?: boolean;
+          product_id?: string;
+          section_id?: string;
+          sort_order?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'catalog_menu_items_section_id_fkey';
+            columns: ['section_id'];
+            isOneToOne: false;
+            referencedRelation: 'catalog_menu_sections';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'catalog_menu_items_product_id_fkey';
+            columns: ['product_id'];
+            isOneToOne: false;
+            referencedRelation: 'products';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      catalog_option_groups: {
+        Row: {
+          allow_multiple: boolean;
+          created_at: string;
+          group_name: string;
+          id: string;
+          is_active: boolean;
+          is_required: boolean;
+          max_selections: number;
+          min_selections: number;
+          name_en: string;
+          name_vi: string;
+          option_set_id: string;
+          sort_order: number;
+          updated_at: string;
+        };
+        Insert: {
+          allow_multiple?: boolean;
+          created_at?: string;
+          group_name: string;
+          id: string;
+          is_active?: boolean;
+          is_required?: boolean;
+          max_selections?: number;
+          min_selections?: number;
+          name_en: string;
+          name_vi: string;
+          option_set_id: string;
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Update: {
+          allow_multiple?: boolean;
+          group_name?: string;
+          is_active?: boolean;
+          is_required?: boolean;
+          max_selections?: number;
+          min_selections?: number;
+          name_en?: string;
+          name_vi?: string;
+          option_set_id?: string;
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'catalog_option_groups_option_set_id_fkey';
+            columns: ['option_set_id'];
+            isOneToOne: false;
+            referencedRelation: 'catalog_option_sets';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      catalog_releases: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          lock_version: number;
+          published_at: string | null;
+          published_by: string | null;
+          snapshot: Json;
+          status: 'draft' | 'published' | 'archived';
+          updated_at: string;
+          updated_by: string | null;
+          version: number;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          lock_version?: number;
+          published_at?: string | null;
+          published_by?: string | null;
+          snapshot: Json;
+          status: 'draft' | 'published' | 'archived';
+          updated_at?: string;
+          updated_by?: string | null;
+          version: number;
+        };
+        Update: {
+          lock_version?: number;
+          published_at?: string | null;
+          published_by?: string | null;
+          snapshot?: Json;
+          status?: 'draft' | 'published' | 'archived';
+          updated_at?: string;
+          updated_by?: string | null;
+          version?: number;
+        };
+        Relationships: [];
+      };
+      catalog_publication_history: {
+        Row: {
+          actor_user_id: string;
+          created_at: string;
+          id: number;
+          release_id: string;
+          version: number;
+        };
+        Insert: {
+          actor_user_id: string;
+          created_at?: string;
+          id?: never;
+          release_id: string;
+          version: number;
+        };
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: 'catalog_publication_history_release_id_fkey';
+            columns: ['release_id'];
+            isOneToOne: false;
+            referencedRelation: 'catalog_releases';
             referencedColumns: ['id'];
           },
         ];
@@ -1106,6 +1367,31 @@ export type Database = {
       get_current_profile: {
         Args: Record<string, never>;
         Returns: Database['public']['Tables']['profiles']['Row'][];
+      };
+      save_catalog_draft: {
+        Args: {
+          p_expected_lock_version: number;
+          p_snapshot: Json;
+        };
+        Returns: {
+          lock_version: number;
+          release_id: string;
+        }[];
+      };
+      publish_catalog_draft: {
+        Args: {
+          p_expected_lock_version: number;
+        };
+        Returns: {
+          draft_lock_version: number;
+          published_version: number;
+        }[];
+      };
+      product_is_orderable: {
+        Args: {
+          p_product_id: string;
+        };
+        Returns: boolean;
       };
       cancel_owned_booking_request: {
         Args: {

@@ -1,0 +1,22 @@
+.field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.label { color: var(--brown-dark); font-size: 12px; font-weight: 700; }
+.previewRow { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.preview, .empty { width: 120px; height: 90px; border-radius: 6px; border: 1px solid var(--gray-300); object-fit: cover; background: var(--gray-100); flex: 0 0 auto; }
+.empty { display: grid; place-items: center; align-content: center; gap: 4px; color: var(--brown); font-size: 11px; text-align: center; }
+.controls { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
+.controls small, .status { color: var(--brown); font-size: 11px; line-height: 1.4; }
+.fileInput { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.secondary { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; border: 1px solid var(--gray-300); border-radius: 6px; background: #fff; color: var(--brown-dark); padding: 6px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.secondary:disabled { opacity: .6; cursor: wait; }
+.cropPanel { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px solid var(--gray-200); border-radius: 8px; background: #faf9f7; }
+.cropFrame { position: relative; width: min(100%, 360px); aspect-ratio: 4 / 3; overflow: hidden; border-radius: 6px; background: #2b2521; cursor: grab; touch-action: none; }
+.cropFrameWide { aspect-ratio: 16 / 9; }
+.cropImage { width: 100%; height: 100%; object-fit: cover; user-select: none; pointer-events: none; transition: transform .12s ease-out; }
+.cropHint { position: absolute; left: 8px; bottom: 8px; display: inline-flex; align-items: center; gap: 4px; padding: 4px 6px; border-radius: 4px; color: #fff; background: rgb(0 0 0 / 55%); font-size: 11px; }
+.zoom { display: flex; align-items: center; gap: 8px; color: var(--brown-dark); font-size: 12px; font-weight: 700; max-width: 360px; }
+.zoom input { flex: 1; accent-color: var(--orange); }
+.cropActions { display: flex; flex-wrap: wrap; gap: 8px; }
+.status { color: var(--orange-hover); }
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 520px) { .previewRow { align-items: flex-start; flex-direction: column; } .preview, .empty { width: 100%; height: auto; aspect-ratio: 4 / 3; } }

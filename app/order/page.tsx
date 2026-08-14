@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import OrderClient from './OrderClient';
 import { CATEGORIES, PRODUCTS, type Product } from '@/data/products';
-import { getCatalog } from '@/lib/catalog/queries';
+import { getCatalog, type CatalogMenu } from '@/lib/catalog/queries';
 import { getAppMode } from '@/lib/env';
 import CatalogUnavailable from '@/components/catalog/CatalogUnavailable';
 import styles from './order.module.css';
@@ -31,8 +31,8 @@ function OrderNoScript({ products }: { products: Product[] }) {
   );
 }
 
-function OrderPageView({ categories, products }: { categories: typeof CATEGORIES; products: Product[] }) {
-  return <><OrderClient categories={categories} products={products} /><noscript><OrderNoScript products={products} /></noscript></>;
+function OrderPageView({ categories, products, menus, storeClosed }: { categories: typeof CATEGORIES; products: Product[]; menus?: CatalogMenu[]; storeClosed?: boolean }) {
+  return <><OrderClient categories={categories} products={products} menus={menus} storeClosed={storeClosed} /><noscript><OrderNoScript products={products} /></noscript></>;
 }
 
 function DemoOrderPage() {
@@ -52,7 +52,7 @@ async function ProductionOrderPage() {
       />
     );
   }
-  return <OrderPageView categories={catalog.categories} products={catalog.products} />;
+  return <OrderPageView categories={catalog.categories} products={catalog.products} menus={catalog.menus} storeClosed={catalog.storeClosed} />;
 }
 
 export default function OrderPage() {

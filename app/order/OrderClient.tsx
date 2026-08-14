@@ -13,16 +13,22 @@ import styles from './order.module.css';
 
 const formatVnd = (amount: number) => `${amount.toLocaleString('vi-VN')}d`;
 
-export default function OrderClient({ categories, products: catalogProducts }: { categories: Category[]; products: Product[] }) {
+export default function OrderClient({ categories, products: catalogProducts, menus, storeClosed = false }: { categories: Category[]; products: Product[]; menus?: Array<{ id: string; nameVi: string; nameEn: string; isOpen: boolean; products: Product[]; categories: Category[] }>; storeClosed?: boolean }) {
   const { t, lang } = useLanguage();
   const { cart, cartCount, subtotal, syncCatalog } = useCart();
-  useEffect(() => syncCatalog(catalogProducts), [catalogProducts, syncCatalog]);
+  const [activeMenuId, setActiveMenuId] = useState(menus?.find((menu) => menu.isOpen)?.id ?? menus?.[0]?.id ?? '');
+  const activeMenu = menus?.find((menu) => menu.id === activeMenuId);
+  const visibleCategories = activeMenu?.categories ?? categories;
+  const visibleProducts = activeMenu?.products ?? catalogProducts;
+  useEffect(() => syncCatalog(visibleProducts), [visibleProducts, syncCatalog]);
   const [categoryId, setCategoryId] = useState('all');
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
 
   const products = useMemo(
-    () => catalogProducts.filter((product) => product.isAvailable && (categoryId === 'all' || product.categoryId === categoryId)),
-    [catalogProducts, categoryId]
+    () => activeMenu
+      ? visibleProducts.filter((product) => product.isAvailable && (categoryId === 'all' || product.categoryId === categoryId))
+      : catalogProducts.filter((product) => product.isAvailable && (categoryId === 'all' || product.categoryId === categoryId)),
+    [activeMenu, catalogProducts, visibleProducts, categoryId]
   );
 
   return (
@@ -37,11 +43,14 @@ export default function OrderClient({ categories, products: catalogProducts }: {
 
       <main className={`wrap ${styles.content}`}>
         <div className={styles.mainColumn}>
+          {menus && menus.length > 1 && <div className={styles.menuTabs} aria-label={t('Các menu đang hoạt động', 'Available menus')}>
+            {menus.map((menu) => <button key={menu.id} type="button" className={activeMenuId === menu.id ? styles.menuTabActive : styles.menuTab} onClick={() => { setActiveMenuId(menu.id); setCategoryId('all'); }}>{lang === 'en' ? menu.nameEn : menu.nameVi}{menu.isOpen ? '' : ` · ${t('Đóng', 'Closed')}`}</button>)}
+          </div>}
           <div className={styles.toolbar}>
             <div>
               <span className={styles.toolbarLabel}><SlidersHorizontal size={16} /> {t('Danh mục', 'Category')}</span>
               <div className={styles.categories} role="group" aria-label={t('Danh mục sản phẩm', 'Product categories')}>
-                {categories.map((category) => (
+                {visibleCategories.map((category) => (
                   <button
                     key={category.id}
                     type="button"
@@ -60,8 +69,8 @@ export default function OrderClient({ categories, products: catalogProducts }: {
           {products.length === 0 ? (
             <div className={styles.emptyProducts} role="status">
               <ShoppingBag size={40} aria-hidden="true" />
-              <h2>{t('Danh mục này hiện chưa có món.', 'No items are available in this category.')}</h2>
-              <p>{t('Hãy chọn danh mục khác để tiếp tục.', 'Choose another category to continue.')}</p>
+              <h2>{storeClosed && !activeMenu?.isOpen ? t('Cửa hàng hiện đã đóng.', 'The store is currently closed.') : t('Danh mục này hiện chưa có món.', 'No items are available in this category.')}</h2>
+              <p>{storeClosed && !activeMenu?.isOpen ? t('Vui lòng quay lại trong giờ phục vụ.', 'Please come back during opening hours.') : t('Hãy chọn danh mục khác để tiếp tục.', 'Choose another category to continue.')}</p>
             </div>
           ) : (
             <div className={styles.productGrid}>

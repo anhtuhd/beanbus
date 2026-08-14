@@ -7,6 +7,7 @@ import { getRequestCorrelationId } from '@/lib/observability/request';
 import { logOperationalFailure } from '@/lib/observability/logger';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import type { ContentEditorState } from './content-editor-state';
+import { resolveAdminMedia } from '@/lib/media/form';
 
 const EVENT_ID = /^event-[a-z0-9][a-z0-9-]{0,92}$/;
 const SLUG = /^[a-z0-9][a-z0-9-]{0,119}$/;
@@ -30,7 +31,7 @@ export async function upsertAdminEvent(
   _previousState: ContentEditorState,
   formData: FormData
 ): Promise<ContentEditorState> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const eventId = optionalText(formData, 'eventId');
   const slug = text(formData, 'slug');
   const titleVi = text(formData, 'titleVi');
@@ -48,11 +49,18 @@ export async function upsertAdminEvent(
   const maxSeats = maxSeatsText ? Number(maxSeatsText) : null;
   const sortOrder = Number(text(formData, 'sortOrder') || '0');
 
-  if ((eventId && !EVENT_ID.test(eventId)) || !SLUG.test(slug) || titleVi.length < 3 || titleVi.length > 180 || titleEn.length < 3 || titleEn.length > 180 || summaryVi.length < 10 || summaryVi.length > 500 || summaryEn.length < 10 || summaryEn.length > 500 || descriptionVi.length < 20 || descriptionVi.length > 10000 || descriptionEn.length < 20 || descriptionEn.length > 10000 || !startsAt || (endsAt && new Date(endsAt) <= new Date(startsAt)) || timeLabel.length < 3 || timeLabel.length > 50 || location.length < 3 || location.length > 300 || !/^https:\/\//i.test(imageUrl) || (maxSeats !== null && (!Number.isInteger(maxSeats) || maxSeats <= 0)) || !Number.isInteger(sortOrder) || sortOrder < 0) {
+  if ((eventId && !EVENT_ID.test(eventId)) || !SLUG.test(slug) || titleVi.length < 3 || titleVi.length > 180 || titleEn.length < 3 || titleEn.length > 180 || summaryVi.length < 10 || summaryVi.length > 500 || summaryEn.length < 10 || summaryEn.length > 500 || descriptionVi.length < 20 || descriptionVi.length > 10000 || descriptionEn.length < 20 || descriptionEn.length > 10000 || !startsAt || (endsAt && new Date(endsAt) <= new Date(startsAt)) || timeLabel.length < 3 || timeLabel.length > 50 || location.length < 3 || location.length > 300 || !imageUrl || (maxSeats !== null && (!Number.isInteger(maxSeats) || maxSeats <= 0)) || !Number.isInteger(sortOrder) || sortOrder < 0) {
     return { status: 'error', message: 'Dữ liệu sự kiện không hợp lệ.' };
   }
 
   const correlationId = await getRequestCorrelationId();
+  let resolvedImageUrl: string;
+  try {
+    resolvedImageUrl = await resolveAdminMedia(formData, { name: 'imageUrl', kind: 'event', adminId: admin.id });
+  } catch {
+    logOperationalFailure({ correlationId, event: 'admin_operation_failed', operation: 'upsert_content', reason: 'unsupported_media_type' });
+    return { status: 'error', message: `Ảnh sự kiện không hợp lệ hoặc chưa tải xong. Mã hỗ trợ: ${correlationId}` };
+  }
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.rpc('admin_upsert_event', {
     p_event_id: eventId,
@@ -67,7 +75,7 @@ export async function upsertAdminEvent(
     p_ends_at: endsAt,
     p_time_label: timeLabel,
     p_location: location,
-    p_image_url: imageUrl,
+    p_image_url: resolvedImageUrl,
     p_max_seats: maxSeats,
     p_is_featured: formData.get('isFeatured') === 'on',
     p_is_published: formData.get('isPublished') === 'on',

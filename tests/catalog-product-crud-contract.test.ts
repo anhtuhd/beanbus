@@ -24,7 +24,8 @@ test('catalog editor validates in the action and uses the RPC boundary', () => {
   assert.match(action, /Number\.isInteger\(priceVnd\)/);
   assert.match(action, /supabase\.rpc\('admin_upsert_product'/);
   assert.doesNotMatch(action, /\.from\('products'\)\.(insert|update|delete)/i);
-  assert.match(page, /ProductEditorForm/);
+  assert.match(page, /Menu Builder/);
+  assert.doesNotMatch(page, /<ProductEditorForm/);
   assert.match(form, /name="productId"/);
   assert.doesNotMatch(form, /productIdDisplay/);
 });

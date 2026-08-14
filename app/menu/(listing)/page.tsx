@@ -3,7 +3,7 @@ import Link from 'next/link';
 import MenuClient from '../MenuClient';
 import { CATEGORIES, PRODUCTS } from '@/data/products';
 import type { Product } from '@/data/products';
-import { getCatalog } from '@/lib/catalog/queries';
+import { getCatalog, type CatalogMenu } from '@/lib/catalog/queries';
 import { getAppMode } from '@/lib/env';
 import CatalogUnavailable from '@/components/catalog/CatalogUnavailable';
 import styles from '../page.module.css';
@@ -34,8 +34,8 @@ function MenuNoScript({ products }: { products: Product[] }) {
   );
 }
 
-function MenuPageView({ categories, products }: { categories: typeof CATEGORIES; products: Product[] }) {
-  return <><MenuClient categories={categories} products={products} /><noscript><MenuNoScript products={products} /></noscript></>;
+function MenuPageView({ categories, products, menus, storeClosed }: { categories: typeof CATEGORIES; products: Product[]; menus?: CatalogMenu[]; storeClosed?: boolean }) {
+  return <><MenuClient categories={categories} products={products} menus={menus} storeClosed={storeClosed} /><noscript><MenuNoScript products={products} /></noscript></>;
 }
 
 async function ProductionMenuPage() {
@@ -51,7 +51,7 @@ async function ProductionMenuPage() {
       />
     );
   }
-  return <MenuPageView categories={catalog.categories} products={catalog.products} />;
+  return <MenuPageView categories={catalog.categories} products={catalog.products} menus={catalog.menus} storeClosed={catalog.storeClosed} />;
 }
 
 export default function MenuPage() {

@@ -80,6 +80,29 @@
   flex-wrap: wrap;
 }
 
+.menuTabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.menuTab,
+.menuTabActive {
+  flex: 0 0 auto;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  background: var(--white);
+  color: var(--brown-dark);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 14px;
+}
+
+.menuTabActive { border-color: var(--orange); background: var(--orange); color: var(--white); }
+
 .searchBox {
   display: flex;
   align-items: center;

@@ -7,6 +7,7 @@ import { upsertAdminEvent } from './event-actions';
 import { initialContentEditorState } from './content-editor-state';
 import styles from '../requests/requests.module.css';
 import { LocalizedText } from '@/components/ui/LocalizedText';
+import MediaUploader from '@/components/admin/MediaUploader';
 
 type Event = Pick<Database['public']['Tables']['events']['Row'], 'id' | 'slug' | 'title_vi' | 'title_en' | 'summary_vi' | 'summary_en' | 'description_vi' | 'description_en' | 'starts_at' | 'ends_at' | 'time_label' | 'location' | 'image_url' | 'max_seats' | 'is_featured' | 'is_published' | 'sort_order'>;
 
@@ -30,7 +31,7 @@ export default function EventEditorForm({ event }: { event?: Event }) {
         <label>Kết thúc<input name="endsAt" type="datetime-local" defaultValue={localDateTime(event?.ends_at)} /></label>
         <label>Khung giờ<input name="timeLabel" defaultValue={event?.time_label ?? ''} maxLength={50} required /></label>
         <label>Địa điểm<input name="location" defaultValue={event?.location ?? ''} maxLength={300} required /></label>
-        <label>Ảnh HTTPS<input name="imageUrl" type="url" defaultValue={event?.image_url ?? ''} required /></label>
+        <MediaUploader kind="event" name="imageUrl" defaultValue={event?.image_url ?? ''} required />
         <label>Số chỗ<input name="maxSeats" type="number" min="1" step="1" defaultValue={event?.max_seats ?? ''} /></label>
         <label>Thứ tự<input name="sortOrder" type="number" min="0" step="1" defaultValue={event?.sort_order ?? 0} required /></label>
       </div>

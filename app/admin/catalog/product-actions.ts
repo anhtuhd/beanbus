@@ -6,6 +6,7 @@ import { requireAdmin } from '@/lib/auth/session';
 import { getRequestCorrelationId } from '@/lib/observability/request';
 import { logOperationalFailure } from '@/lib/observability/logger';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { resolveAdminMedia } from '@/lib/media/form';
 import type { ProductEditorState } from './product-editor-state';
 
 const PRODUCT_ID = /^[a-z0-9][a-z0-9-]{0,99}$/;
@@ -24,7 +25,7 @@ export async function upsertAdminProduct(
   _previousState: ProductEditorState,
   formData: FormData
 ): Promise<ProductEditorState> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const productId = optionalValue(formData, 'productId');
   const categoryId = value(formData, 'categoryId');
   const optionSetId = optionalValue(formData, 'optionSetId');
@@ -40,11 +41,18 @@ export async function upsertAdminProduct(
   const isAvailable = formData.get('isAvailable') === 'on';
   const isPublished = formData.get('isPublished') === 'on';
 
-  if ((productId && !PRODUCT_ID.test(productId)) || !categoryId || !nameVi || nameVi.length > 160 || !nameEn || nameEn.length > 160 || descriptionVi.length > 2000 || descriptionEn.length > 2000 || !Number.isInteger(priceVnd) || priceVnd < 0 || !/^https?:\/\//i.test(imageUrl) || !Number.isInteger(sortOrder) || sortOrder < 0 || !BADGES.has(badge)) {
+  if ((productId && !PRODUCT_ID.test(productId)) || !categoryId || !nameVi || nameVi.length > 160 || !nameEn || nameEn.length > 160 || descriptionVi.length > 2000 || descriptionEn.length > 2000 || !Number.isInteger(priceVnd) || priceVnd < 0 || !imageUrl || !Number.isInteger(sortOrder) || sortOrder < 0 || !BADGES.has(badge)) {
     return { status: 'error', message: 'Dữ liệu sản phẩm không hợp lệ.' };
   }
 
   const correlationId = await getRequestCorrelationId();
+  let resolvedImageUrl: string;
+  try {
+    resolvedImageUrl = await resolveAdminMedia(formData, { name: 'imageUrl', kind: 'product', adminId: admin.id });
+  } catch {
+    logOperationalFailure({ correlationId, event: 'admin_operation_failed', operation: 'upsert_catalog_product', reason: 'unsupported_media_type' });
+    return { status: 'error', message: `Ảnh không hợp lệ hoặc chưa tải xong. Mã hỗ trợ: ${correlationId}` };
+  }
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.rpc('admin_upsert_product', {
     p_product_id: productId,
@@ -55,7 +63,7 @@ export async function upsertAdminProduct(
     p_description_vi: descriptionVi,
     p_description_en: descriptionEn,
     p_price_vnd: priceVnd,
-    p_image_url: imageUrl,
+    p_image_url: resolvedImageUrl,
     p_badge: badge || null,
     p_tasting_notes: tastingNotes,
     p_sort_order: sortOrder,

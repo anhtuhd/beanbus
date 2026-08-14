@@ -181,3 +181,24 @@ test('web push requires notifications and complete public Firebase configuration
     NEXT_PUBLIC_FIREBASE_VAPID_KEY: 'vapid-public-key',
   }));
 });
+
+test('R2 media requires server credentials only when enabled', () => {
+  const coreEnv = {
+    NEXT_PUBLIC_APP_MODE: 'production',
+    NEXT_PUBLIC_SITE_URL: 'https://www.beanbus.store',
+    NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co',
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'public-key',
+  };
+
+  assert.doesNotThrow(() => assertProductionEnv(coreEnv));
+  assert.throws(() => assertProductionEnv({ ...coreEnv, NEXT_PUBLIC_ENABLE_R2_MEDIA: 'true' }), /R2_ACCOUNT_ID/);
+  assert.doesNotThrow(() => assertProductionEnv({
+    ...coreEnv,
+    NEXT_PUBLIC_ENABLE_R2_MEDIA: 'true',
+    NEXT_PUBLIC_R2_PUBLIC_BASE_URL: 'https://images.beanbus.store',
+    R2_ACCOUNT_ID: 'account',
+    R2_BUCKET_NAME: 'beanbus-media',
+    R2_ACCESS_KEY_ID: 'access',
+    R2_SECRET_ACCESS_KEY: 'secret',
+  }));
+});
