@@ -47,6 +47,8 @@ test('checkout sends requested points and displays the cash remainder', () => {
   assert.match(orderAction, /p_points_to_apply/);
   assert.match(checkout, /pointsToApply/);
   assert.match(checkout, /Dùng điểm|Use points/);
+  assert.match(checkout, /pointsSummary/);
+  assert.match(checkout, /setUsePoints/);
   assert.match(checkout, /cashDueVnd/);
 });
 
@@ -60,6 +62,11 @@ test('cart exposes the member balance and carries the points toggle to checkout'
   assert.match(cartDrawer, /BẬT|ON/);
   assert.match(cartDrawer, /TẮT|OFF/);
   assert.match(checkout, /usePoints/);
+});
+
+test('cart promo inputs do not reveal example voucher codes in placeholders', () => {
+  assert.doesNotMatch(cartDrawer, /placeholder=/);
+  assert.doesNotMatch(readFileSync('app/order/cart/CartClient.tsx', 'utf8'), /placeholder=/);
 });
 
 test('points balance endpoint is member-only and never cached', () => {

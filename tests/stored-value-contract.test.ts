@@ -128,6 +128,7 @@ test('paid top-ups return members to the account and history stays responsive', 
   assert.match(client, /router\.replace\(['"]\/account['"]\)/);
   assert.match(client, /setTimeout/);
   assert.match(historyCss, /grid-template-columns/);
+  assert.match(historyCss, /grid-template-columns:[^;]*132px/);
   assert.match(historyCss, /@media \(max-width: 760px\)/);
   assert.match(historyCss, /overflow-wrap: anywhere/);
 });

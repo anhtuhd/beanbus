@@ -98,7 +98,7 @@ export default function CartClient({ catalogProducts = [] }: { catalogProducts?:
             ) : (
               <>
                 <label htmlFor="voucher-code">{t('Mã ưu đãi', 'Promo code')}</label>
-                <div><input id="voucher-code" value={voucherCode} onChange={(event) => setVoucherCode(event.target.value)} placeholder="BEANBUS10" /><button type="submit">{t('Áp dụng', 'Apply')}</button></div>
+                <div><input id="voucher-code" value={voucherCode} onChange={(event) => setVoucherCode(event.target.value)} /><button type="submit">{t('Áp dụng', 'Apply')}</button></div>
                 {voucherMessage && <p className={voucherMessage.success ? styles.success : styles.error} role="status">{voucherMessage.text}</p>}
               </>
             )}

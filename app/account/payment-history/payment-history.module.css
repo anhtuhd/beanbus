@@ -82,7 +82,7 @@
 
 .row {
   display: grid;
-  grid-template-columns: minmax(190px, 1.35fr) minmax(110px, 0.7fr) minmax(110px, 0.7fr) minmax(220px, 1.35fr) auto;
+  grid-template-columns: minmax(190px, 1.35fr) minmax(110px, 0.7fr) minmax(110px, 0.7fr) minmax(220px, 1.35fr) 132px;
   align-items: center;
   gap: 20px;
   padding: 20px 24px;

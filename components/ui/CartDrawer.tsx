@@ -258,7 +258,6 @@ export const CartDrawer: React.FC = () => {
                   <input
                     type="text"
                     aria-label={t('Mã giảm giá', 'Voucher code')}
-                    placeholder={t('Nhập mã voucher (BEANBUS10 / WELCOMEVIP)', 'Voucher code')}
                     value={voucherInput}
                     onChange={(e) => setVoucherInput(e.target.value)}
                   />

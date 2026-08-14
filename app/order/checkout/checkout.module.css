@@ -263,6 +263,138 @@
   font-weight: 700;
 }
 
+.pointsSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid rgba(134, 114, 103, 0.18);
+  border-bottom: 1px solid rgba(134, 114, 103, 0.18);
+}
+
+.pointsSummaryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pointsSummaryCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  color: var(--brown);
+  font-size: 12px;
+}
+
+.pointsSummaryTitle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--brown-dark);
+  font-size: 13px;
+}
+
+.pointsSummaryTitle svg {
+  color: var(--orange);
+  flex-shrink: 0;
+}
+
+.pointsSummaryToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  color: var(--brown);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 0 4px 4px;
+}
+
+.pointsSummaryTrack {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 32px;
+  height: 18px;
+  padding: 2px;
+  border-radius: var(--radius-full);
+  background: var(--gray-300);
+  transition: background 0.2s ease;
+}
+
+.pointsSummaryThumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: 0 1px 3px rgba(43, 36, 32, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.pointsSummaryToggleOn {
+  color: var(--orange-hover);
+}
+
+.pointsSummaryToggleOn .pointsSummaryTrack {
+  background: var(--orange);
+}
+
+.pointsSummaryToggleOn .pointsSummaryThumb {
+  transform: translateX(14px);
+}
+
+.pointsSummaryControls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.pointsSummaryInput {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.pointsSummaryInput label {
+  color: var(--brown-dark);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pointsSummaryInput input {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  background: var(--white);
+  font-size: 13px;
+}
+
+.pointsMaxButton {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--gray-100);
+  color: var(--brown-dark);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.pointsMaxButton:hover {
+  background: var(--gray-200);
+}
+
 .totalsBox {
   display: flex;
   flex-direction: column;
@@ -352,5 +484,17 @@
 
   .payBadge {
     display: none;
+  }
+
+  .pointsSummaryHeader {
+    align-items: flex-start;
+  }
+
+  .pointsSummaryControls {
+    grid-template-columns: 1fr;
+  }
+
+  .pointsMaxButton {
+    width: 100%;
   }
 }

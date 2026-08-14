@@ -38,6 +38,10 @@ test('desktop header keeps cart and notifications at the far right', () => {
   assert.match(headerStyles, /\.actions\s*\{[\s\S]*?margin-left:\s*auto;/);
 });
 
+test('header keeps breathing room between the logo and primary navigation', () => {
+  assert.match(headerStyles, /\.logo\s*\{[\s\S]*?margin-right:\s*16px;/);
+});
+
 test('home gallery captions provide English alternatives', () => {
   assert.match(home, /captionVi:/);
   assert.match(home, /captionEn:/);

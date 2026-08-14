@@ -53,6 +53,7 @@ export default function CheckoutClient({
     clearCart,
     syncCatalog,
     usePoints,
+    setUsePoints,
   } = useCart();
   useEffect(() => syncCatalog(catalogProducts), [catalogProducts, syncCatalog]);
   const { t, lang } = useLanguage();
@@ -73,7 +74,7 @@ export default function CheckoutClient({
   const [submitError, setSubmitError] = useState('');
   const [turnstileToken, setTurnstileToken] = useState('');
   const idempotencyKey = useRef<string | null>(null);
-  const appliedPoints = pointsPaymentAvailable
+  const appliedPoints = pointsPaymentAvailable && usePoints
     ? Math.min(pointsToApply, initialPointsBalance, finalTotal)
     : 0;
   const cashDueVnd = Math.max(0, finalTotal - appliedPoints);
@@ -342,36 +343,6 @@ export default function CheckoutClient({
             </div>
           </div>
 
-          {pointsPaymentAvailable && finalTotal > 0 && (
-            <div className={styles.cardSection}>
-              <div className={styles.sectionHeader}>
-                <Tag className={styles.sectionIcon} />
-                <h3>{t('Dùng điểm Beanbus', 'Use Beanbus points')}</h3>
-              </div>
-              <p className={styles.inputHint}>{t(`Số dư khả dụng: ${initialPointsBalance.toLocaleString('vi-VN')} điểm`, `Available balance: ${initialPointsBalance.toLocaleString('vi-VN')} points`)}</p>
-              <div className={styles.rowTwo}>
-                <div className={styles.inputGroup}>
-                  <label htmlFor="points-to-apply">{t('Số điểm sử dụng', 'Points to use')}</label>
-                  <input
-                    id="points-to-apply"
-                    type="number"
-                    min="0"
-                    max={Math.min(initialPointsBalance, finalTotal)}
-                    step="1"
-                    value={appliedPoints}
-                    onChange={(event) => setPointsToApply(Math.max(0, Math.min(Number(event.target.value) || 0, initialPointsBalance, finalTotal)))}
-                  />
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setPointsToApply(Math.min(initialPointsBalance, finalTotal))}
-                >
-                  {t('Dùng tối đa', 'Use maximum')}
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* RIGHT COLUMN: SUMMARY */}
@@ -405,6 +376,61 @@ export default function CheckoutClient({
                 <Tag size={14} />
                 <span>Mã: {appliedVoucher.code}</span>
               </div>
+            )}
+
+            {pointsPaymentAvailable && finalTotal > 0 && (
+              <section className={styles.pointsSummary} aria-labelledby="checkout-points-title">
+                <div className={styles.pointsSummaryHeader}>
+                  <div className={styles.pointsSummaryCopy}>
+                    <div className={styles.pointsSummaryTitle}>
+                      <Tag size={16} />
+                      <strong id="checkout-points-title">{t('Dùng điểm Beanbus', 'Use Beanbus points')}</strong>
+                    </div>
+                    <span>{t(`Số dư: ${initialPointsBalance.toLocaleString('vi-VN')} điểm`, `Balance: ${initialPointsBalance.toLocaleString('vi-VN')} points`)}</span>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={usePoints}
+                    aria-label={t('Dùng điểm khi thanh toán', 'Use points at checkout')}
+                    className={`${styles.pointsSummaryToggle} ${usePoints ? styles.pointsSummaryToggleOn : ''}`}
+                    onClick={() => {
+                      const nextValue = !usePoints;
+                      setUsePoints(nextValue);
+                      setPointsToApply(nextValue ? maxPoints : 0);
+                    }}
+                  >
+                    <span className={styles.pointsSummaryTrack} aria-hidden="true">
+                      <span className={styles.pointsSummaryThumb} />
+                    </span>
+                    <span>{usePoints ? t('BẬT', 'ON') : t('TẮT', 'OFF')}</span>
+                  </button>
+                </div>
+
+                {usePoints && (
+                  <div className={styles.pointsSummaryControls}>
+                    <div className={styles.pointsSummaryInput}>
+                      <label htmlFor="points-to-apply">{t('Số điểm sử dụng', 'Points to use')}</label>
+                      <input
+                        id="points-to-apply"
+                        type="number"
+                        min="0"
+                        max={maxPoints}
+                        step="1"
+                        value={appliedPoints}
+                        onChange={(event) => setPointsToApply(Math.max(0, Math.min(Number(event.target.value) || 0, maxPoints)))}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.pointsMaxButton}
+                      onClick={() => setPointsToApply(maxPoints)}
+                    >
+                      {t('Dùng tối đa', 'Use maximum')}
+                    </button>
+                  </div>
+                )}
+              </section>
             )}
 
             <div className={styles.totalsBox}>
