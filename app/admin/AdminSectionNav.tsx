@@ -15,7 +15,6 @@ import {
   Bell,
 } from 'lucide-react';
 import { getAppMode, isNotificationsEnabled } from '@/lib/env';
-import { isStoredValueConfigured } from '@/lib/stored-value/config';
 import styles from './admin.module.css';
 import { LocalizedText } from '@/components/ui/LocalizedText';
 
@@ -38,12 +37,9 @@ const sections = [
 export default function AdminSectionNav() {
   if (getAppMode() === 'demo') return null;
 
-  const visibleSections = isStoredValueConfigured()
-    ? sections
-    : sections.filter((section) => section.href !== '/admin/stored-value');
   const sectionsWithFlags = isNotificationsEnabled()
-    ? visibleSections
-    : visibleSections.filter((section) => section.href !== '/admin/notifications');
+    ? sections
+    : sections.filter((section) => section.href !== '/admin/notifications');
 
   return (
     <div className={styles.adminNavSticky}>

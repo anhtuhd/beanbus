@@ -23,8 +23,8 @@ test('production admin routes share a protected navigation and demo stays on the
     assert.match(navigation, new RegExp(`href: '${path.replaceAll('/', '\\/')}'`), path);
   }
   assert.match(navigation, /getAppMode\(\) === 'demo'/);
-  assert.match(navigation, /isStoredValueConfigured\(\)/);
-  assert.match(navigation, /section\.href !== '\/admin\/stored-value'/);
+  assert.doesNotMatch(navigation, /isStoredValueConfigured\(\)/);
+  assert.doesNotMatch(navigation, /section\.href !== '\/admin\/stored-value'/);
   assert.match(navigation, /aria-label="Admin navigation"/);
 });
 

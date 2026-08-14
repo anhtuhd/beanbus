@@ -86,8 +86,8 @@ test('server action owns payment configuration and client has no payment-success
 test('admin stored-value controls are guarded and audited through RPC boundaries', () => {
   const featureGate = adminPage.indexOf('if (!isStoredValueConfigured())');
   const adminGuard = adminPage.indexOf('await requireAdmin()');
-  assert.ok(featureGate >= 0 && featureGate < adminGuard, 'stored-value route gates before Supabase auth');
-  assert.match(adminPage, /requireAdmin/);
+  assert.equal(featureGate, -1, 'admin can access stored-value controls while the feature is disabled');
+  assert.ok(adminGuard >= 0, 'stored-value route remains protected by admin auth');
   assert.match(adminPage, /get_admin_stored_value_catalog/);
   assert.match(adminPage, /StoredValuePolicyForm/);
   assert.match(adminPage, /FlashSaleCampaignForm/);
