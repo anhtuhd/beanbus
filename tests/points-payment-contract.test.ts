@@ -82,11 +82,13 @@ test('member administration exposes a guarded points adjustment flow', () => {
   assert.match(migration, /not between 10 and 300/);
   assert.match(migration, /delta.*10000000|10000000.*delta/);
   assert.match(adminMember, /admin_adjust_member_points|MemberPointsAdjustmentForm/);
+  assert.match(adminMember, /member-points-adjustment-title/);
 });
 
-test('member directory exposes a direct points adjustment entry', () => {
-  assert.match(adminMembersList, /Điều chỉnh điểm/);
-  assert.match(adminMembersList, /member-points-adjustment-title/);
+test('member directory routes member edits to one detail page', () => {
+  assert.match(adminMembersList, /Chỉnh sửa/);
+  assert.match(adminMembersList, /editMemberLink/);
+  assert.doesNotMatch(adminMembersList, /MemberRoleForm/);
   assert.match(adminMembersList, /balances\.get\(member\.id\)/);
 });
 

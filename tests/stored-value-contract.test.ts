@@ -19,6 +19,7 @@ const adminPage = readFileSync('app/admin/stored-value/page.tsx', 'utf8');
 const adminActions = readFileSync('app/admin/stored-value/actions.ts', 'utf8');
 const accountClient = readFileSync('app/account/AccountClient.tsx', 'utf8');
 const historyPage = readFileSync('app/account/payment-history/page.tsx', 'utf8');
+const historyCss = readFileSync('app/account/payment-history/payment-history.module.css', 'utf8');
 
 test('stored value is fail-closed behind production, Sepay, and explicit feature gates', () => {
   assert.equal(isStoredValueConfigured({ NEXT_PUBLIC_APP_MODE: 'demo', NEXT_PUBLIC_ENABLE_SEPAY: 'true', NEXT_PUBLIC_ENABLE_STORED_VALUE: 'true' }), false);
@@ -120,6 +121,15 @@ test('server action owns payment configuration and client has no payment-success
   assert.match(webhook, /feature_disabled/);
   assert.match(historyPage, /getMemberPaymentHistory/);
   assert.match(historyPage, /payment-history-title/);
+});
+
+test('paid top-ups return members to the account and history stays responsive', () => {
+  assert.match(client, /paymentStatus === 'paid'/);
+  assert.match(client, /router\.replace\(['"]\/account['"]\)/);
+  assert.match(client, /setTimeout/);
+  assert.match(historyCss, /grid-template-columns/);
+  assert.match(historyCss, /@media \(max-width: 760px\)/);
+  assert.match(historyCss, /overflow-wrap: anywhere/);
 });
 
 test('admin stored-value controls are guarded and audited through RPC boundaries', () => {

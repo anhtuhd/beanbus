@@ -726,19 +726,26 @@
   font-weight: 800;
 }
 
-.pointsActionLink {
+.editMemberLink {
   display: inline-flex;
   align-items: center;
   width: fit-content;
   gap: 5px;
   margin-top: 8px;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  background: #fff;
   color: var(--orange-hover);
   font-size: 11px;
   font-weight: 800;
 }
 
-.pointsActionLink:hover,
-.pointsActionLink:focus-visible {
+.editMemberLink:hover,
+.editMemberLink:focus-visible {
+  border-color: var(--orange);
+  background: var(--orange-light);
   color: var(--brown-dark);
 }
 
@@ -1046,6 +1053,60 @@
   font-size: 12px;
 }
 
+.memberEditPanel {
+  padding: 16px;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.memberEditPanel .sectionHeader {
+  margin-top: 0;
+}
+
+.memberEditPanel .sectionHeader > div {
+  min-width: 0;
+}
+
+.memberEditPanel .sectionHeader p {
+  margin: 4px 0 0;
+  color: var(--brown);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.memberEditGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.memberEditBlock {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--gray-200);
+  border-radius: 6px;
+  background: #fffaf5;
+}
+
+.memberEditBlock h3 {
+  margin: 0;
+  color: var(--brown-dark);
+  font-size: 14px;
+}
+
+.memberEditBlock > p {
+  margin: 5px 0 0;
+  color: var(--brown);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.memberEditBlock > .statusForm,
+.memberEditBlock > .productEditor {
+  margin-top: 12px;
+}
+
 .inlineEditor {
   grid-column: 1 / -1;
   display: inline-flex;
@@ -1185,6 +1246,10 @@
 
   .editorGrid,
   .editorTextareas {
+    grid-template-columns: 1fr;
+  }
+
+  .memberEditGrid {
     grid-template-columns: 1fr;
   }
 

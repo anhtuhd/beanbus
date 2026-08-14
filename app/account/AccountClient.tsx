@@ -401,13 +401,13 @@ export default function AccountClient({
         {canUseStoredValue && (
           <div className={styles.navLinks} aria-label={t('Chương trình điểm', 'Points programs')}>
             <Link href="/account/topup" className={styles.navLink}>
-              <span>{t('Nạp điểm', 'Top up points')}</span><ArrowRight size={15} aria-hidden="true" />
+              <span>{t('Nạp điểm', 'Top up points')}</span>
             </Link>
             <Link href="/flash-sale" className={styles.navLink}>
-              <span>{t('Flash-sale', 'Flash sale')}</span><ArrowRight size={15} aria-hidden="true" />
+              <span>{t('Flash-sale', 'Flash sale')}</span>
             </Link>
             <Link href="/account/payment-history" className={styles.navLink}>
-              <span>{t('Lịch sử giao dịch', 'Transaction history')}</span><ArrowRight size={15} aria-hidden="true" />
+              <span>{t('Lịch sử giao dịch', 'Transaction history')}</span>
             </Link>
           </div>
         )}

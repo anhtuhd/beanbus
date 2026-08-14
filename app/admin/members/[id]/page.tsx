@@ -5,6 +5,7 @@ import styles from '../../requests/requests.module.css';
 import { requireAdmin } from '@/lib/auth/session';
 import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import MemberRoleForm from '../MemberRoleForm';
 import MemberPointsAdjustmentForm from './MemberPointsAdjustmentForm';
 
 type Profile = Pick<
@@ -91,7 +92,7 @@ export default async function AdminMemberDetailPage({
         <div>
           <Link href="/admin/members" className={styles.backLink}><ArrowLeft size={16} /> Danh sách thành viên</Link>
           <h1>Chi tiết hội viên</h1>
-          <p>Dữ liệu chỉ đọc từ hồ sơ, ledger loyalty và đơn hàng được phân quyền.</p>
+          <p>Quản lý hồ sơ, phân quyền, điểm loyalty và đơn hàng theo đúng quyền truy cập.</p>
         </div>
         <span className={styles.total}>BB-{String(profile.member_number).padStart(8, '0')}</span>
       </header>
@@ -105,6 +106,31 @@ export default async function AdminMemberDetailPage({
           <div><span className={styles.label}>Ngày sinh</span><strong>{profile.birthday ? formatDate(profile.birthday) : 'Chưa cập nhật'}</strong></div>
           <div><span className={styles.label}>Quyền</span><strong>{profile.role}</strong></div>
         </article>
+      </section>
+
+      <section className={styles.memberEditPanel} aria-labelledby="member-edit-title">
+        <header className={styles.sectionHeader}>
+          <div>
+            <h2 id="member-edit-title">Chỉnh sửa hội viên</h2>
+            <p>Gom các thao tác quản trị nhạy cảm vào một nơi và ghi audit cho từng thay đổi.</p>
+          </div>
+          <span>Quyền và điểm</span>
+        </header>
+        <div className={styles.memberEditGrid}>
+          <div className={styles.memberEditBlock}>
+            <h3>Phân quyền</h3>
+            <p>Thay đổi vai trò sẽ áp dụng qua RPC được bảo vệ và lưu lịch sử.</p>
+            <MemberRoleForm userId={profile.id} role={profile.role} />
+          </div>
+          <div className={styles.memberEditBlock}>
+            <h3 id="member-points-adjustment-title">Điều chỉnh điểm</h3>
+            {profile.role === 'member' && loyalty ? (
+              <MemberPointsAdjustmentForm userId={profile.id} balancePoints={Number(loyalty.balance_points)} />
+            ) : (
+              <p className={styles.helperText}>Chỉ hội viên có dữ liệu loyalty mới có thể cộng hoặc trừ điểm.</p>
+            )}
+          </div>
+        </div>
       </section>
 
       <section aria-labelledby="member-role-history-title">
@@ -135,13 +161,6 @@ export default async function AdminMemberDetailPage({
           </div>
         )}
       </section>
-
-      {profile.role === 'member' && loyalty && (
-        <section aria-labelledby="member-points-adjustment-title">
-          <header className={styles.sectionHeader}><h2 id="member-points-adjustment-title">Điều chỉnh điểm</h2><span>Ghi audit bắt buộc</span></header>
-          <MemberPointsAdjustmentForm userId={profile.id} balancePoints={Number(loyalty.balance_points)} />
-        </section>
-      )}
 
       <section aria-labelledby="member-ledger-title">
         <header className={styles.sectionHeader}><h2 id="member-ledger-title">Lịch sử điểm</h2><span>{ledgerResult.count ?? ledger.length} giao dịch</span></header>

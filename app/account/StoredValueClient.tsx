@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, CheckCircle, Clock3, Copy, History, LoaderCircle, QrCode, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
@@ -47,6 +48,7 @@ export default function StoredValueClient({
   const [actionError, setActionError] = useState('');
   const [copied, setCopied] = useState(false);
   const { t } = useLanguage();
+  const router = useRouter();
   const pollingRef = useRef(false);
   const idempotencyKeysRef = useRef<Record<string, string>>({});
   const paymentStatus = purchase?.payment_status ?? purchase?.purchase_status ?? null;
@@ -68,6 +70,12 @@ export default function StoredValueClient({
     }, 5000);
     return () => window.clearInterval(timer);
   }, [paymentStatus, purchase]);
+
+  useEffect(() => {
+    if (paymentStatus !== 'paid') return;
+    const timer = window.setTimeout(() => router.replace('/account'), 1200);
+    return () => window.clearTimeout(timer);
+  }, [paymentStatus, router]);
 
   const handleCreate = async (item: StoredValueCatalogItem) => {
     if (pendingItemId) return;

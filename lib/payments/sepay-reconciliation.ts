@@ -1,6 +1,7 @@
+import { resolveSepayPaymentCode, resolveStoredValuePaymentCode } from './sepay.ts';
+
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const LOCAL_DATE_PATTERN = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
-const BEANBUS_PAYMENT_CODE_PATTERN = /\bDH-[0-9]{6}[A-Za-z0-9]{6}\b/i;
 
 type Environment = Record<string, string | undefined>;
 
@@ -62,9 +63,9 @@ function safeAmount(value: unknown): value is number {
 function hasBeanbusPaymentCode(value: unknown): boolean {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const input = value as Record<string, unknown>;
-  return [input.code, input.transaction_content].some(
-    (candidate) => typeof candidate === 'string' && BEANBUS_PAYMENT_CODE_PATTERN.test(candidate),
-  );
+  const code = typeof input.code === 'string' ? input.code : null;
+  const content = typeof input.transaction_content === 'string' ? input.transaction_content : '';
+  return Boolean(resolveStoredValuePaymentCode(code, content) || resolveSepayPaymentCode(code, content));
 }
 
 export function getSepayReconciliationConfig(env: Environment = process.env): SepayReconciliationConfig {
@@ -84,8 +85,13 @@ export function parseSepayV2Transaction(value: unknown): SepayV2Transaction | nu
     : null;
   const content = input.transaction_content;
   const explicitCode = boundedText(input.code, 64) ? input.code : null;
-  const code = explicitCode?.match(BEANBUS_PAYMENT_CODE_PATTERN)?.[0]
-    ?? (boundedText(content, 2000) ? content.match(BEANBUS_PAYMENT_CODE_PATTERN)?.[0] : undefined);
+  const boundedContent = boundedText(content, 2000) ? content : '';
+  // SePay may leave `code` empty when its payment-code template is not active,
+  // or return only a shortened extraction. The raw content still contains the
+  // full Beanbus code, so resolve it before trusting the provider field.
+  const code = resolveStoredValuePaymentCode(explicitCode, boundedContent)
+    ?? resolveSepayPaymentCode(explicitCode, boundedContent)
+    ?? undefined;
   const amount = transferType === 'in' ? input.amount_in : input.amount_out;
 
   if (!boundedText(input.id, 64) || !UUID_PATTERN.test(input.id)

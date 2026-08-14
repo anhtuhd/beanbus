@@ -1,12 +1,11 @@
 import Link from 'next/link';
-import { ArrowLeft, Coins, Search } from 'lucide-react';
+import { ArrowLeft, Search, SquarePen } from 'lucide-react';
 import styles from '../requests/requests.module.css';
 import { normalizeVietnameseMobile } from '@/lib/auth/input';
 import { requireAdmin } from '@/lib/auth/session';
 import { boundedPage } from '@/lib/pagination';
 import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import MemberRoleForm from './MemberRoleForm';
 import { LocalizedText } from '@/components/ui/LocalizedText';
 
 type MemberRow = Pick<
@@ -100,8 +99,8 @@ export default async function AdminMembersPage({ searchParams }: Props) {
               <div><span className={styles.label}>Hội viên</span><Link href={`/admin/members/${member.id}`} className={styles.detailLink}><strong>BB-{String(member.member_number).padStart(8, '0')}</strong></Link><small>{member.full_name || 'Chưa cập nhật tên'}</small></div>
               <div><span className={styles.label}>Liên hệ</span><strong>{member.phone ?? 'Chưa có số điện thoại'}</strong><small>{member.email ?? 'Chưa có email'}</small></div>
               <div><span className={styles.label}>Ngày sinh</span><strong>{member.birthday ? formatDate(member.birthday) : 'Chưa cập nhật'}</strong></div>
-              <div><span className={styles.label}>Điểm khả dụng</span><strong>{Number(balances.get(member.id)?.available_points ?? 0).toLocaleString('vi-VN')} điểm</strong><small>Số dư thực: {Number(balances.get(member.id)?.balance_points ?? 0).toLocaleString('vi-VN')}</small>{member.role === 'member' && <Link href={`/admin/members/${member.id}#member-points-adjustment-title`} className={styles.pointsActionLink}><Coins size={14} aria-hidden="true" /> Điều chỉnh điểm</Link>}</div>
-              <div><span className={styles.label}>Quyền / Ngày tham gia</span><MemberRoleForm userId={member.id} role={member.role} /><small>{formatDate(member.created_at)}</small></div>
+              <div><span className={styles.label}>Điểm khả dụng</span><strong>{Number(balances.get(member.id)?.available_points ?? 0).toLocaleString('vi-VN')} điểm</strong><small>Số dư thực: {Number(balances.get(member.id)?.balance_points ?? 0).toLocaleString('vi-VN')}</small></div>
+              <div><span className={styles.label}>Quyền / Ngày tham gia</span><strong>{member.role}</strong><small>{formatDate(member.created_at)}</small><Link href={`/admin/members/${member.id}`} className={styles.editMemberLink}><SquarePen size={14} aria-hidden="true" /><LocalizedText vi="Chỉnh sửa" en="Edit" /></Link></div>
             </article>
           ))}
         </div>

@@ -84,7 +84,13 @@ SEPAY_BANK_ACCOUNT=
 SEPAY_ACCOUNT_NAME=
 ```
 
-Trên Sepay Dashboard, tạo webhook `Money in` dạng JSON tới `https://www.beanbus.store/hooks/payment`, chọn `HMAC-SHA256`, và dùng cùng `SEPAY_WEBHOOK_SECRET`. Mã thanh toán của đơn mới có dạng `DH_<mã hóa đơn>` như `DH_123`; không chọn chế độ không xác thực ở production. Contract HMAC và payload bám theo [tài liệu xác thực webhook](https://developer.sepay.vn/en/sepay-webhooks/xac-thuc) và [tài liệu tích hợp webhook](https://developer.sepay.vn/en/sepay-webhooks/tich-hop-webhook).
+Trên SePay Dashboard, cấu hình cấu trúc mã thanh toán trước khi tạo webhook:
+
+- `DHTP` + hậu tố alphanumeric đúng `20` ký tự cho giao dịch nạp điểm.
+- `DHFS` + hậu tố alphanumeric đúng `20` ký tự cho flash-sale.
+- `DH` + hậu tố alphanumeric đúng `12` ký tự cho đơn hàng (đặt sau hai mẫu trên).
+
+Các mẫu phải đang hoạt động trong môi trường **Live**. Sau đó tạo webhook `Money in` dạng JSON tới `https://www.beanbus.store/hooks/payment`, chọn `HMAC-SHA256` và dùng cùng `SEPAY_WEBHOOK_SECRET`. Có thể bật bộ lọc chỉ gửi khi có mã thanh toán sau khi ba mẫu trên đã được lưu. Beanbus luôn đọc thêm `content` để xử lý mã đầy đủ khi SePay gửi `code` rỗng hoặc code rút gọn. Contract HMAC và payload bám theo [tài liệu cấu trúc mã thanh toán](https://developer.sepay.vn/vi/sepay-webhooks/cau-hinh-ma-thanh-toan), [tài liệu xác thực webhook](https://developer.sepay.vn/en/sepay-webhooks/xac-thuc) và [tài liệu tích hợp webhook](https://developer.sepay.vn/en/sepay-webhooks/tich-hop-webhook).
 
 `SUPABASE_SECRET_KEY` cũng bắt buộc khi bật Sepay để Route Handler gọi transaction service-only. `SEPAY_API_KEY` và `CRON_SECRET` chỉ nhập khi bật `NEXT_PUBLIC_ENABLE_SEPAY_RECONCILIATION=true`; reconciliation chạy server-only theo lịch và không thay thế HMAC webhook.
 

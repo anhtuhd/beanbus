@@ -139,6 +139,8 @@ test('member dashboard places stored-value routes beside account tabs without du
   assert.match(accountClient, /href="\/account\/payment-history" className=\{styles\.navLink\}/);
   assert.match(accountClient, /storedValueConfigured/);
   assert.doesNotMatch(accountClient, /styles\.featureLinks|styles\.featureLink/);
+  const pointsNavigation = accountClient.match(/<div className=\{styles\.navLinks\}[\s\S]*?<\/div>/)?.[0] ?? '';
+  assert.doesNotMatch(pointsNavigation, /ArrowRight/);
 });
 
 test('demo account profile editing stays client-owned while production uses the server action', () => {

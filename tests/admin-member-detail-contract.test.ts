@@ -12,6 +12,9 @@ test('admin member detail is guarded, narrow, and read-only', () => {
   assert.match(page, /from\('orders'\)\.select\(/);
   assert.match(page, /from\('member_role_history'\)\.select\(/);
   assert.match(page, /Lịch sử quyền/);
+  assert.match(page, /member-edit-title/);
+  assert.match(page, /MemberRoleForm/);
+  assert.match(page, /MemberPointsAdjustmentForm/);
   assert.match(page, /ledgerPage/);
   assert.match(page, /orderPage/);
   assert.match(page, /count: 'exact'/);

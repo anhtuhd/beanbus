@@ -54,6 +54,23 @@ test('parses an inbound SePay API v2 transaction into the webhook contract', () 
   assert.equal(contentCode?.code, 'DH-260811DEF456');
 });
 
+test('parses a stored-value code from content when SePay sends no payment code', () => {
+  const transaction = parseSepayV2Transaction({
+    id: 'c1b2c3d4-e5f6-7890-abcd-ef1234567890',
+    transaction_date: '2026-08-14 13:42:00',
+    account_number: '0397872462',
+    transfer_type: 'in',
+    amount_in: 50000,
+    amount_out: 0,
+    transaction_content: 'DHTP21E3F7BC4B0E342DA7D2 I2CJ4SSC/555958',
+    reference_number: 'FT26226132538618',
+    code: null,
+    bank_brand_name: 'MBBank',
+  });
+
+  assert.equal(transaction?.code, 'DHTP21E3F7BC4B0E342DA7D2');
+});
+
 test('rejects malformed or unsafe v2 transaction values', () => {
   assert.equal(parseSepayV2Transaction({}), null);
   assert.equal(parseSepayV2Transaction({
