@@ -74,6 +74,23 @@ begin
     if not found then raise exception 'TOPUP_NOT_PAYABLE'; end if;
     select * into v_existing from public.stored_value_payments where topup_id = v_topup.id;
     if v_existing.id is not null then
+      if v_existing.status = 'pending' and v_existing.payment_code ~* '^B[TF][0-9]+$' then
+        v_prefix := 'DH-TP-';
+        v_expires_at := v_topup.expires_at;
+        loop
+          v_payment_code := v_prefix || upper(encode(extensions.gen_random_bytes(10), 'hex'));
+          update public.stored_value_payments
+          set payment_code = v_payment_code
+          where id = v_existing.id
+            and not exists (
+              select 1
+              from public.stored_value_payments existing
+              where existing.payment_code = v_payment_code
+            );
+          exit when found;
+        end loop;
+        select * into v_existing from public.stored_value_payments where id = v_existing.id;
+      end if;
       return query select v_existing.id, v_existing.payment_code, v_existing.amount_vnd, v_existing.status, v_existing.expires_at;
       return;
     end if;
@@ -86,6 +103,23 @@ begin
     if not found then raise exception 'FLASH_SALE_NOT_PAYABLE'; end if;
     select * into v_existing from public.stored_value_payments where flash_sale_purchase_id = v_flash.id;
     if v_existing.id is not null then
+      if v_existing.status = 'pending' and v_existing.payment_code ~* '^B[TF][0-9]+$' then
+        v_prefix := 'DH-FS-';
+        v_expires_at := v_flash.expires_at;
+        loop
+          v_payment_code := v_prefix || upper(encode(extensions.gen_random_bytes(10), 'hex'));
+          update public.stored_value_payments
+          set payment_code = v_payment_code
+          where id = v_existing.id
+            and not exists (
+              select 1
+              from public.stored_value_payments existing
+              where existing.payment_code = v_payment_code
+            );
+          exit when found;
+        end loop;
+        select * into v_existing from public.stored_value_payments where id = v_existing.id;
+      end if;
       return query select v_existing.id, v_existing.payment_code, v_existing.amount_vnd, v_existing.status, v_existing.expires_at;
       return;
     end if;

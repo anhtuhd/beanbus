@@ -41,15 +41,17 @@ export default function StoredValueClient({
 }) {
   const [purchase, setPurchase] = useState<Purchase | null>(null);
   const [payment, setPayment] = useState<Payment | null>(null);
+  const [activeItem, setActiveItem] = useState<StoredValueCatalogItem | null>(null);
   const [pendingItemId, setPendingItemId] = useState<string | null>(null);
   const [actionError, setActionError] = useState('');
   const [copied, setCopied] = useState(false);
   const { t } = useLanguage();
   const pollingRef = useRef(false);
   const idempotencyKeysRef = useRef<Record<string, string>>({});
+  const paymentStatus = purchase?.payment_status ?? purchase?.purchase_status ?? null;
 
   useEffect(() => {
-    if (!purchase?.purchase_id || purchase.purchase_status === 'paid' || purchase.purchase_status === 'expired') return;
+    if (!purchase?.purchase_id || paymentStatus === 'paid' || paymentStatus === 'expired' || paymentStatus === 'failed') return;
     const timer = window.setInterval(async () => {
       if (pollingRef.current) return;
       pollingRef.current = true;
@@ -63,10 +65,11 @@ export default function StoredValueClient({
       }
     }, 5000);
     return () => window.clearInterval(timer);
-  }, [purchase]);
+  }, [paymentStatus, purchase]);
 
   const handleCreate = async (item: StoredValueCatalogItem) => {
     if (pendingItemId) return;
+    setActiveItem(item);
     setPendingItemId(item.id);
     setActionError('');
     idempotencyKeysRef.current[item.id] ??= crypto.randomUUID();
@@ -81,6 +84,12 @@ export default function StoredValueClient({
       setPayment(result.payment);
     }
     setPendingItemId(null);
+  };
+
+  const retryPayment = () => {
+    if (!activeItem || pendingItemId) return;
+    idempotencyKeysRef.current[activeItem.id] = crypto.randomUUID();
+    void handleCreate(activeItem);
   };
 
   const copyCode = async () => {
@@ -98,10 +107,12 @@ export default function StoredValueClient({
   return (
     <div className="wrap">
       <div className={styles.header}>
-        <div>
-          <Link href="/account" className={styles.backLink}><ArrowLeft size={16} /> {t('Về tài khoản', 'Back to account')}</Link>
-          <Link href="/account/payment-history" className={styles.backLink}><History size={16} /> {t('Lịch sử giao dịch', 'Transaction history')}</Link>
-          <p className="eyebrow">Beanbus Member</p>
+        <div className={styles.headerContent}>
+          <nav className={styles.headerNav} aria-label={t('Điều hướng tài khoản', 'Account navigation')}>
+            <Link href="/account" className={styles.backLink}><ArrowLeft size={16} aria-hidden="true" /> {t('Về tài khoản', 'Back to account')}</Link>
+            <Link href="/account/payment-history" className={styles.backLink}><History size={16} aria-hidden="true" /> {t('Lịch sử giao dịch', 'Transaction history')}</Link>
+          </nav>
+          <p className={`eyebrow ${styles.eyebrow}`}>Beanbus Member</p>
           <h1>{title}</h1>
           <p className={styles.lede}>{description}</p>
         </div>
@@ -144,9 +155,18 @@ export default function StoredValueClient({
                 </strong>
               </div>
             </div>
-            <div className={purchase.purchase_status === 'paid' ? styles.successStatus : styles.waitingStatus} role="status" aria-live="polite">
-              {purchase.purchase_status === 'paid' ? <CheckCircle size={18} /> : <LoaderCircle size={18} className={styles.spin} />}
-              <div><strong>{statusText(purchase.purchase_status)}</strong><span>Hết hạn: {formatDate(purchase.expires_at)}</span></div>
+            <div className={paymentStatus === 'paid' ? styles.successStatus : paymentStatus === 'expired' || paymentStatus === 'failed' ? styles.errorStatus : styles.waitingStatus} role="status" aria-live="polite">
+              {paymentStatus === 'paid' ? <CheckCircle size={18} /> : paymentStatus === 'expired' || paymentStatus === 'failed' ? <Clock3 size={18} /> : <LoaderCircle size={18} className={styles.spin} />}
+              <div>
+                <strong>{statusText(paymentStatus ?? 'pending')}</strong>
+                <span>Hết hạn: {formatDate(purchase.expires_at)}</span>
+                {(paymentStatus === 'expired' || paymentStatus === 'failed') && activeItem && (
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={retryPayment} disabled={pendingItemId !== null}>
+                    {pendingItemId === activeItem.id ? <LoaderCircle size={15} className={styles.spin} /> : <QrCode size={15} />}
+                    {pendingItemId === activeItem.id ? t('Đang khởi tạo...', 'Initializing...') : t('Tạo mã mới', 'Create a new code')}
+                  </button>
+                )}
+              </div>
             </div>
           </section>
         </div>

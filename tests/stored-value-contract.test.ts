@@ -48,6 +48,12 @@ test('stored-value UI does not expose the payment provider label', () => {
   assert.doesNotMatch(client, /Sepay/i);
 });
 
+test('stored-value header keeps navigation separate from the page title', () => {
+  assert.match(client, /className={styles\.headerContent}/);
+  assert.match(client, /className={styles\.headerNav}/);
+  assert.match(client, /className={`eyebrow \$\{styles\.eyebrow\}`}/);
+});
+
 test('stored value migration isolates payments, locks quota, and credits only from verified webhooks', () => {
   assert.match(migration, /create table public\.stored_value_payments/i);
   assert.match(migration, /check \(\(topup_id is not null\) <> \(flash_sale_purchase_id is not null\)\)/i);
@@ -63,7 +69,7 @@ test('stored value migration isolates payments, locks quota, and credits only fr
 });
 
 test('stored value has a database replay, quota, and authorization test plan', () => {
-  assert.match(databaseTest, /select plan\(35\)/);
+  assert.match(databaseTest, /select plan\(37\)/);
   assert.match(databaseTest, /TOPUP_DISABLED/);
   assert.match(databaseTest, /stored-value payment creation retry is idempotent/);
   assert.match(databaseTest, /duplicate top-up webhook does not duplicate points/);

@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(35);
+select plan(37);
 
 select has_table('public', 'stored_value_policy', 'stored-value policy table exists');
 select has_table('public', 'topup_packages', 'top-up package table exists');
@@ -157,6 +157,38 @@ select is(
   (select count(*)::integer from public.loyalty_ledger where source_type = 'topup_credited'),
   1,
   'duplicate top-up webhook does not duplicate points'
+);
+
+reset role;
+set local role service_role;
+insert into public.wallet_topups (
+  id, user_id, package_id, idempotency_key, amount_vnd, points, status, expires_at
+) values (
+  '99999999-9999-4999-8999-999999999901',
+  '77777777-7777-4777-8777-777777777777',
+  '00000000-0000-4000-8000-000000000101',
+  '10000000-0000-4000-8000-000000000901',
+  100000, 100000, 'pending', now() + interval '20 minutes'
+);
+insert into public.stored_value_payments (
+  topup_id, payment_code, amount_vnd, bank_code, account_number, expires_at
+) values (
+  '99999999-9999-4999-8999-999999999901',
+  'BT999999', 100000, 'MB', '0937936688', now() + interval '20 minutes'
+);
+create temporary table rotated_legacy_payment as
+select * from public.create_stored_value_payment(
+  'topup', '99999999-9999-4999-8999-999999999901', 'MB', '0937936688'
+);
+select matches(
+  (select payment_code from rotated_legacy_payment),
+  '^DH-TP-[A-F0-9]{20}$',
+  'pending legacy payment code is rotated to a DH code'
+);
+select is(
+  (select count(*)::integer from public.stored_value_payments where payment_code = 'BT999999'),
+  0,
+  'legacy pending code is no longer payable'
 );
 
 set local role authenticated;

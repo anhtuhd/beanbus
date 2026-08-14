@@ -6,13 +6,30 @@
   margin: 32px 0 24px;
 }
 
+.headerContent {
+  min-width: 0;
+}
+
+.headerNav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-bottom: 20px;
+}
+
 .backLink {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   color: var(--brown);
   font-size: 0.88rem;
-  margin-bottom: 20px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
 }
 
 .lede {
@@ -24,6 +41,7 @@
 .headerIcon {
   display: grid;
   place-items: center;
+  flex: 0 0 auto;
   width: 48px;
   height: 48px;
   border: 1px solid var(--gray-200);
@@ -102,12 +120,23 @@
 .successStatus { color: #166534; background: #f0fdf4; border-color: #bbf7d0; }
 .waitingStatus { color: #854d0e; background: #fefce8; border-color: #fde68a; }
 .waitingStatus span, .successStatus span { display: block; margin-top: 4px; color: var(--brown); font-size: 0.88rem; }
-.errorStatus { margin-bottom: 16px; color: #991b1b; background: #fef2f2; border-color: #fecaca; }
+.errorStatus { margin: 16px 0; color: #991b1b; background: #fef2f2; border-color: #fecaca; }
+.errorStatus span { display: block; margin-top: 4px; color: var(--brown); font-size: 0.88rem; }
+.errorStatus .btn { margin-top: 12px; }
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 760px) {
-  .header { margin-top: 20px; }
+  .header {
+    margin-top: 20px;
+    gap: 16px;
+  }
   .itemGrid { grid-template-columns: 1fr; }
   .paymentPanel { padding: 18px; }
+}
+
+@media (max-width: 480px) {
+  .header { display: block; }
+  .headerIcon { margin-top: 20px; }
+  .headerNav { gap: 8px 12px; margin-bottom: 16px; }
 }
