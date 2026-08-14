@@ -2,6 +2,7 @@ import 'server-only';
 
 import { getCurrentProfile } from '@/lib/auth/session';
 import { boundedPage } from '@/lib/pagination';
+import { createAdminSupabaseClient } from '@/lib/supabase/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import type { Database } from '@/lib/supabase/database.types';
 
@@ -22,6 +23,8 @@ export async function getMemberPaymentHistory(requestedPage = 1): Promise<Member
   const profile = await getCurrentProfile();
   if (!profile) return { items: [], page, totalPages: 1, totalCount: 0, error: 'Phiên đăng nhập đã hết hạn.' };
 
+  const admin = createAdminSupabaseClient();
+  await admin.rpc('expire_pending_stored_value_payments', { p_limit: 100 });
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.rpc('get_member_payment_history', {
     p_page: page,

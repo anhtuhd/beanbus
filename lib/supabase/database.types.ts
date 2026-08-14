@@ -1881,6 +1881,10 @@ export type Database = {
         Args: Record<string, never>;
         Returns: number;
       };
+      expire_pending_stored_value_payments: {
+        Args: { p_limit?: number };
+        Returns: number;
+      };
       get_stored_value_catalog: {
         Args: Record<string, never>;
         Returns: {

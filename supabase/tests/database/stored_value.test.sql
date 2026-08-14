@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(37);
+select plan(41);
 
 select has_table('public', 'stored_value_policy', 'stored-value policy table exists');
 select has_table('public', 'topup_packages', 'top-up package table exists');
@@ -16,6 +16,10 @@ select has_function(
   'public', 'process_stored_value_webhook',
   array['bigint', 'text', 'timestamp with time zone', 'text', 'text', 'text', 'integer', 'text', 'jsonb'],
   'stored-value webhook function exists'
+);
+select has_function(
+  'public', 'expire_pending_stored_value_payments', array['integer'],
+  'stored-value expiry function exists'
 );
 select ok(
   (select relrowsecurity from pg_class where oid = 'public.wallet_topups'::regclass),
@@ -37,6 +41,14 @@ select ok(
     'EXECUTE'
   ),
   'members cannot create payment records directly'
+);
+select ok(
+  not has_function_privilege(
+    'authenticated',
+    'public.expire_pending_stored_value_payments(integer)',
+    'EXECUTE'
+  ),
+  'members cannot run global stored-value cleanup directly'
 );
 
 insert into auth.users (instance_id, id, aud, role, email, raw_user_meta_data, created_at, updated_at)
@@ -189,6 +201,35 @@ select is(
   (select count(*)::integer from public.stored_value_payments where payment_code = 'BT999999'),
   0,
   'legacy pending code is no longer payable'
+);
+update public.wallet_topups
+set status = 'expired', updated_at = now()
+where id = '99999999-9999-4999-8999-999999999901';
+
+insert into public.wallet_topups (
+  id, user_id, package_id, idempotency_key, amount_vnd, points, status, expires_at
+) values (
+  '99999999-9999-4999-8999-999999999902',
+  '77777777-7777-4777-8777-777777777777',
+  '00000000-0000-4000-8000-000000000101',
+  '10000000-0000-4000-8000-000000000902',
+  100000, 100000, 'pending', now() - interval '1 minute'
+);
+insert into public.stored_value_payments (
+  topup_id, payment_code, amount_vnd, bank_code, account_number, expires_at
+) values (
+  '99999999-9999-4999-8999-999999999902',
+  'DH-TP-0123456789ABCDEF0123', 100000, 'MB', '0937936688', now() - interval '1 minute'
+);
+select is(
+  public.expire_pending_stored_value_payments(100),
+  1,
+  'expired stored-value payment is cleaned up'
+);
+select is(
+  (select status from public.wallet_topups where id = '99999999-9999-4999-8999-999999999902'),
+  'expired',
+  'expired cleanup updates the top-up status'
 );
 
 set local role authenticated;

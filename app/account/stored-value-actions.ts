@@ -43,6 +43,8 @@ export async function createStoredValuePayment(kind: StoredValueKind, input: unk
   if (!profile) return { ok: false, error: 'AUTH_REQUIRED' };
 
   const correlationId = await getRequestCorrelationId();
+  const admin = createAdminSupabaseClient();
+  await admin.rpc('expire_pending_stored_value_payments', { p_limit: 100 });
   const supabase = await createServerSupabaseClient();
   const intentResult = kind === 'topup'
     ? await supabase.rpc('create_topup_intent', { p_package_id: parsed.data.itemId, p_idempotency_key: parsed.data.idempotencyKey })
@@ -54,7 +56,6 @@ export async function createStoredValuePayment(kind: StoredValueKind, input: unk
 
   try {
     const config = getSepayConfig();
-    const admin = createAdminSupabaseClient();
     const { data: paymentData, error: paymentError } = await admin.rpc('create_stored_value_payment', {
       p_purchase_type: kind,
       p_purchase_id: intent.purchase_id,
@@ -107,6 +108,8 @@ export async function getStoredValuePaymentStatus(purchaseId: string) {
   if (!isStoredValueConfigured() || !/^[0-9a-f-]{36}$/i.test(purchaseId)) return null;
   const profile = await getCurrentProfile();
   if (!profile) return null;
+  const admin = createAdminSupabaseClient();
+  await admin.rpc('expire_pending_stored_value_payments', { p_limit: 100 });
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.rpc('get_stored_value_purchase', { p_purchase_id: purchaseId });
   return error || !data?.[0] ? null : data[0];

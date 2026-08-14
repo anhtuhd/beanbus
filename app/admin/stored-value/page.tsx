@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ArrowLeft, Coins, ShieldCheck } from 'lucide-react';
 import { requireAdmin } from '@/lib/auth/session';
+import { createAdminSupabaseClient } from '@/lib/supabase/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import type { Database } from '@/lib/supabase/database.types';
 import { getAppMode } from '@/lib/env';
@@ -39,6 +40,8 @@ function parseCatalog(value: unknown): StoredValueAdminCatalog | null {
 export default async function AdminStoredValuePage() {
   if (getAppMode() === 'demo') redirect('/admin');
   await requireAdmin();
+  const admin = createAdminSupabaseClient();
+  await admin.rpc('expire_pending_stored_value_payments', { p_limit: 100 });
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.rpc('get_admin_stored_value_catalog');
   const catalog = parseCatalog(data);

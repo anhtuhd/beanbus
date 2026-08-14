@@ -9,6 +9,7 @@ const migration = readFileSync('supabase/migrations/20260810060000_stored_value.
 const expiryMigration = readFileSync('supabase/migrations/20260811014925_fix_stored_value_expiry_ambiguity.sql', 'utf8');
 const precedenceMigration = readFileSync('supabase/migrations/20260811050000_fix_flash_sale_error_precedence.sql', 'utf8');
 const secureCodeMigration = readFileSync('supabase/migrations/20260814100000_secure_stored_value_codes_and_history.sql', 'utf8');
+const expiryStatusMigration = readFileSync('supabase/migrations/20260814110000_expire_stored_value_payments.sql', 'utf8');
 const databaseTest = readFileSync('supabase/tests/database/stored_value.test.sql', 'utf8');
 const action = readFileSync('app/account/stored-value-actions.ts', 'utf8');
 const client = readFileSync('app/account/StoredValueClient.tsx', 'utf8');
@@ -69,13 +70,23 @@ test('stored value migration isolates payments, locks quota, and credits only fr
 });
 
 test('stored value has a database replay, quota, and authorization test plan', () => {
-  assert.match(databaseTest, /select plan\(37\)/);
+  assert.match(databaseTest, /select plan\(41\)/);
   assert.match(databaseTest, /TOPUP_DISABLED/);
   assert.match(databaseTest, /stored-value payment creation retry is idempotent/);
   assert.match(databaseTest, /duplicate top-up webhook does not duplicate points/);
   assert.match(databaseTest, /paid flash-sale consumes one sold quota/);
   assert.match(databaseTest, /FLASH_SALE_USER_LIMIT/);
   assert.match(databaseTest, /has_table_privilege\('authenticated', 'public\.wallet_topups', 'SELECT'\)/);
+});
+
+test('stored-value expiry is bounded, service-only, and visible without a scheduler', () => {
+  assert.match(expiryStatusMigration, /expire_pending_stored_value_payments\(p_limit integer default 100\)/i);
+  assert.match(expiryStatusMigration, /for update skip locked/i);
+  assert.match(expiryStatusMigration, /grant execute on function public\.expire_pending_stored_value_payments\(integer\) to service_role/i);
+  assert.match(expiryStatusMigration, /payments\.status = 'pending'[\s\S]*payments\.expires_at <= now\(\)/i);
+  assert.match(expiryStatusMigration, /case when payments\.status = 'pending' and payments\.expires_at <= now\(\)/i);
+  assert.match(action, /expire_pending_stored_value_payments/);
+  assert.match(historyPage, /getMemberPaymentHistory/);
 });
 
 test('top-up expiry cleanup qualifies the table timestamp', () => {
