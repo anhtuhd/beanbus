@@ -263,7 +263,7 @@ export function ProductionConfirmation({
             <span>{t('Thanh toán:', 'Payment:')}</span>
             <strong>{order.cashDueVnd === 0
               ? t('Thanh toán bằng điểm', 'Paid with points')
-              : order.paymentMethod === 'sepay_qr' ? 'Sepay VietQR' : t('Tiền mặt COD', 'Cash on delivery')}</strong>
+              : order.paymentMethod === 'sepay_qr' ? t('Thanh toán QR', 'QR payment') : t('Tiền mặt COD', 'Cash on delivery')}</strong>
           </div>
         </div>
 

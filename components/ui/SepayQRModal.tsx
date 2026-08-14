@@ -66,7 +66,7 @@ export const SepayQRModal: React.FC<Props> = ({ orderId, sepayCode, finalTotal, 
         <div className={styles.header}>
           <div className={styles.headerTitle}>
             <QrCode className={styles.icon} />
-            <h3 id="sepay-dialog-title">{t('Thanh Toán QR Code Sepay', 'Sepay QR Payment')}</h3>
+            <h3 id="sepay-dialog-title">{t('Thanh Toán QR Code', 'QR Payment')}</h3>
           </div>
           <button className={styles.closeBtn} onClick={onClose} aria-label={t('Đóng thanh toán QR', 'Close QR payment')}>
             <X size={20} />
@@ -76,7 +76,7 @@ export const SepayQRModal: React.FC<Props> = ({ orderId, sepayCode, finalTotal, 
         {/* BODY */}
         <div className={styles.body}>
           <div className={styles.topInfo}>
-            <span className={styles.badge}>⚡ Sepay Gateway Auto Check</span>
+            <span className={styles.badge}>⚡ Tự động kiểm tra thanh toán</span>
             <p className={styles.guide}>
               {t(
                 'Mở ứng dụng ngân hàng hoặc ví điện tử bất kỳ (MoMo, ZaloPay, Vietcombank...) để quét mã QR.',
@@ -88,7 +88,7 @@ export const SepayQRModal: React.FC<Props> = ({ orderId, sepayCode, finalTotal, 
           <div className={styles.contentGrid}>
             {/* QR CODE BOX */}
             <div className={styles.qrBox}>
-              <Image src={qrUrl} alt="VietQR Sepay Payment" width={320} height={320} unoptimized className={styles.qrImage} />
+              <Image src={qrUrl} alt="VietQR Payment" width={320} height={320} unoptimized className={styles.qrImage} />
               <span className={styles.scanHint}>{t('Quét mã để tự điền thông tin', 'Scan to auto-fill payment')}</span>
             </div>
 
@@ -137,7 +137,7 @@ export const SepayQRModal: React.FC<Props> = ({ orderId, sepayCode, finalTotal, 
           <div className={styles.statusBanner}>
             <RefreshCw className={styles.spinIcon} size={18} />
             <div className={styles.statusText}>
-              <strong>{t('Đang lắng nghe sự kiện từ Sepay...', 'Listening for Sepay payment...')}</strong>
+              <strong>{t('Đang chờ xác nhận thanh toán...', 'Waiting for payment confirmation...')}</strong>
               <span>{t('Hệ thống sẽ tự động cập nhật ngay khi tiền về tài khoản.', 'System updates automatically upon payment.')}</span>
             </div>
           </div>
@@ -160,7 +160,7 @@ export const SepayQRModal: React.FC<Props> = ({ orderId, sepayCode, finalTotal, 
             ) : (
               <>
                 <ShieldCheck size={18} />
-                <span>{t('Xác Nhận Đã Chuyển Khoản (Sepay Webhook)', 'Confirm Paid (Simulate Webhook)')}</span>
+                <span>{t('Xác Nhận Đã Chuyển Khoản', 'Confirm Transfer')}</span>
               </>
             )}
           </button>

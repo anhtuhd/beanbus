@@ -35,3 +35,11 @@ test('dialog feedback is announced without relying on color or icons', () => {
   assert.match(sepayDialog, /copiedAcc \? t\(/);
   assert.match(sepayDialog, /copiedContent \? t\(/);
 });
+
+test('customer QR payment copy does not expose the payment provider label', () => {
+  const checkout = readFileSync(new URL('../app/order/checkout/CheckoutClient.tsx', import.meta.url), 'utf8');
+  const confirmation = readFileSync(new URL('../app/order/confirmation/[id]/ProductionConfirmation.tsx', import.meta.url), 'utf8');
+  assert.doesNotMatch(sepayDialog, /Thanh Toán QR Code Sepay|Sepay QR Payment|Sepay Gateway Auto Check|Listening for Sepay|Sepay Webhook/);
+  assert.doesNotMatch(checkout, /Thanh toán QR Code \(Sepay|Sepay QR Code Payment|Mã QR Sepay|Proceed to Sepay QR/);
+  assert.doesNotMatch(confirmation, /Sepay VietQR/);
+});

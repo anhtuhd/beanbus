@@ -53,7 +53,7 @@ export function DemoConfirmation() {
         </p>
         {order.paymentStatus === 'paid' && (
           <div className={styles.paidBadge}>
-            {t('Thanh toán Sepay QR đã được ghi nhận!', 'Sepay QR Payment Verified!')}
+            {t('Thanh toán QR đã được ghi nhận!', 'QR Payment Verified!')}
           </div>
         )}
       </div>
@@ -108,7 +108,7 @@ export function DemoConfirmation() {
           </div>
           <div className={styles.row}>
             <span>{t('Phương thức TT:', 'Payment Method:')}</span>
-            <strong>{order.paymentMethod === 'sepay_qr' ? 'Sepay VietQR Code' : 'Tiền mặt COD'}</strong>
+            <strong>{order.paymentMethod === 'sepay_qr' ? 'VietQR' : 'Tiền mặt COD'}</strong>
           </div>
         </div>
 

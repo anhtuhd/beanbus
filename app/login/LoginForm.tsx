@@ -90,7 +90,7 @@ export default function LoginForm({
           >
             <input type="hidden" name="next" value={next} />
             <div className={styles.inputGroup}>
-              <label htmlFor="email">{t('Email quản trị', 'Admin email')}</label>
+              <label htmlFor="email">{t('Email', 'Email')}</label>
               <input
                 id="email"
                 name="email"
@@ -116,7 +116,7 @@ export default function LoginForm({
               className={`btn btn-primary btn-lg ${styles.fullButton}`}
               disabled={passwordPending}
             >
-              {passwordPending ? t('Đang đăng nhập...', 'Signing in...') : t('Đăng nhập quản trị', 'Admin sign in')}
+              {passwordPending ? t('Đang đăng nhập...', 'Signing in...') : t('Đăng nhập', 'Sign in')}
             </button>
           </form>
         )}

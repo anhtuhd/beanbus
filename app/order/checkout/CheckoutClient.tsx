@@ -294,7 +294,7 @@ export default function CheckoutClient({
                   />
                   <QrCode size={24} className={styles.payIcon} />
                   <div className={styles.payText}>
-                    <strong>{t('Thanh toán QR Code (Sepay Tự Động)', 'Sepay QR Code Payment')}</strong>
+                    <strong>{t('Thanh toán QR Code', 'QR Code Payment')}</strong>
                     <span>{t('Quét bằng ứng dụng ngân hàng, đơn tự cập nhật khi thanh toán thành công.', 'Scan with your banking app; the order updates after payment.')}</span>
                   </div>
                   <span className={styles.payBadge}>Recommended</span>
@@ -442,7 +442,7 @@ export default function CheckoutClient({
                   : cashlessOrder
                     ? t('Xác nhận đơn hàng', 'Confirm order')
                     : paymentMethod === 'sepay_qr'
-                    ? t('Tiếp Tục Quét Mã QR Sepay', 'Proceed to Sepay QR')
+                    ? t('Tiếp Tục Quét Mã QR', 'Proceed to QR Payment')
                     : t('Xác Nhận Đặt Hàng (COD)', 'Confirm Order (COD)')}
               </span>
             </button>
