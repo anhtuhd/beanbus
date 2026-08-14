@@ -49,7 +49,6 @@ export default async function AdminStoredValuePage() {
         <div>
           <Link href="/admin" className={styles.backLink}><ArrowLeft size={16} /> Tổng quan</Link>
           <h1><Coins size={24} /> Stored-value</h1>
-          <p>Quản lý policy, gói nạp và flash-sale. Mọi credit chỉ phát sinh sau webhook Sepay hợp lệ.</p>
         </div>
       </header>
       {error || !catalog ? (

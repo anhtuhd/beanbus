@@ -17,7 +17,6 @@ export default function StoredValuePolicyForm({ enabled, topupEnabled, flashSale
         <label><input type="checkbox" name="flashSaleEnabled" defaultChecked={flashSaleEnabled} /> Cho phép flash-sale</label>
         <button type="submit" className={styles.saveButton} disabled={pending}>{pending ? <LoaderCircle size={16} className={styles.spinner} /> : <Check size={16} />}<span><LocalizedText vi={pending ? 'Đang lưu' : 'Lưu policy'} en={pending ? 'Saving...' : 'Save policy'} /></span></button>
       </div>
-      <p className={styles.helperText}>Policy này vẫn đi qua feature gate production + Sepay. Migration không tự mở chức năng.</p>
       {state.status !== 'idle' && <span className={state.status === 'error' ? styles.actionError : styles.actionSuccess} role={state.status === 'error' ? 'alert' : 'status'} aria-live={state.status === 'error' ? 'assertive' : 'polite'}>{state.message}</span>}
     </form>
   );

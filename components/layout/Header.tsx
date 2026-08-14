@@ -288,47 +288,52 @@ export const Header: React.FC = () => {
           )}
 
           {/* ACCOUNT DROPDOWN */}
-          <div className={styles.accountDropdownWrapper} onBlur={closeMenuOnBlur} onKeyDown={closeMenuOnEscape}>
-            <button className={styles.accountBtn} title={isAdmin ? t('Quản trị', 'Admin') : t('Hội viên', 'Member')} aria-haspopup="true" aria-expanded="false" onClick={toggleKeyboardMenu} onKeyDown={focusFirstMenuItem}>
+          {!isLoggedIn ? (
+            <Link href="/login" className={styles.accountBtn} title={t('Hội viên', 'Member')}>
               <User size={18} />
-              <span className={styles.accountText}>
-                {isAdmin ? t('Quản trị', 'Admin') : isLoggedIn ? user?.tier : t('Hội viên', 'Member')}
-              </span>
-              <ChevronDown size={14} className={styles.chevron} />
-            </button>
+              <span className={styles.accountText}>{t('Hội viên', 'Member')}</span>
+            </Link>
+          ) : (
+            <div className={styles.accountDropdownWrapper} onBlur={closeMenuOnBlur} onKeyDown={closeMenuOnEscape}>
+              <button className={styles.accountBtn} title={isAdmin ? t('Quản trị', 'Admin') : t('Hội viên', 'Member')} aria-haspopup="true" aria-expanded="false" onClick={toggleKeyboardMenu} onKeyDown={focusFirstMenuItem}>
+                <User size={18} />
+                <span className={styles.accountText}>
+                  {isAdmin ? t('Quản trị', 'Admin') : user?.tier}
+                </span>
+                <ChevronDown size={14} className={styles.chevron} />
+              </button>
 
-            <div className={styles.accountDropdown}>
-              {isLoggedIn && !isAdmin && (
-                <div className={styles.userInfo}>
-                  <div className={styles.userTier}>
-                    <Award size={16} />
-                    <span>{user?.tier || 'Member'}</span>
-                  </div>
-                  {!isAdmin && user?.points !== undefined && (
-                    <div className={styles.userPoints}>
-                      {user.points} points
+              <div className={styles.accountDropdown}>
+                {!isAdmin && (
+                  <div className={styles.userInfo}>
+                    <div className={styles.userTier}>
+                      <Award size={16} />
+                      <span>{user?.tier || 'Member'}</span>
                     </div>
-                  )}
-                </div>
-              )}
-              <Link href={isAdmin ? '/admin' : isLoggedIn ? '/account' : '/login'} className={styles.accountDropItem}>
-                <User size={16} />
-                {isAdmin ? t('Mở Admin Panel', 'Open Admin Panel') : t('Tài khoản', 'Account')}
-              </Link>
-              {isLoggedIn && !isAdmin && storedValueEnabled && (
-                <Link href="/account/topup" className={styles.accountDropItem}>
-                  <Coins size={16} />
-                  {t('Nạp điểm', 'Top up points')}
+                    {user?.points !== undefined && (
+                      <div className={styles.userPoints}>
+                        {user.points} points
+                      </div>
+                    )}
+                  </div>
+                )}
+                <Link href={isAdmin ? '/admin' : '/account'} className={styles.accountDropItem}>
+                  <User size={16} />
+                  {isAdmin ? t('Mở Admin Panel', 'Open Admin Panel') : t('Tài khoản', 'Account')}
                 </Link>
-              )}
-              {isLoggedIn && (
+                {!isAdmin && storedValueEnabled && (
+                  <Link href="/account/topup" className={styles.accountDropItem}>
+                    <Coins size={16} />
+                    {t('Nạp điểm', 'Top up points')}
+                  </Link>
+                )}
                 <button type="button" className={`${styles.accountDropItem} ${styles.accountDropButton}`} onClick={logout}>
                   <LogOut size={16} />
                   {t('Đăng xuất', 'Log out')}
                 </button>
-              )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* QUICK ORDER / CALL */}
           <Link href="/order" className={`btn btn-primary btn-sm ${styles.quickOrder}`}>
