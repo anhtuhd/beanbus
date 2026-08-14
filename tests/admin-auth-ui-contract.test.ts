@@ -14,3 +14,16 @@ test('admin header hides member-only tier and points affordances', () => {
   assert.match(headerSource, /isAdmin \? '\/admin' : isLoggedIn \? '\/account'/);
   assert.match(headerSource, /isLoggedIn && !isAdmin/);
 });
+
+test('authenticated header exposes logout for desktop and mobile menus', () => {
+  assert.match(headerSource, /isLoggedIn && \(/);
+  assert.match(headerSource, /className=\{`\$\{styles\.accountDropItem\} \$\{styles\.accountDropButton\}`\}/);
+  assert.match(headerSource, /className=\{`\$\{styles\.mobileNavLink\} \$\{styles\.mobileLogout\}`\}/);
+  assert.match(headerSource, /onClick=\{logout\}/);
+});
+
+test('member header exposes top-up only when stored value and SePay are enabled', () => {
+  assert.match(headerSource, /NEXT_PUBLIC_ENABLE_STORED_VALUE === 'true'/);
+  assert.match(headerSource, /NEXT_PUBLIC_ENABLE_SEPAY === 'true'/);
+  assert.match(headerSource, /href="\/account\/topup"/);
+});

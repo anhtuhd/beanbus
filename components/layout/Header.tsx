@@ -10,8 +10,8 @@ import { useAuth } from '@/context/AuthContext';
 import { BRAND_ASSETS } from '@/lib/brand/assets';
 import { isNavHrefActive } from './navigation';
 import { NotificationBell } from './NotificationBell';
-import { 
-  ShoppingBag, User, Menu, X, Phone, ChevronDown, Award
+import {
+  ShoppingBag, User, Menu, X, Phone, ChevronDown, Award, LogOut, Coins
 } from 'lucide-react';
 import styles from './Header.module.css';
 
@@ -150,8 +150,10 @@ export const Header: React.FC = () => {
   const pathname = usePathname();
   const { lang, setLang, t } = useLanguage();
   const { cartCount, setIsCartOpen } = useCart();
-  const { user, isLoggedIn, isAuthReady } = useAuth();
+  const { user, isLoggedIn, isAuthReady, logout } = useAuth();
   const isAdmin = user?.role === 'admin';
+  const storedValueEnabled = process.env.NEXT_PUBLIC_ENABLE_STORED_VALUE === 'true'
+    && process.env.NEXT_PUBLIC_ENABLE_SEPAY === 'true';
   const [mobileMenuPath, setMobileMenuPath] = useState<string | null>(null);
   const [hash, setHash] = useState('');
   const [scrolled, setScrolled] = useState(false);
@@ -313,6 +315,18 @@ export const Header: React.FC = () => {
                 <User size={16} />
                 {isAdmin ? t('Mở Admin Panel', 'Open Admin Panel') : t('Tài khoản', 'Account')}
               </Link>
+              {isLoggedIn && !isAdmin && storedValueEnabled && (
+                <Link href="/account/topup" className={styles.accountDropItem}>
+                  <Coins size={16} />
+                  {t('Nạp điểm', 'Top up points')}
+                </Link>
+              )}
+              {isLoggedIn && (
+                <button type="button" className={`${styles.accountDropItem} ${styles.accountDropButton}`} onClick={logout}>
+                  <LogOut size={16} />
+                  {t('Đăng xuất', 'Log out')}
+                </button>
+              )}
             </div>
           </div>
 
@@ -355,6 +369,16 @@ export const Header: React.FC = () => {
               <Link href={isAdmin ? '/admin' : isLoggedIn ? '/account' : '/login'} className={styles.mobileNavLink} onClick={() => setMobileOpen(false)}>
                 <User size={17} /> {isAdmin ? t('Admin Panel', 'Admin Panel') : t('Tài khoản hội viên', 'Member Account')} {!isAdmin && isLoggedIn ? `(${user?.tier || 'Member'})` : ''}
               </Link>
+              {isLoggedIn && !isAdmin && storedValueEnabled && (
+                <Link href="/account/topup" className={styles.mobileNavLink} onClick={() => setMobileOpen(false)}>
+                  <Coins size={17} /> {t('Nạp điểm', 'Top up points')}
+                </Link>
+              )}
+              {isLoggedIn && (
+                <button type="button" className={`${styles.mobileNavLink} ${styles.mobileLogout}`} onClick={() => { setMobileOpen(false); logout(); }}>
+                  <LogOut size={17} /> {t('Đăng xuất', 'Log out')}
+                </button>
+              )}
             </div>
           </nav>
         </div>

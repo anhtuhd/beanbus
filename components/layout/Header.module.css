@@ -366,6 +366,14 @@
   color: var(--orange);
 }
 
+.accountDropButton {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
 .burger {
   display: none;
   background: none;
@@ -426,6 +434,14 @@
   color: var(--brown-dark);
   padding: 12px 16px;
   text-decoration: none;
+}
+
+.mobileLogout {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
 }
 
 .mobileNavChildren {
