@@ -540,28 +540,25 @@
 
 /* MEMBER DASHBOARD NAVIGATION */
 .accountNavigation {
-  display: flex;
-  align-items: stretch;
-  flex-wrap: wrap;
-  gap: 12px;
+  display: grid;
+  gap: 8px;
   border-bottom: 2px solid var(--gray-200);
 }
 
 .navTabs,
 .navLinks {
-  display: flex;
+  display: grid;
   align-items: stretch;
-  flex-wrap: wrap;
   gap: 4px;
   min-width: 0;
 }
 
 .navTabs {
-  flex: 1 1 680px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .navLinks {
-  flex: 0 1 auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .tabBtn,
@@ -580,8 +577,11 @@
   margin-bottom: -2px;
   min-height: 48px;
   min-width: 0;
+  justify-content: center;
+  line-height: 1.25;
   white-space: normal;
   text-decoration: none;
+  text-align: center;
 }
 
 .tabBtn {
@@ -1022,17 +1022,12 @@
 
 @media (max-width: 900px) {
   .accountNavigation {
-    display: block;
     padding-bottom: 8px;
   }
   .navTabs,
   .navLinks {
-    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
-  }
-  .navLinks {
-    margin-top: 8px;
   }
   .tabBtn,
   .navLink {
@@ -1042,6 +1037,7 @@
     border: 1px solid var(--gray-300);
     border-radius: 6px;
     overflow-wrap: anywhere;
+    text-align: left;
   }
   .activeTab {
     border-color: var(--orange) !important;

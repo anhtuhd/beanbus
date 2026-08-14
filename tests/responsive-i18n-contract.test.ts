@@ -6,6 +6,7 @@ const modalCss = readFileSync('components/ui/ProductCustomizerModal.module.css',
 const aboutCss = readFileSync('app/about/about.module.css', 'utf8');
 const languageContext = readFileSync('context/LanguageContext.tsx', 'utf8');
 const header = readFileSync('components/layout/Header.tsx', 'utf8');
+const headerStyles = readFileSync('components/layout/Header.module.css', 'utf8');
 const home = readFileSync('app/HomeClient.tsx', 'utf8');
 
 test('mobile product customizer collapses options and keeps footer inside the modal', () => {
@@ -25,6 +26,16 @@ test('about roastery content can shrink below its grid minimum on small screens'
 test('language changes update the document language and accessible cart label', () => {
   assert.match(languageContext, /document\.documentElement\.lang\s*=\s*lang/);
   assert.match(header, /aria-label=\{t\('Giỏ hàng',\s*'Cart'\)\}/);
+});
+
+test('desktop header keeps cart and notifications at the far right', () => {
+  const account = header.indexOf('{/* ACCOUNT DROPDOWN */}');
+  const order = header.indexOf('{/* QUICK ORDER / CALL */}');
+  const cart = header.indexOf('{/* UTILITY ACTIONS: keep cart and notifications at the far right */}');
+  const notification = header.indexOf('className={styles.notificationSlot}');
+
+  assert.ok(account >= 0 && order > account && cart > order && notification > cart);
+  assert.match(headerStyles, /\.actions\s*\{[\s\S]*?margin-left:\s*auto;/);
 });
 
 test('home gallery captions provide English alternatives', () => {

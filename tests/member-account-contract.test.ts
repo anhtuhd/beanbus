@@ -7,6 +7,7 @@ const loyaltyMigration = readFileSync('supabase/migrations/20260810032413_loyalt
 const query = readFileSync('lib/account/queries.ts', 'utf8');
 const page = readFileSync('app/account/page.tsx', 'utf8');
 const accountClient = readFileSync('app/account/AccountClient.tsx', 'utf8');
+const accountStyles = readFileSync('app/account/account.module.css', 'utf8');
 const detailPage = readFileSync('app/account/orders/[id]/page.tsx', 'utf8');
 const reorderDetailForm = readFileSync('app/account/orders/ReorderOrderForm.tsx', 'utf8');
 const requestDetailPage = readFileSync('app/account/requests/[id]/page.tsx', 'utf8');
@@ -141,6 +142,13 @@ test('member dashboard places stored-value routes beside account tabs without du
   assert.doesNotMatch(accountClient, /styles\.featureLinks|styles\.featureLink/);
   const pointsNavigation = accountClient.match(/<div className=\{styles\.navLinks\}[\s\S]*?<\/div>/)?.[0] ?? '';
   assert.doesNotMatch(pointsNavigation, /ArrowRight/);
+});
+
+test('member dashboard navigation stays aligned across desktop and mobile', () => {
+  assert.match(accountStyles, /\.accountNavigation\s*\{[\s\S]*?display:\s*grid;/);
+  assert.match(accountStyles, /\.navTabs\s*\{[\s\S]*?grid-template-columns:\s*repeat\(5,/);
+  assert.match(accountStyles, /\.navLinks\s*\{[\s\S]*?grid-template-columns:\s*repeat\(3,/);
+  assert.match(accountStyles, /@media \(max-width: 900px\)[\s\S]*?grid-template-columns: repeat\(2,/);
 });
 
 test('demo account profile editing stays client-owned while production uses the server action', () => {

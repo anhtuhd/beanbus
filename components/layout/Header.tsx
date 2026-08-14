@@ -266,27 +266,6 @@ export const Header: React.FC = () => {
             </button>
           </div>
 
-          {/* CART BUTTON */}
-          <button
-            className={styles.cartBtn}
-            onClick={() => setIsCartOpen(true)}
-            aria-label={t('Giỏ hàng', 'Cart')}
-          >
-            <ShoppingBag size={20} />
-            {cartCount > 0 && <span className={styles.cartBadge}>{cartCount}</span>}
-          </button>
-
-          {process.env.NEXT_PUBLIC_ENABLE_NOTIFICATIONS === 'true' && (
-            <div className={styles.notificationSlot}>
-              <NotificationBell
-                isAdmin={isAdmin}
-                isAuthReady={isAuthReady}
-                isLoggedIn={isLoggedIn}
-                userId={user?.id ?? null}
-              />
-            </div>
-          )}
-
           {/* ACCOUNT DROPDOWN */}
           {!isLoggedIn ? (
             <Link href="/login" className={styles.accountBtn} title={t('Hội viên', 'Member')}>
@@ -340,6 +319,27 @@ export const Header: React.FC = () => {
             <Phone size={14} />
             <span>{t('Đặt đồ', 'Order Now')}</span>
           </Link>
+
+          {/* UTILITY ACTIONS: keep cart and notifications at the far right */}
+          <button
+            className={styles.cartBtn}
+            onClick={() => setIsCartOpen(true)}
+            aria-label={t('Giỏ hàng', 'Cart')}
+          >
+            <ShoppingBag size={20} />
+            {cartCount > 0 && <span className={styles.cartBadge}>{cartCount}</span>}
+          </button>
+
+          {process.env.NEXT_PUBLIC_ENABLE_NOTIFICATIONS === 'true' && (
+            <div className={styles.notificationSlot}>
+              <NotificationBell
+                isAdmin={isAdmin}
+                isAuthReady={isAuthReady}
+                isLoggedIn={isLoggedIn}
+                userId={user?.id ?? null}
+              />
+            </div>
+          )}
 
           {/* MOBILE BURGER */}
           <button
