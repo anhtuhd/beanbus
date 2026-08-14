@@ -132,6 +132,15 @@ test('member account tabs expose accessible tab and panel semantics', () => {
   assert.match(accountClient, /tab: activeTab/);
 });
 
+test('member dashboard places stored-value routes beside account tabs without duplicating the old links', () => {
+  assert.match(accountClient, /className=\{styles\.accountNavigation\}/);
+  assert.match(accountClient, /href="\/account\/topup" className=\{styles\.navLink\}/);
+  assert.match(accountClient, /href="\/flash-sale" className=\{styles\.navLink\}/);
+  assert.match(accountClient, /href="\/account\/payment-history" className=\{styles\.navLink\}/);
+  assert.match(accountClient, /storedValueConfigured/);
+  assert.doesNotMatch(accountClient, /styles\.featureLinks|styles\.featureLink/);
+});
+
 test('demo account profile editing stays client-owned while production uses the server action', () => {
   assert.match(accountClient, /handleDemoProfileSubmit/);
   assert.match(accountClient, /action=\{production \? profileAction : undefined\}/);

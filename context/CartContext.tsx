@@ -34,6 +34,8 @@ interface CartContextType {
   subtotal: number;
   discountAmount: number;
   finalTotal: number;
+  usePoints: boolean;
+  setUsePoints: (enabled: boolean) => void;
   appliedVoucher: AppliedVoucher | null;
   applyVoucher: (code: string) => { success: boolean; message: string };
   applyVoucherDetails: (voucher: AppliedVoucher) => void;
@@ -48,6 +50,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [appliedVoucher, setAppliedVoucher] = useState<AppliedVoucher | null>(null);
+  const [usePoints, setUsePoints] = useState(false);
   const [hasHydrated, setHasHydrated] = useState(false);
 
   // Load cart from localStorage
@@ -162,6 +165,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearCart = () => {
     setCart([]);
     setAppliedVoucher(null);
+    setUsePoints(false);
   };
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -225,6 +229,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         subtotal,
         discountAmount,
         finalTotal,
+        usePoints,
+        setUsePoints,
         appliedVoucher,
         applyVoucher,
         applyVoucherDetails,

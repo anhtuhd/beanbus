@@ -21,7 +21,6 @@ import type { MemberAccountOrder, MemberLoyaltyEntry, MemberLoyaltySummary, Memb
 import {
   Award,
   ArrowRight,
-  History,
   ShoppingBag,
   Ticket,
   LogOut,
@@ -320,83 +319,99 @@ export default function AccountClient({
         </div>
       )}
 
-      {/* NAVIGATION TABS */}
-      <div className={styles.navTabs} role="tablist" aria-label={t('Khu vực tài khoản', 'Account sections')}>
-        <button
-          type="button"
-          role="tab"
-          id="membership-tab"
-          aria-selected={activeTab === 'membership'}
-          aria-controls="membership-panel"
-          tabIndex={activeTab === 'membership' ? 0 : -1}
-          ref={(element) => { tabRefs.current.membership = element; }}
-          onKeyDown={handleTabKeyDown}
-          className={`${styles.tabBtn} ${activeTab === 'membership' ? styles.activeTab : ''}`}
-          onClick={() => handleTabChange('membership')}
-        >
-          <Award size={16} /> <span>{t('Thẻ Hội Viên', 'Membership Card')}</span>
-        </button>
+      {/* MEMBER DASHBOARD NAVIGATION */}
+      <nav className={styles.accountNavigation} aria-label={t('Khu vực tài khoản', 'Account sections')}>
+        <div className={styles.navTabs} role="tablist" aria-label={t('Nội dung tài khoản', 'Account content')}>
+          <button
+            type="button"
+            role="tab"
+            id="membership-tab"
+            aria-selected={activeTab === 'membership'}
+            aria-controls="membership-panel"
+            tabIndex={activeTab === 'membership' ? 0 : -1}
+            ref={(element) => { tabRefs.current.membership = element; }}
+            onKeyDown={handleTabKeyDown}
+            className={`${styles.tabBtn} ${activeTab === 'membership' ? styles.activeTab : ''}`}
+            onClick={() => handleTabChange('membership')}
+          >
+            <Award size={16} /> <span>{t('Thẻ Hội Viên', 'Membership Card')}</span>
+          </button>
 
-        <button
-          type="button"
-          role="tab"
-          id="orders-tab"
-          aria-selected={activeTab === 'orders'}
-          aria-controls="orders-panel"
-          tabIndex={activeTab === 'orders' ? 0 : -1}
-          ref={(element) => { tabRefs.current.orders = element; }}
-          onKeyDown={handleTabKeyDown}
-          className={`${styles.tabBtn} ${activeTab === 'orders' ? styles.activeTab : ''}`}
-          onClick={() => handleTabChange('orders')}
-        >
-          <ShoppingBag size={16} /> <span>{t('Lịch Sử Đơn Hàng', 'Order History')} ({accountOrderCount})</span>
-        </button>
+          <button
+            type="button"
+            role="tab"
+            id="orders-tab"
+            aria-selected={activeTab === 'orders'}
+            aria-controls="orders-panel"
+            tabIndex={activeTab === 'orders' ? 0 : -1}
+            ref={(element) => { tabRefs.current.orders = element; }}
+            onKeyDown={handleTabKeyDown}
+            className={`${styles.tabBtn} ${activeTab === 'orders' ? styles.activeTab : ''}`}
+            onClick={() => handleTabChange('orders')}
+          >
+            <ShoppingBag size={16} /> <span>{t('Lịch Sử Đơn Hàng', 'Order History')} ({accountOrderCount})</span>
+          </button>
 
-        <button
-          type="button"
-          role="tab"
-          id="requests-tab"
-          aria-selected={activeTab === 'requests'}
-          aria-controls="requests-panel"
-          tabIndex={activeTab === 'requests' ? 0 : -1}
-          ref={(element) => { tabRefs.current.requests = element; }}
-          onKeyDown={handleTabKeyDown}
-          className={`${styles.tabBtn} ${activeTab === 'requests' ? styles.activeTab : ''}`}
-          onClick={() => handleTabChange('requests')}
-        >
-          <Inbox size={16} /> <span>{t('Yêu cầu của tôi', 'My Requests')} ({accountRequestCount})</span>
-        </button>
+          <button
+            type="button"
+            role="tab"
+            id="requests-tab"
+            aria-selected={activeTab === 'requests'}
+            aria-controls="requests-panel"
+            tabIndex={activeTab === 'requests' ? 0 : -1}
+            ref={(element) => { tabRefs.current.requests = element; }}
+            onKeyDown={handleTabKeyDown}
+            className={`${styles.tabBtn} ${activeTab === 'requests' ? styles.activeTab : ''}`}
+            onClick={() => handleTabChange('requests')}
+          >
+            <Inbox size={16} /> <span>{t('Yêu cầu của tôi', 'My Requests')} ({accountRequestCount})</span>
+          </button>
 
-        <button
-          type="button"
-          role="tab"
-          id="rewards-tab"
-          aria-selected={activeTab === 'rewards'}
-          aria-controls="rewards-panel"
-          tabIndex={activeTab === 'rewards' ? 0 : -1}
-          ref={(element) => { tabRefs.current.rewards = element; }}
-          onKeyDown={handleTabKeyDown}
-          className={`${styles.tabBtn} ${activeTab === 'rewards' ? styles.activeTab : ''}`}
-          onClick={() => handleTabChange('rewards')}
-        >
-          <Gift size={16} /> <span>{t('Đổi Quà Đổi Điểm', 'Redeem Store')}</span>
-        </button>
+          <button
+            type="button"
+            role="tab"
+            id="rewards-tab"
+            aria-selected={activeTab === 'rewards'}
+            aria-controls="rewards-panel"
+            tabIndex={activeTab === 'rewards' ? 0 : -1}
+            ref={(element) => { tabRefs.current.rewards = element; }}
+            onKeyDown={handleTabKeyDown}
+            className={`${styles.tabBtn} ${activeTab === 'rewards' ? styles.activeTab : ''}`}
+            onClick={() => handleTabChange('rewards')}
+          >
+            <Gift size={16} /> <span>{t('Đổi Quà Đổi Điểm', 'Redeem Store')}</span>
+          </button>
 
-        <button
-          type="button"
-          role="tab"
-          id="vouchers-tab"
-          aria-selected={activeTab === 'vouchers'}
-          aria-controls="vouchers-panel"
-          tabIndex={activeTab === 'vouchers' ? 0 : -1}
-          ref={(element) => { tabRefs.current.vouchers = element; }}
-          onKeyDown={handleTabKeyDown}
-          className={`${styles.tabBtn} ${activeTab === 'vouchers' ? styles.activeTab : ''}`}
-          onClick={() => handleTabChange('vouchers')}
-        >
-          <Ticket size={16} /> <span>{t('Kho Voucher', 'Vouchers')}</span>
-        </button>
-      </div>
+          <button
+            type="button"
+            role="tab"
+            id="vouchers-tab"
+            aria-selected={activeTab === 'vouchers'}
+            aria-controls="vouchers-panel"
+            tabIndex={activeTab === 'vouchers' ? 0 : -1}
+            ref={(element) => { tabRefs.current.vouchers = element; }}
+            onKeyDown={handleTabKeyDown}
+            className={`${styles.tabBtn} ${activeTab === 'vouchers' ? styles.activeTab : ''}`}
+            onClick={() => handleTabChange('vouchers')}
+          >
+            <Ticket size={16} /> <span>{t('Kho Voucher', 'Vouchers')}</span>
+          </button>
+        </div>
+
+        {canUseStoredValue && (
+          <div className={styles.navLinks} aria-label={t('Chương trình điểm', 'Points programs')}>
+            <Link href="/account/topup" className={styles.navLink}>
+              <span>{t('Nạp điểm', 'Top up points')}</span><ArrowRight size={15} aria-hidden="true" />
+            </Link>
+            <Link href="/flash-sale" className={styles.navLink}>
+              <span>{t('Flash-sale', 'Flash sale')}</span><ArrowRight size={15} aria-hidden="true" />
+            </Link>
+            <Link href="/account/payment-history" className={styles.navLink}>
+              <span>{t('Lịch sử giao dịch', 'Transaction history')}</span><ArrowRight size={15} aria-hidden="true" />
+            </Link>
+          </div>
+        )}
+      </nav>
 
       {/* TAB 1: MEMBERSHIP CARD & PROGRESS */}
       {activeTab === 'membership' && (
@@ -468,14 +483,6 @@ export default function AccountClient({
 
           {production && (
             <PhoneVerificationPanel currentPhone={user.phone} enabled={phoneAuthEnabled} />
-          )}
-
-          {canUseStoredValue && (
-            <div className={styles.featureLinks} aria-label={t('Chương trình thanh toán điểm', 'Stored-value programs')}>
-              <Link href="/account/topup" className={styles.featureLink}><span>{t('Nạp điểm', 'Top up points')}</span><ArrowRight size={15} /></Link>
-              <Link href="/flash-sale" className={styles.featureLink}><span>{t('Flash-sale', 'Flash sale')}</span><ArrowRight size={15} /></Link>
-              <Link href="/account/payment-history" className={styles.featureLink}><History size={15} /><span>{t('Lịch sử giao dịch', 'Transaction history')}</span></Link>
-            </div>
           )}
 
           {production && loyalty && (

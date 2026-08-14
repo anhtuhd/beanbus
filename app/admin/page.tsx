@@ -73,7 +73,7 @@ export default async function AdminDashboardPage() {
           <Link href="/admin/rewards" className="btn btn-dark btn-sm"><Gift size={16} /> <LocalizedText vi="Phần thưởng" en="Rewards" /></Link>
           <Link href="/admin/policies" className="btn btn-dark btn-sm"><Settings2 size={16} /> <LocalizedText vi="Chính sách" en="Policies" /></Link>
           {notificationsEnabled && <Link href="/admin/notifications" className="btn btn-dark btn-sm"><Bell size={16} /> <LocalizedText vi="Thông báo" en="Notifications" /></Link>}
-          {storedValueConfigured && <Link href="/admin/stored-value" className="btn btn-dark btn-sm"><Coins size={16} /> <LocalizedText vi="Stored-value" en="Stored value" /></Link>}
+          {storedValueConfigured && <Link href="/admin/stored-value" className="btn btn-dark btn-sm"><Coins size={16} /> <LocalizedText vi="Gói nạp điểm" en="Stored value" /></Link>}
         </div>
       </div>
       {dataError && <p className={styles.dashboardNotice} role="alert"><LocalizedText vi="Không thể tải đầy đủ số liệu tổng quan." en="Some dashboard data could not be loaded." /></p>}

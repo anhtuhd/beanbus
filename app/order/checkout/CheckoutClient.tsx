@@ -44,7 +44,16 @@ export default function CheckoutClient({
   pointsPaymentEnabled?: boolean;
 }) {
   const router = useRouter();
-  const { cart, subtotal, discountAmount, finalTotal, appliedVoucher, clearCart, syncCatalog } = useCart();
+  const {
+    cart,
+    subtotal,
+    discountAmount,
+    finalTotal,
+    appliedVoucher,
+    clearCart,
+    syncCatalog,
+    usePoints,
+  } = useCart();
   useEffect(() => syncCatalog(catalogProducts), [catalogProducts, syncCatalog]);
   const { t, lang } = useLanguage();
   const { createOrder } = useOrders();
@@ -57,12 +66,16 @@ export default function CheckoutClient({
   const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
   const [note, setNote] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(isProduction && !isSepayEnabled ? 'cod' : 'sepay_qr');
-  const [pointsToApply, setPointsToApply] = useState(0);
+  const pointsPaymentAvailable = isProduction && pointsPaymentEnabled && initialPointsBalance > 0;
+  const maxPoints = Math.min(initialPointsBalance, finalTotal);
+  const [pointsToApply, setPointsToApply] = useState(() => usePoints && pointsPaymentAvailable ? maxPoints : 0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [turnstileToken, setTurnstileToken] = useState('');
   const idempotencyKey = useRef<string | null>(null);
-  const appliedPoints = Math.min(pointsToApply, initialPointsBalance, finalTotal);
+  const appliedPoints = pointsPaymentAvailable
+    ? Math.min(pointsToApply, initialPointsBalance, finalTotal)
+    : 0;
   const cashDueVnd = Math.max(0, finalTotal - appliedPoints);
   const pointsCoverOrder = appliedPoints >= finalTotal && finalTotal > 0;
   const cashlessOrder = cashDueVnd === 0;
@@ -329,7 +342,7 @@ export default function CheckoutClient({
             </div>
           </div>
 
-          {isProduction && pointsPaymentEnabled && initialPointsBalance > 0 && finalTotal > 0 && (
+          {pointsPaymentAvailable && finalTotal > 0 && (
             <div className={styles.cardSection}>
               <div className={styles.sectionHeader}>
                 <Tag className={styles.sectionIcon} />

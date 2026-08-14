@@ -102,28 +102,6 @@
   gap: 10px;
 }
 
-.featureLinks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.featureLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border: 1px solid var(--gray-300);
-  color: var(--brown-dark);
-  font-weight: 700;
-  font-size: 13px;
-}
-
-.featureLink:hover {
-  border-color: var(--orange);
-  color: var(--orange);
-}
-
 .requestActions {
   display: flex;
   justify-content: flex-end;
@@ -560,15 +538,34 @@
   color: #fff;
 }
 
-/* NAV TABS */
-.navTabs {
+/* MEMBER DASHBOARD NAVIGATION */
+.accountNavigation {
   display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
   gap: 12px;
   border-bottom: 2px solid var(--gray-200);
-  overflow-x: auto;
 }
 
-.tabBtn {
+.navTabs,
+.navLinks {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+}
+
+.navTabs {
+  flex: 1 1 680px;
+}
+
+.navLinks {
+  flex: 0 1 auto;
+}
+
+.tabBtn,
+.navLink {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -579,10 +576,27 @@
   font-weight: 700;
   font-size: 14px;
   color: var(--brown);
-  cursor: pointer;
   border-bottom: 3px solid transparent;
   margin-bottom: -2px;
-  white-space: nowrap;
+  min-height: 48px;
+  min-width: 0;
+  white-space: normal;
+  text-decoration: none;
+}
+
+.tabBtn {
+  cursor: pointer;
+}
+
+.navLink {
+  justify-content: space-between;
+  color: var(--brown-dark);
+}
+
+.navLink:hover,
+.navLink:focus-visible {
+  color: var(--orange);
+  border-bottom-color: var(--orange);
 }
 
 .activeTab {
@@ -1007,6 +1021,31 @@
 }
 
 @media (max-width: 900px) {
+  .accountNavigation {
+    display: block;
+    padding-bottom: 8px;
+  }
+  .navTabs,
+  .navLinks {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .navLinks {
+    margin-top: 8px;
+  }
+  .tabBtn,
+  .navLink {
+    justify-content: flex-start;
+    min-height: 52px;
+    padding: 10px 12px;
+    border: 1px solid var(--gray-300);
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+  }
+  .activeTab {
+    border-color: var(--orange) !important;
+  }
   .userBanner {
     flex-direction: column;
     align-items: flex-start;

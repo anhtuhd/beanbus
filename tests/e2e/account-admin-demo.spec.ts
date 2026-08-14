@@ -20,6 +20,16 @@ test('member demo tabs and profile update remain interactive', async ({ page }) 
   await expect(page.getByRole('heading', { level: 2 })).toContainText('Nguyễn Văn Bean Updated');
 });
 
+test('member dashboard keeps its navigation inside the viewport on mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 812 });
+  await page.goto('/account');
+
+  const sizes = await page.evaluate(() => ({ body: document.body.scrollWidth, viewport: window.innerWidth }));
+  expect(sizes.body).toBeLessThanOrEqual(sizes.viewport);
+  await expect(page.getByRole('tab', { name: /Thẻ Hội Viên/ })).toBeVisible();
+  await expect(page.getByRole('tab', { name: /Kho Voucher/ })).toBeVisible();
+});
+
 test('member account restores the selected tab from a deep link', async ({ page }) => {
   await page.goto('/account?tab=orders');
   await expect(page.locator('#orders-panel')).toBeVisible();

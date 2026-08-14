@@ -6,7 +6,13 @@ const migrationPath = 'supabase/migrations/20260814090000_loyalty_points_payment
 const migration = readFileSync(migrationPath, 'utf8');
 const orderAction = readFileSync('app/order/actions.ts', 'utf8');
 const checkout = readFileSync('app/order/checkout/CheckoutClient.tsx', 'utf8');
+const cartDrawer = readFileSync('components/ui/CartDrawer.tsx', 'utf8');
+const cartContext = readFileSync('context/CartContext.tsx', 'utf8');
+const pointsRoute = readFileSync('app/api/account/points/route.ts', 'utf8');
 const adminMember = readFileSync('app/admin/members/[id]/page.tsx', 'utf8');
+const adminMembersList = readFileSync('app/admin/members/page.tsx', 'utf8');
+const pointsAdjustmentAction = readFileSync('app/admin/members/[id]/actions.ts', 'utf8');
+const pointsAdjustmentForm = readFileSync('app/admin/members/[id]/MemberPointsAdjustmentForm.tsx', 'utf8');
 
 test('points payment schema preserves order money invariants', () => {
   assert.match(migration, /add column if not exists points_applied integer/);
@@ -44,6 +50,25 @@ test('checkout sends requested points and displays the cash remainder', () => {
   assert.match(checkout, /cashDueVnd/);
 });
 
+test('cart exposes the member balance and carries the points toggle to checkout', () => {
+  assert.match(cartContext, /usePoints: boolean/);
+  assert.match(cartContext, /setUsePoints/);
+  assert.match(cartContext, /setUsePoints\(false\)/);
+  assert.match(cartDrawer, /\/api\/account\/points/);
+  assert.match(cartDrawer, /role="switch"/);
+  assert.match(cartDrawer, /Điểm khả dụng|Available points/);
+  assert.match(cartDrawer, /BẬT|ON/);
+  assert.match(cartDrawer, /TẮT|OFF/);
+  assert.match(checkout, /usePoints/);
+});
+
+test('points balance endpoint is member-only and never cached', () => {
+  assert.match(pointsRoute, /get_member_loyalty_summary_v2/);
+  assert.match(pointsRoute, /profile\.role !== 'member'/);
+  assert.match(pointsRoute, /no-store/);
+  assert.match(pointsRoute, /availablePoints/);
+});
+
 test('SePay creation reads back an uncertain payment before compensation', () => {
   assert.match(orderAction, /from\('payments'\)/);
   assert.match(orderAction, /maybeSingle\(\)/);
@@ -57,4 +82,22 @@ test('member administration exposes a guarded points adjustment flow', () => {
   assert.match(migration, /not between 10 and 300/);
   assert.match(migration, /delta.*10000000|10000000.*delta/);
   assert.match(adminMember, /admin_adjust_member_points|MemberPointsAdjustmentForm/);
+});
+
+test('member directory exposes a direct points adjustment entry', () => {
+  assert.match(adminMembersList, /Điều chỉnh điểm/);
+  assert.match(adminMembersList, /member-points-adjustment-title/);
+  assert.match(adminMembersList, /balances\.get\(member\.id\)/);
+});
+
+test('manual points adjustment keeps a stable retry key and previews the result', () => {
+  assert.match(pointsAdjustmentAction, /formData\.get\('idempotencyKey'\)/);
+  assert.match(pointsAdjustmentAction, /p_idempotency_key: idempotencyKey/);
+  assert.doesNotMatch(pointsAdjustmentAction, /p_idempotency_key: crypto\.randomUUID\(\)/);
+  assert.match(pointsAdjustmentAction, /IDEMPOTENCY_CONFLICT/);
+  assert.match(pointsAdjustmentForm, /name="idempotencyKey"/);
+  assert.match(pointsAdjustmentForm, /crypto\.randomUUID\(\)/);
+  assert.match(pointsAdjustmentForm, /aria-pressed/);
+  assert.match(pointsAdjustmentForm, /Số dư sau điều chỉnh/);
+  assert.match(pointsAdjustmentForm, /Không đủ điểm để trừ/);
 });

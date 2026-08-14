@@ -15,6 +15,11 @@ export default function AccountLoading() {
         <div className={`${styles.loadingBlock} ${styles.loadingTab}`} />
         <div className={`${styles.loadingBlock} ${styles.loadingTab}`} />
         <div className={`${styles.loadingBlock} ${styles.loadingTab}`} />
+        <div className={`${styles.loadingBlock} ${styles.loadingTab}`} />
+        <div className={`${styles.loadingBlock} ${styles.loadingTab}`} />
+        <div className={`${styles.loadingBlock} ${styles.loadingTab}`} />
+        <div className={`${styles.loadingBlock} ${styles.loadingTab}`} />
+        <div className={`${styles.loadingBlock} ${styles.loadingTab}`} />
       </div>
       <div className={`${styles.loadingBlock} ${styles.loadingContent}`} role="status" aria-live="polite">
         Đang tải dữ liệu hội viên...

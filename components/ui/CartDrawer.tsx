@@ -1,14 +1,24 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
+import { useAuth } from '@/context/AuthContext';
 import { useDialogFocus } from '@/lib/ui/use-dialog-focus';
 import { X, ShoppingBag, Plus, Minus, Trash2, Tag, ArrowRight } from 'lucide-react';
 import styles from './CartDrawer.module.css';
 import { isNextOptimizedImage } from '@/lib/media/image';
+
+const isProduction = process.env.NEXT_PUBLIC_APP_MODE === 'production';
+const pointsPaymentFlag = process.env.NEXT_PUBLIC_ENABLE_POINTS_PAYMENT === 'true';
+
+type PointsState = {
+  enabled: boolean;
+  availablePoints: number;
+  loading: boolean;
+};
 
 export const CartDrawer: React.FC = () => {
   const {
@@ -20,16 +30,86 @@ export const CartDrawer: React.FC = () => {
     subtotal,
     discountAmount,
     finalTotal,
+    usePoints,
+    setUsePoints,
     appliedVoucher,
     applyVoucher,
     removeVoucher,
   } = useCart();
   const { t, lang } = useLanguage();
+  const { user, isAuthReady } = useAuth();
   const [voucherInput, setVoucherInput] = useState('');
   const [voucherMsg, setVoucherMsg] = useState<{ success: boolean; text: string } | null>(null);
+  const [pointsState, setPointsState] = useState<PointsState | null>(null);
   const dialogRef = useDialogFocus<HTMLDivElement>(isCartOpen, () => setIsCartOpen(false));
 
+  /* eslint-disable react-hooks/set-state-in-effect -- The balance is loaded only while the cart drawer is open. */
+  useEffect(() => {
+    if (!isCartOpen || cart.length === 0) return;
+
+    if (!isAuthReady) {
+      setPointsState(null);
+      setUsePoints(false);
+      return;
+    }
+
+    if (
+      !isProduction ||
+      !pointsPaymentFlag ||
+      !user ||
+      user.role !== 'member'
+    ) {
+      setPointsState(null);
+      setUsePoints(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setPointsState({ enabled: false, availablePoints: 0, loading: true });
+
+    fetch('/api/account/points', {
+      credentials: 'same-origin',
+      cache: 'no-store',
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('POINTS_REQUEST_FAILED');
+        return response.json() as Promise<{ enabled?: boolean; availablePoints?: number }>;
+      })
+      .then((result) => {
+        if (controller.signal.aborted) return;
+        const availablePoints = Math.max(0, Number(result.availablePoints ?? 0));
+        setPointsState({
+          enabled: result.enabled === true,
+          availablePoints,
+          loading: false,
+        });
+        if (result.enabled !== true || availablePoints <= 0) setUsePoints(false);
+      })
+      .catch(() => {
+        if (controller.signal.aborted) return;
+        setPointsState({ enabled: false, availablePoints: 0, loading: false });
+        setUsePoints(false);
+      });
+
+    return () => controller.abort();
+  }, [cart.length, isAuthReady, isCartOpen, setUsePoints, user]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
   if (!isCartOpen) return null;
+
+  const pointsAvailable = Math.max(0, pointsState?.availablePoints ?? 0);
+  const pointsPaymentAvailable = Boolean(
+    isAuthReady &&
+    user?.role === 'member' &&
+    pointsState?.enabled &&
+    pointsAvailable > 0 &&
+    finalTotal > 0,
+  );
+  const pointsApplied = pointsPaymentAvailable && usePoints
+    ? Math.min(pointsAvailable, finalTotal)
+    : 0;
+  const cashDue = Math.max(0, finalTotal - pointsApplied);
 
   const handleApplyVoucher = (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,6 +280,42 @@ export const CartDrawer: React.FC = () => {
             </div>
 
             {/* TOTALS */}
+            {(pointsState?.loading || pointsPaymentAvailable) && (
+              <div className={styles.pointsBox}>
+                <div className={styles.pointsMeta}>
+                  <div className={styles.pointsLabel}>
+                    <Tag size={16} />
+                    <span>{t('Điểm khả dụng', 'Available points')}</span>
+                  </div>
+                  {pointsState?.loading ? (
+                    <strong className={styles.pointsBalance}>{t('Đang tải...', 'Loading...')}</strong>
+                  ) : (
+                    <>
+                      <strong className={styles.pointsBalance}>
+                        {pointsAvailable.toLocaleString('vi-VN')} {t('điểm', 'points')}
+                      </strong>
+                      <span className={styles.pointsHint}>
+                        {t('1 điểm = 1đ', '1 point = 1đ')}
+                      </span>
+                    </>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={usePoints}
+                  aria-label={t('Dùng điểm khi thanh toán', 'Use points at checkout')}
+                  className={`${styles.pointsSwitch} ${usePoints ? styles.pointsSwitchOn : ''}`}
+                  disabled={!pointsPaymentAvailable || pointsState?.loading === true}
+                  onClick={() => setUsePoints(!usePoints)}
+                >
+                  <span className={styles.pointsSwitchTrack} aria-hidden="true">
+                    <span className={styles.pointsSwitchThumb} />
+                  </span>
+                  <span>{usePoints ? t('BẬT', 'ON') : t('TẮT', 'OFF')}</span>
+                </button>
+              </div>
+            )}
             <div className={styles.totals}>
               <div className={styles.totalRow}>
                 <span>{t('Tạm tính:', 'Subtotal:')}</span>
@@ -211,10 +327,16 @@ export const CartDrawer: React.FC = () => {
                   <span>-{discountAmount.toLocaleString('vi-VN')}đ</span>
                 </div>
               )}
+              {pointsApplied > 0 && (
+                <div className={`${styles.totalRow} ${styles.pointsRow}`}>
+                  <span>{t('Điểm sử dụng:', 'Points used:')}</span>
+                  <span>-{pointsApplied.toLocaleString('vi-VN')}đ</span>
+                </div>
+              )}
               <div className={`${styles.totalRow} ${styles.finalRow}`}>
-                <span>{t('Tổng thanh toán:', 'Total:')}</span>
+                <span>{pointsApplied > 0 ? t('Còn thanh toán:', 'Remaining:') : t('Tổng thanh toán:', 'Total:')}</span>
                 <span className={styles.finalPrice}>
-                  {finalTotal.toLocaleString('vi-VN')}đ
+                  {cashDue.toLocaleString('vi-VN')}đ
                 </span>
               </div>
             </div>

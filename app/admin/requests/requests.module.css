@@ -726,6 +726,22 @@
   font-weight: 800;
 }
 
+.pointsActionLink {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  gap: 5px;
+  margin-top: 8px;
+  color: var(--orange-hover);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.pointsActionLink:hover,
+.pointsActionLink:focus-visible {
+  color: var(--brown-dark);
+}
+
 .contentRow > .detailLink {
   grid-column: 1 / -1;
   width: fit-content;
@@ -955,6 +971,75 @@
   accent-color: var(--orange);
 }
 
+.adjustmentDirections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.adjustmentDirection {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--brown);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.adjustmentDirection:hover,
+.adjustmentDirection:focus-visible {
+  border-color: var(--orange);
+  color: var(--orange-hover);
+}
+
+.adjustmentDirectionActive {
+  border-color: var(--orange);
+  background: var(--orange);
+  color: #fff;
+}
+
+.adjustmentDirection:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.adjustmentPreview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--gray-200);
+  border-radius: 6px;
+  background: #fffaf5;
+}
+
+.adjustmentPreview > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.adjustmentPreview strong {
+  color: var(--brown-dark);
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 15px;
+}
+
+.adjustmentWarning {
+  margin: 0;
+  color: #991b1b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .helperText {
   margin: 0;
   color: var(--brown);
@@ -1100,6 +1185,19 @@
 
   .editorGrid,
   .editorTextareas {
+    grid-template-columns: 1fr;
+  }
+
+  .adjustmentDirections,
+  .adjustmentPreview {
+    width: 100%;
+  }
+
+  .adjustmentDirection {
+    flex: 1 1 140px;
+  }
+
+  .adjustmentPreview {
     grid-template-columns: 1fr;
   }
 

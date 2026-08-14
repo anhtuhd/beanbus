@@ -26,12 +26,14 @@ test('production admin routes share a protected navigation and demo stays on the
   assert.doesNotMatch(navigation, /isStoredValueConfigured\(\)/);
   assert.doesNotMatch(navigation, /section\.href !== '\/admin\/stored-value'/);
   assert.match(navigation, /aria-label="Admin navigation"/);
+  assert.match(navigation, /vi: 'Gói nạp điểm', en: 'Stored value'/);
 });
 
 test('admin dashboard does not advertise disabled stored-value controls', () => {
   const dashboard = readFileSync('app/admin/page.tsx', 'utf8');
   assert.match(dashboard, /isStoredValueConfigured\(\)/);
   assert.match(dashboard, /storedValueConfigured && <Link href="\/admin\/stored-value"/);
+  assert.match(dashboard, /vi="Gói nạp điểm" en="Stored value"/);
 });
 
 test('admin dashboard actions stay visible and readable across widths', () => {

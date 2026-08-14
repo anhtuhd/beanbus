@@ -19,7 +19,8 @@ export async function adjustMemberPoints(
   const direction = String(formData.get('direction') ?? '');
   const amount = Number(String(formData.get('amount') ?? ''));
   const reason = String(formData.get('reason') ?? '').trim();
-  if (!UUID.test(userId) || !['add', 'subtract'].includes(direction) || !Number.isInteger(amount) || amount < 1 || amount > 10_000_000) {
+  const idempotencyKey = String(formData.get('idempotencyKey') ?? '');
+  if (!UUID.test(userId) || !UUID.test(idempotencyKey) || !['add', 'subtract'].includes(direction) || !Number.isInteger(amount) || amount < 1 || amount > 10_000_000) {
     return { status: 'error', message: 'Số điểm điều chỉnh không hợp lệ.' };
   }
   if (reason.length < 10 || reason.length > 300) {
@@ -33,9 +34,10 @@ export async function adjustMemberPoints(
     p_user_id: userId,
     p_delta: delta,
     p_reason: reason,
-    p_idempotency_key: crypto.randomUUID(),
+    p_idempotency_key: idempotencyKey,
   });
   if (error?.message.includes('INSUFFICIENT_POINTS')) return { status: 'error', message: 'Không thể trừ vượt quá số dư khả dụng.' };
+  if (error?.message.includes('IDEMPOTENCY_CONFLICT')) return { status: 'error', message: 'Thao tác này đã được dùng cho dữ liệu khác. Vui lòng tải lại trang rồi thử lại.' };
   if (error || !data?.[0]) {
     logOperationalFailure({ correlationId, event: 'admin_operation_failed', operation: 'admin_adjust_member_points', reason: error ? 'database_error' : 'missing_result' });
     return { status: 'error', message: `Không thể điều chỉnh điểm. Mã hỗ trợ: ${correlationId}` };

@@ -31,7 +31,7 @@ const sections = [
   { href: '/admin/policies', vi: 'Chính sách', en: 'Policies', icon: Settings2 },
   { href: '/admin/notifications', vi: 'Thông báo', en: 'Notifications', icon: Bell },
   { href: '/admin/security', vi: 'Bảo mật', en: 'Security', icon: KeyRound },
-  { href: '/admin/stored-value', vi: 'Stored-value', en: 'Stored value', icon: WalletCards },
+  { href: '/admin/stored-value', vi: 'Gói nạp điểm', en: 'Stored value', icon: WalletCards },
 ] as const;
 
 export default function AdminSectionNav() {

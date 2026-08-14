@@ -6,6 +6,7 @@ import { createAdminSupabaseClient } from '@/lib/supabase/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import type { Database } from '@/lib/supabase/database.types';
 import { getAppMode } from '@/lib/env';
+import { LocalizedText } from '@/components/ui/LocalizedText';
 import StoredValuePolicyForm from './StoredValuePolicyForm';
 import TopupPackageForm from './TopupPackageForm';
 import FlashSaleCampaignForm from './FlashSaleCampaignForm';
@@ -51,7 +52,7 @@ export default async function AdminStoredValuePage() {
       <header className={styles.header}>
         <div>
           <Link href="/admin" className={styles.backLink}><ArrowLeft size={16} /> Tổng quan</Link>
-          <h1><Coins size={24} /> Stored-value</h1>
+          <h1><Coins size={24} /> <LocalizedText vi="Gói nạp điểm" en="Stored value" /></h1>
         </div>
       </header>
       {error || !catalog ? (
