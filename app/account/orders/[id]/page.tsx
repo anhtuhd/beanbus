@@ -71,7 +71,8 @@ export default async function MemberOrderDetailPage({
           <div className={styles.detailTotals}>
             <div><span>Tạm tính</span><strong>{order.subtotalVnd.toLocaleString('vi-VN')}đ</strong></div>
             <div><span>Giảm giá</span><strong>-{order.discountVnd.toLocaleString('vi-VN')}đ</strong></div>
-            <div className={styles.detailGrandTotal}><span>Tổng thanh toán</span><strong>{order.totalVnd.toLocaleString('vi-VN')}đ</strong></div>
+            {order.pointsApplied > 0 && <div><span>Điểm đã dùng</span><strong>-{order.pointsApplied.toLocaleString('vi-VN')}đ</strong></div>}
+            <div className={styles.detailGrandTotal}><span>Còn thanh toán</span><strong>{order.cashDueVnd.toLocaleString('vi-VN')}đ</strong></div>
           </div>
         </div>
 
@@ -79,7 +80,7 @@ export default async function MemberOrderDetailPage({
           <h2>Thông tin đơn hàng</h2>
           <dl className={styles.detailList}>
             <div><dt>Hình thức</dt><dd>{order.fulfillment === 'pickup' ? 'Nhận tại quán' : 'Giao hàng'}</dd></div>
-            <div><dt>Thanh toán</dt><dd>{order.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'} ({order.paymentMethod})</dd></div>
+            <div><dt>Thanh toán</dt><dd>{order.cashDueVnd === 0 ? 'Thanh toán bằng điểm' : `${order.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'} (${order.paymentMethod})`}</dd></div>
             <div><dt>Người nhận</dt><dd>{order.customerName} · {order.customerPhone}</dd></div>
             {order.deliveryAddress && <div><dt>Địa chỉ giao</dt><dd>{order.deliveryAddress}</dd></div>}
             {order.pickupAt && <div><dt>Thời gian nhận</dt><dd>{formatDate(order.pickupAt)}</dd></div>}

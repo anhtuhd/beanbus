@@ -23,7 +23,7 @@ export default async function OrderConfirmationPage({ params, searchParams }: Co
     qrUrl: buildSepayQrUrl({
       accountName: process.env.SEPAY_ACCOUNT_NAME?.trim(),
       accountNumber: order.payment.accountNumber,
-      amountVnd: order.totalVnd,
+      amountVnd: order.cashDueVnd,
       bankCode: order.payment.bankCode,
       paymentCode: order.payment.code,
     }),

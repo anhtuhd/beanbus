@@ -5,6 +5,7 @@ import styles from '../../requests/requests.module.css';
 import detailStyles from '../../../account/account.module.css';
 import OrderStatusForm from '../OrderStatusForm';
 import RefundOrderForm from '../RefundOrderForm';
+import { canRefundOrder } from '../order-workflow';
 import { requireAdmin } from '@/lib/auth/session';
 import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
@@ -23,7 +24,7 @@ type StatusHistory = Pick<
   Database['public']['Tables']['order_status_history']['Row'],
   'id' | 'from_status' | 'to_status' | 'actor_type' | 'created_at'
 >;
-type OrderDetail = Pick<Order, 'id' | 'order_code' | 'order_number' | 'customer_name' | 'customer_phone' | 'fulfillment' | 'pickup_at' | 'delivery_address' | 'note' | 'voucher_code' | 'subtotal_vnd' | 'discount_vnd' | 'total_vnd' | 'payment_method' | 'payment_status' | 'status' | 'created_at'> & {
+type OrderDetail = Pick<Order, 'id' | 'order_code' | 'order_number' | 'customer_name' | 'customer_phone' | 'fulfillment' | 'pickup_at' | 'delivery_address' | 'note' | 'voucher_code' | 'subtotal_vnd' | 'discount_vnd' | 'total_vnd' | 'points_applied' | 'cash_due_vnd' | 'payment_method' | 'payment_status' | 'status' | 'created_at'> & {
   order_items: Array<OrderItem & { order_item_options: ItemOption[] }>;
   order_status_history: StatusHistory[];
 };
@@ -71,7 +72,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
     .select(`
       id, order_code, order_number, customer_name, customer_phone, fulfillment,
       pickup_at, delivery_address, note, voucher_code, subtotal_vnd, discount_vnd,
-      total_vnd, payment_method, payment_status, status, created_at,
+      total_vnd, points_applied, cash_due_vnd, payment_method, payment_status, status, created_at,
       order_items(
         id, product_name_vi, product_name_en, quantity, unit_price_vnd,
         line_total_vnd, special_note,
@@ -104,7 +105,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
             <h2 id="order-workflow-title"><LocalizedText vi="Tiến trình xử lý đơn" en="Order workflow" /></h2>
             <p><LocalizedText vi="Bấm hành động chính để chuyển đơn sang bước kế tiếp." en="Use the primary action to move the order to its next step." /></p>
           </div>
-          {order.payment_method === 'sepay_qr' && order.payment_status === 'paid' && <RefundOrderForm orderId={order.id} amountVnd={order.total_vnd} />}
+          {canRefundOrder(order.status, order.payment_method, order.payment_status, order.cash_due_vnd, order.points_applied) && <RefundOrderForm orderId={order.id} amountVnd={order.cash_due_vnd} />}
         </div>
         <OrderStatusForm orderId={order.id} currentStatus={order.status} paymentMethod={order.payment_method} paymentStatus={order.payment_status} />
       </section>
@@ -125,7 +126,8 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
           <div className={detailStyles.detailTotals}>
             <div><span>Tạm tính</span><strong>{formatMoney(order.subtotal_vnd)}</strong></div>
             <div><span>Giảm giá</span><strong>-{formatMoney(order.discount_vnd)}</strong></div>
-            <div className={detailStyles.detailGrandTotal}><span>Tổng thanh toán</span><strong>{formatMoney(order.total_vnd)}</strong></div>
+            {order.points_applied > 0 && <div><span>Điểm đã dùng</span><strong>-{formatMoney(order.points_applied)}</strong></div>}
+            <div className={detailStyles.detailGrandTotal}><span>Còn thanh toán</span><strong>{formatMoney(order.cash_due_vnd)}</strong></div>
           </div>
         </div>
 
@@ -137,7 +139,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
             <div><dt>Nhận hàng</dt><dd>{order.fulfillment === 'pickup' ? 'Nhận tại quán' : 'Giao hàng'}</dd></div>
             {order.pickup_at && <div><dt>Thời gian nhận</dt><dd>{formatDate(order.pickup_at)}</dd></div>}
             {order.delivery_address && <div><dt>Địa chỉ</dt><dd>{order.delivery_address}</dd></div>}
-            <div><dt>Thanh toán</dt><dd>{PAYMENT_METHOD_LABEL[order.payment_method] ?? order.payment_method} · {PAYMENT_STATUS_LABEL[order.payment_status] ?? order.payment_status}</dd></div>
+            <div><dt>Thanh toán</dt><dd>{order.cash_due_vnd === 0 ? 'Thanh toán bằng điểm' : `${PAYMENT_METHOD_LABEL[order.payment_method] ?? order.payment_method} · ${PAYMENT_STATUS_LABEL[order.payment_status] ?? order.payment_status}`}</dd></div>
             {order.voucher_code && <div><dt>Voucher</dt><dd>{order.voucher_code}</dd></div>}
             {order.note && <div><dt>Ghi chú</dt><dd>{order.note}</dd></div>}
           </dl>

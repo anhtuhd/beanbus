@@ -12,7 +12,7 @@ import { LocalizedText } from '@/components/ui/LocalizedText';
 type OrderRow = Pick<
   Database['public']['Tables']['orders']['Row'],
   'id' | 'order_code' | 'order_number' | 'customer_name' | 'customer_phone' | 'fulfillment' | 'pickup_at' |
-  'delivery_address' | 'total_vnd' | 'payment_method' | 'payment_status' | 'status' | 'created_at'
+  'delivery_address' | 'total_vnd' | 'points_applied' | 'cash_due_vnd' | 'payment_method' | 'payment_status' | 'status' | 'created_at'
 >;
 
 type PageProps = {
@@ -84,7 +84,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
 
   let query = supabase
     .from('orders')
-    .select('id, order_code, order_number, customer_name, customer_phone, fulfillment, pickup_at, delivery_address, total_vnd, payment_method, payment_status, status, created_at', { count: 'exact' })
+    .select('id, order_code, order_number, customer_name, customer_phone, fulfillment, pickup_at, delivery_address, total_vnd, points_applied, cash_due_vnd, payment_method, payment_status, status, created_at', { count: 'exact' })
     .order('created_at', { ascending: false });
   if (status !== 'all') query = query.eq('status', status as OrderRow['status']);
   if (search) {
@@ -139,7 +139,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
               <div><span className={styles.label}>Mã / Thời gian</span><Link href={`/admin/orders/${order.id}`} className={styles.detailLink}><strong>{order.order_code}</strong></Link><small>{formatDate(order.created_at)}</small></div>
               <div><span className={styles.label}>Khách hàng</span><strong>{order.customer_name}</strong><small>{order.customer_phone}</small></div>
               <div><span className={styles.label}>Nhận hàng</span><strong>{order.fulfillment === 'pickup' ? 'Nhận tại quán' : 'Giao hàng'}</strong><small>{order.pickup_at ? formatDate(order.pickup_at) : order.delivery_address}</small></div>
-              <div><span className={styles.label}>Thanh toán</span><strong>{formatMoney(order.total_vnd)}</strong><small>{PAYMENT_METHOD_LABEL[order.payment_method] ?? order.payment_method} · {PAYMENT_STATUS_LABEL[order.payment_status] ?? order.payment_status}</small></div>
+              <div><span className={styles.label}>Thanh toán</span><strong>{formatMoney(order.cash_due_vnd)}</strong><small>Tổng {formatMoney(order.total_vnd)}{order.points_applied > 0 ? ` · Điểm ${order.points_applied.toLocaleString('vi-VN')}` : ''} · {PAYMENT_METHOD_LABEL[order.payment_method] ?? order.payment_method} · {PAYMENT_STATUS_LABEL[order.payment_status] ?? order.payment_status}</small></div>
               <div className={styles.orderWorkflowCell}><span className={styles.label}><LocalizedText vi="Tiến trình xử lý" en="Order progress" /></span><OrderStatusForm orderId={order.id} currentStatus={order.status} paymentMethod={order.payment_method} paymentStatus={order.payment_status} /></div>
             </article>
           ))}

@@ -18,9 +18,9 @@ export default function RefundOrderForm({ orderId, amountVnd }: { orderId: strin
       }}
     >
       <input type="hidden" name="orderId" value={orderId} />
-      <button type="submit" className={styles.archiveButton} disabled={pending} title="Hoàn tiền SePay">
+      <button type="submit" className={styles.archiveButton} disabled={pending} title="Hoàn tiền đơn hàng">
         {pending ? <LoaderCircle size={16} className={styles.spinner} /> : <RotateCcw size={16} />}
-        <span><LocalizedText vi={pending ? 'Đang xử lý' : 'Hoàn tiền SePay'} en={pending ? 'Processing' : 'Refund via SePay'} /></span>
+        <span><LocalizedText vi={pending ? 'Đang xử lý' : 'Hoàn tiền đơn hàng'} en={pending ? 'Processing' : 'Refund order'} /></span>
       </button>
       {state.status !== 'idle' && <span className={state.status === 'error' ? styles.actionError : styles.actionSuccess} role={state.status === 'error' ? 'alert' : 'status'} aria-live={state.status === 'error' ? 'assertive' : 'polite'}>{state.status === 'success' ? <Check size={14} /> : null}{state.message}</span>}
     </form>

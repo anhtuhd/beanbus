@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   ACTIVE_ORDER_STEPS,
   canCancelOrder,
+  canRefundOrder,
   getNextOrderStatus,
 } from '../app/admin/orders/order-workflow.ts';
 
@@ -20,6 +21,20 @@ test('order workflow exposes the linear kitchen progression', () => {
 test('unpaid Sepay orders wait for verified payment before confirmation', () => {
   assert.equal(getNextOrderStatus('pending', 'sepay_qr', 'pending'), null);
   assert.equal(getNextOrderStatus('pending', 'sepay_qr', 'paid'), 'confirmed');
+});
+
+test('failed and refunded settlements stop every fulfillment action', () => {
+  assert.equal(getNextOrderStatus('confirmed', 'cod', 'failed'), null);
+  assert.equal(getNextOrderStatus('confirmed', 'sepay_qr', 'refunded'), null);
+  assert.equal(canCancelOrder('confirmed', 'failed'), false);
+  assert.equal(canCancelOrder('confirmed', 'refunded'), false);
+});
+
+test('completed COD orders with cash or points remain refund-eligible', () => {
+  assert.equal(canRefundOrder('completed', 'cod', 'paid', 50_000, 10_000), true);
+  assert.equal(canRefundOrder('completed', 'cod', 'pending', 50_000, 10_000), true);
+  assert.equal(canRefundOrder('confirmed', 'cod', 'pending', 50_000, 10_000), false);
+  assert.equal(canRefundOrder('completed', 'cod', 'paid', 0, 0), false);
 });
 
 test('paid and terminal orders cannot use the direct cancellation action', () => {

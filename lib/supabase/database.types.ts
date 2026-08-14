@@ -590,7 +590,7 @@ export type Database = {
           order_id: string | null;
           points: number;
           source_key: string;
-          source_type: 'order_earned' | 'order_reversal' | 'redemption' | 'manual_adjustment' | 'topup_credited' | 'flash_sale_credited';
+          source_type: 'order_earned' | 'order_reversal' | 'redemption' | 'manual_adjustment' | 'topup_credited' | 'flash_sale_credited' | 'order_payment_debit' | 'order_payment_refund';
           voucher_code: string | null;
           user_id: string;
         };
@@ -604,6 +604,7 @@ export type Database = {
           earn_bps: number;
           enabled: boolean;
           id: boolean;
+          points_payment_enabled: boolean;
           updated_at: string;
           updated_by: string | null;
         };
@@ -742,6 +743,7 @@ export type Database = {
           earn_bps: number;
           enabled: boolean;
           id: number;
+          points_payment_enabled: boolean;
         };
         Insert: never;
         Update: never;
@@ -904,6 +906,28 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      payments: {
+        Row: {
+          account_number: string;
+          amount_vnd: number;
+          bank_code: string;
+          created_at: string;
+          expires_at: string;
+          id: string;
+          order_id: string;
+          paid_at: string | null;
+          payment_code: string;
+          provider: 'sepay';
+          provider_payload: Json | null;
+          provider_reference: string | null;
+          provider_transaction_id: number | null;
+          status: 'pending' | 'paid' | 'failed' | 'expired' | 'refunded';
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       product_change_history: {
         Row: {
           actor_user_id: string;
@@ -931,6 +955,7 @@ export type Database = {
           note: string | null;
           order_code: string;
           order_number: number;
+          points_applied: number;
           payment_method: Database['public']['Enums']['order_payment_method'];
           payment_status: Database['public']['Enums']['order_payment_status'];
           pickup_at: string | null;
@@ -938,6 +963,8 @@ export type Database = {
           status: Database['public']['Enums']['order_status'];
           subtotal_vnd: number;
           total_vnd: number;
+          cash_due_vnd: number;
+          request_fingerprint: string | null;
           updated_at: string;
           user_id: string | null;
           voucher_code: string | null;
@@ -948,6 +975,9 @@ export type Database = {
           customer_phone: string;
           delivery_address?: string | null;
           discount_vnd?: number;
+          points_applied?: number;
+          cash_due_vnd?: number;
+          request_fingerprint?: string | null;
           fulfillment: Database['public']['Enums']['order_fulfillment'];
           id?: string;
           idempotency_key: string;
@@ -1176,11 +1206,11 @@ export type Database = {
           dedupe_key: string;
           href: string | null;
           id: string;
-          kind: 'order_created' | 'order_status_changed' | 'order_payment_changed' | 'event_published' | 'store_announcement' | 'booking_request_created' | 'booking_request_status_changed' | 'customer_request_created' | 'customer_request_status_changed';
+          kind: 'order_created' | 'order_status_changed' | 'order_payment_changed' | 'event_published' | 'store_announcement' | 'booking_request_created' | 'booking_request_status_changed' | 'customer_request_created' | 'customer_request_status_changed' | 'points_adjusted';
           read_at: string | null;
           recipient_user_id: string;
           source_id: string;
-          source_type: 'order' | 'event' | 'store_announcement' | 'booking_request' | 'customer_request';
+          source_type: 'order' | 'event' | 'store_announcement' | 'booking_request' | 'customer_request' | 'loyalty';
           title_en: string;
           title_vi: string;
         };
@@ -1475,6 +1505,78 @@ export type Database = {
           subtotal_vnd: number;
           total_vnd: number;
         }[];
+      };
+      create_server_priced_order_v2: {
+        Args: {
+          p_customer_name: string;
+          p_customer_phone: string;
+          p_delivery_address: string | null;
+          p_fulfillment: Database['public']['Enums']['order_fulfillment'];
+          p_idempotency_key: string;
+          p_items: Json;
+          p_note: string | null;
+          p_payment_method: Database['public']['Enums']['order_payment_method'];
+          p_pickup_at: string | null;
+          p_points_to_apply: number;
+          p_voucher_code: string | null;
+        };
+        Returns: {
+          cash_due_vnd: number;
+          discount_vnd: number;
+          order_id: string;
+          order_number: number;
+          points_applied: number;
+          receipt_token: string;
+          request_fingerprint: string;
+          subtotal_vnd: number;
+          total_vnd: number;
+        }[];
+      };
+      get_points_payment_policy: {
+        Args: Record<string, never>;
+        Returns: { enabled: boolean }[];
+      };
+      update_points_payment_policy: {
+        Args: { p_enabled: boolean };
+        Returns: { updated_enabled: boolean }[];
+      };
+      get_member_loyalty_summary_v2: {
+        Args: { p_user_id: string };
+        Returns: {
+          available_points: number;
+          balance_points: number;
+          debt_points: number;
+          earned_points: number;
+          policy_enabled: boolean;
+          points_payment_enabled: boolean;
+          spent_points: number;
+          topup_points: number;
+          total_spent_vnd: number;
+        }[];
+      };
+      get_admin_member_point_balances: {
+        Args: { p_user_ids: string[] };
+        Returns: {
+          available_points: number;
+          balance_points: number;
+          debt_points: number;
+          earned_points: number;
+          spent_points: number;
+          topup_points: number;
+          user_id: string;
+        }[];
+      };
+      admin_adjust_member_points: {
+        Args: { p_delta: number; p_idempotency_key: string; p_reason: string; p_user_id: string };
+        Returns: { adjusted_user_id: string; applied_delta: number; available_points: number; balance_points: number; debt_points: number }[];
+      };
+      compensate_order_payment_failure: {
+        Args: { p_order_id: string };
+        Returns: boolean;
+      };
+      refund_order_settlement: {
+        Args: { p_order_id: string };
+        Returns: { cash_refunded_vnd: number; points_restored: number; refunded_order_id: string }[];
       };
       update_booking_request_status: {
         Args: {

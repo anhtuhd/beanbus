@@ -70,6 +70,7 @@ export default function OrderStatusForm({ currentStatus, orderId, paymentMethod,
   const cancellable = canCancelOrder(currentStatus, paymentStatus);
   const currentStepIndex = ACTIVE_ORDER_STEPS.indexOf(currentStatus);
   const waitingForPayment = currentStatus === 'pending' && paymentMethod === 'sepay_qr' && paymentStatus !== 'paid';
+  const settlementFinalized = paymentStatus === 'failed' || paymentStatus === 'refunded';
 
   const confirmCancellation = (event: FormEvent<HTMLFormElement>) => {
     const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
@@ -106,10 +107,14 @@ export default function OrderStatusForm({ currentStatus, orderId, paymentMethod,
         })}
       </ol>
 
-      {currentStatus === 'cancelled' ? (
+      {currentStatus === 'cancelled' || settlementFinalized ? (
         <div className={styles.cancelledState} role="status">
           <CircleX size={18} aria-hidden="true" />
-          <span>{t(STATUS_DESCRIPTION.cancelled.vi, STATUS_DESCRIPTION.cancelled.en)}</span>
+          <span>{settlementFinalized
+            ? paymentStatus === 'refunded'
+              ? t('Đơn hàng đã hoàn tiền và không thể tiếp tục xử lý.', 'This order was refunded and cannot continue through fulfillment.')
+              : t('Thanh toán đã thất bại và đơn hàng không thể tiếp tục xử lý.', 'Payment failed and this order cannot continue through fulfillment.')
+            : t(STATUS_DESCRIPTION.cancelled.vi, STATUS_DESCRIPTION.cancelled.en)}</span>
         </div>
       ) : (
         <form action={formAction} className={styles.orderStatusForm} onSubmit={confirmCancellation}>

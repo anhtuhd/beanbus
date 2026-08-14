@@ -8,7 +8,10 @@ import styles from '../requests/requests.module.css';
 export default async function AdminLoyaltyPage() {
   await requireAdmin();
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase.rpc('get_loyalty_policy');
+  const [{ data, error }, { data: pointsPolicy, error: pointsPolicyError }] = await Promise.all([
+    supabase.rpc('get_loyalty_policy'),
+    supabase.rpc('get_points_payment_policy'),
+  ]);
   const policy = data?.[0];
 
   return (
@@ -20,12 +23,12 @@ export default async function AdminLoyaltyPage() {
           <p>Quản lý rule tích điểm; mọi thay đổi được ghi audit.</p>
         </div>
       </header>
-      {error || !policy ? (
+      {error || pointsPolicyError || !policy ? (
         <div className={styles.stateBox} role="alert">Không thể tải loyalty policy.</div>
       ) : (
         <section className={styles.editorDetails}>
           <h2>Chính sách hiện tại</h2>
-          <LoyaltyPolicyForm enabled={policy.enabled} earnBps={policy.earn_bps} codEligible={policy.cod_eligible} />
+          <LoyaltyPolicyForm enabled={policy.enabled} earnBps={policy.earn_bps} codEligible={policy.cod_eligible} pointsPaymentEnabled={pointsPolicy?.[0]?.enabled === true} />
         </section>
       )}
     </main>

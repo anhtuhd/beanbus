@@ -26,11 +26,23 @@ function getOrderErrorMessage(error: string, t: (vi: string, en: string) => stri
   if (error === 'INVALID_PICKUP') return t('Vui lòng chọn thời gian nhận hàng hợp lệ.', 'Please choose a valid pickup time.');
   if (error === 'INVALID_DELIVERY') return t('Vui lòng nhập địa chỉ giao hàng đầy đủ.', 'Please enter a complete delivery address.');
   if (error === 'PAYMENT_METHOD_UNAVAILABLE') return t('Phương thức thanh toán này chưa khả dụng.', 'This payment method is not available.');
+  if (error === 'POINTS_PAYMENT_UNAVAILABLE') return t('Thanh toán bằng điểm hiện chưa được bật.', 'Points payment is not enabled yet.');
+  if (error === 'INSUFFICIENT_POINTS') return t('Số dư điểm không đủ. Vui lòng giảm số điểm sử dụng.', 'Your points balance is not enough. Please reduce the points used.');
+  if (error === 'POINTS_PAYMENT_DISABLED') return t('Thanh toán bằng điểm hiện chưa khả dụng.', 'Points payment is currently unavailable.');
+  if (error === 'POINTS_AUTH_REQUIRED') return t('Vui lòng đăng nhập để dùng điểm.', 'Please sign in to use points.');
   if (error.startsWith('PAYMENT_')) return t('Chưa thể khởi tạo thanh toán QR. Vui lòng chọn COD hoặc thử lại.', 'QR payment could not be started. Please choose COD or try again.');
   return t('Chưa thể tạo đơn lúc này. Vui lòng thử lại.', 'We could not place your order. Please try again.');
 }
 
-export default function CheckoutClient({ catalogProducts = [] }: { catalogProducts?: Product[] }) {
+export default function CheckoutClient({
+  catalogProducts = [],
+  initialPointsBalance = 0,
+  pointsPaymentEnabled = false,
+}: {
+  catalogProducts?: Product[];
+  initialPointsBalance?: number;
+  pointsPaymentEnabled?: boolean;
+}) {
   const router = useRouter();
   const { cart, subtotal, discountAmount, finalTotal, appliedVoucher, clearCart, syncCatalog } = useCart();
   useEffect(() => syncCatalog(catalogProducts), [catalogProducts, syncCatalog]);
@@ -45,10 +57,15 @@ export default function CheckoutClient({ catalogProducts = [] }: { catalogProduc
   const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
   const [note, setNote] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(isProduction && !isSepayEnabled ? 'cod' : 'sepay_qr');
+  const [pointsToApply, setPointsToApply] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [turnstileToken, setTurnstileToken] = useState('');
   const idempotencyKey = useRef<string | null>(null);
+  const appliedPoints = Math.min(pointsToApply, initialPointsBalance, finalTotal);
+  const cashDueVnd = Math.max(0, finalTotal - appliedPoints);
+  const pointsCoverOrder = appliedPoints >= finalTotal && finalTotal > 0;
+  const cashlessOrder = cashDueVnd === 0;
 
   // Sepay Modal State
   const [sepayModal, setSepayModal] = useState<{
@@ -94,6 +111,7 @@ export default function CheckoutClient({ catalogProducts = [] }: { catalogProduc
           deliveryAddress: orderType === 'delivery' ? deliveryAddress : undefined,
           note,
           paymentMethod,
+          pointsToApply: pointsPaymentEnabled ? appliedPoints : 0,
           voucherCode: appliedVoucher?.code,
           items: cart.map((item) => ({
             productId: item.product.id,
@@ -264,7 +282,7 @@ export default function CheckoutClient({ catalogProducts = [] }: { catalogProduc
               <h3>{t('3. Phương thức thanh toán', '3. Payment Method')}</h3>
             </div>
             <div className={styles.paymentMethods}>
-              {(!isProduction || isSepayEnabled) && (
+              {(!isProduction || isSepayEnabled) && !cashlessOrder && (
                 <label
                   className={`${styles.payCard} ${paymentMethod === 'sepay_qr' ? styles.payCardActive : ''}`}
                 >
@@ -283,7 +301,7 @@ export default function CheckoutClient({ catalogProducts = [] }: { catalogProduc
                 </label>
               )}
 
-              <label
+              {!cashlessOrder && <label
                 className={`${styles.payCard} ${paymentMethod === 'cod' ? styles.payCardActive : ''}`}
               >
                 <input
@@ -297,9 +315,50 @@ export default function CheckoutClient({ catalogProducts = [] }: { catalogProduc
                   <strong>{t('Thanh toán khi nhận hàng (COD)', 'Cash on Delivery (COD)')}</strong>
                   <span>{t('Thanh toán bằng tiền mặt cho shipper hoặc khi nhận tại quầy.', 'Pay cash upon pickup or delivery.')}</span>
                 </div>
-              </label>
+              </label>}
+
+              {cashlessOrder && (
+                <div className={styles.payCard}>
+                  <ShieldCheck size={24} className={styles.payIcon} />
+                  <div className={styles.payText}>
+                    <strong>{pointsCoverOrder ? t('Thanh toán toàn bộ bằng điểm', 'Pay fully with points') : t('Không cần thanh toán thêm', 'No further payment required')}</strong>
+                    <span>{pointsCoverOrder ? t('Không cần tạo giao dịch tiền mặt.', 'No cash payment is required.') : t('Voucher đã bao phủ toàn bộ giá trị đơn hàng.', 'The voucher covers the full order value.')}</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
+
+          {isProduction && pointsPaymentEnabled && initialPointsBalance > 0 && finalTotal > 0 && (
+            <div className={styles.cardSection}>
+              <div className={styles.sectionHeader}>
+                <Tag className={styles.sectionIcon} />
+                <h3>{t('Dùng điểm Beanbus', 'Use Beanbus points')}</h3>
+              </div>
+              <p className={styles.inputHint}>{t(`Số dư khả dụng: ${initialPointsBalance.toLocaleString('vi-VN')} điểm`, `Available balance: ${initialPointsBalance.toLocaleString('vi-VN')} points`)}</p>
+              <div className={styles.rowTwo}>
+                <div className={styles.inputGroup}>
+                  <label htmlFor="points-to-apply">{t('Số điểm sử dụng', 'Points to use')}</label>
+                  <input
+                    id="points-to-apply"
+                    type="number"
+                    min="0"
+                    max={Math.min(initialPointsBalance, finalTotal)}
+                    step="1"
+                    value={appliedPoints}
+                    onChange={(event) => setPointsToApply(Math.max(0, Math.min(Number(event.target.value) || 0, initialPointsBalance, finalTotal)))}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setPointsToApply(Math.min(initialPointsBalance, finalTotal))}
+                >
+                  {t('Dùng tối đa', 'Use maximum')}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* RIGHT COLUMN: SUMMARY */}
@@ -340,16 +399,26 @@ export default function CheckoutClient({ catalogProducts = [] }: { catalogProduc
                 <span>{t('Tạm tính:', 'Subtotal:')}</span>
                 <span>{subtotal.toLocaleString('vi-VN')}đ</span>
               </div>
+              <div className={styles.row}>
+                <span>{t('Tổng đơn:', 'Order total:')}</span>
+                <span>{finalTotal.toLocaleString('vi-VN')}đ</span>
+              </div>
               {discountAmount > 0 && (
                 <div className={`${styles.row} ${styles.discount}`}>
                   <span>{t('Giảm giá:', 'Discount:')}</span>
                   <span>-{discountAmount.toLocaleString('vi-VN')}đ</span>
                 </div>
               )}
+              {appliedPoints > 0 && (
+                <div className={`${styles.row} ${styles.discount}`}>
+                  <span>{t('Điểm sử dụng:', 'Points used:')}</span>
+                  <span>-{appliedPoints.toLocaleString('vi-VN')}đ</span>
+                </div>
+              )}
               <div className={`${styles.row} ${styles.final}`}>
-                <span>{t('Tổng thanh toán:', 'Total:')}</span>
+                <span>{t('Còn thanh toán:', 'Cash due:')}</span>
                 <span className={styles.finalPrice}>
-                  {finalTotal.toLocaleString('vi-VN')}đ
+                  {cashDueVnd.toLocaleString('vi-VN')}đ
                 </span>
               </div>
             </div>
@@ -370,7 +439,9 @@ export default function CheckoutClient({ catalogProducts = [] }: { catalogProduc
               <span>
                 {isSubmitting
                   ? t('Đang tạo đơn...', 'Placing order...')
-                  : paymentMethod === 'sepay_qr'
+                  : cashlessOrder
+                    ? t('Xác nhận đơn hàng', 'Confirm order')
+                    : paymentMethod === 'sepay_qr'
                     ? t('Tiếp Tục Quét Mã QR Sepay', 'Proceed to Sepay QR')
                     : t('Xác Nhận Đặt Hàng (COD)', 'Confirm Order (COD)')}
               </span>

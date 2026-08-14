@@ -207,7 +207,7 @@ export function ProductionConfirmation({
               </div>
               <div className={styles.paymentRow}>
                 <span>{t('Số tiền', 'Amount')}</span>
-                <strong className={styles.paymentAmount}>{order.totalVnd.toLocaleString('vi-VN')}đ</strong>
+                <strong className={styles.paymentAmount}>{order.cashDueVnd.toLocaleString('vi-VN')}đ</strong>
               </div>
               <div className={styles.paymentRow}>
                 <span>{t('Nội dung', 'Transfer memo')}</span>
@@ -261,7 +261,9 @@ export function ProductionConfirmation({
           </div>
           <div className={styles.row}>
             <span>{t('Thanh toán:', 'Payment:')}</span>
-            <strong>{order.paymentMethod === 'sepay_qr' ? 'Sepay VietQR' : t('Tiền mặt COD', 'Cash on delivery')}</strong>
+            <strong>{order.cashDueVnd === 0
+              ? t('Thanh toán bằng điểm', 'Paid with points')
+              : order.paymentMethod === 'sepay_qr' ? 'Sepay VietQR' : t('Tiền mặt COD', 'Cash on delivery')}</strong>
           </div>
         </div>
 
@@ -286,9 +288,15 @@ export function ProductionConfirmation({
                 <span>-{order.discountVnd.toLocaleString('vi-VN')}đ</span>
               </div>
             )}
+            {order.pointsApplied > 0 && (
+              <div className={`${styles.tRow} ${styles.discount}`}>
+                <span>{t('Điểm đã dùng:', 'Points used:')}</span>
+                <span>-{order.pointsApplied.toLocaleString('vi-VN')}đ</span>
+              </div>
+            )}
             <div className={`${styles.tRow} ${styles.final}`}>
-              <span>{t('Tổng thanh toán:', 'Order total:')}</span>
-              <span className={styles.finalPrice}>{order.totalVnd.toLocaleString('vi-VN')}đ</span>
+              <span>{t('Còn thanh toán:', 'Cash due:')}</span>
+              <span className={styles.finalPrice}>{order.cashDueVnd.toLocaleString('vi-VN')}đ</span>
             </div>
           </div>
         </div>

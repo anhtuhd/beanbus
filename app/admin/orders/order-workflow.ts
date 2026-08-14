@@ -24,10 +24,26 @@ export function getNextOrderStatus(
   paymentMethod: PaymentMethod,
   paymentStatus: PaymentStatus,
 ): OrderStatus | null {
+  if (paymentStatus === 'failed' || paymentStatus === 'refunded') return null;
   if (currentStatus === 'pending' && paymentMethod === 'sepay_qr' && paymentStatus !== 'paid') return null;
   return NEXT_ORDER_STATUS[currentStatus] ?? null;
 }
 
 export function canCancelOrder(currentStatus: OrderStatus, paymentStatus: PaymentStatus): boolean {
-  return paymentStatus !== 'paid' && currentStatus !== 'completed' && currentStatus !== 'cancelled';
+  return paymentStatus !== 'paid'
+    && paymentStatus !== 'failed'
+    && paymentStatus !== 'refunded'
+    && currentStatus !== 'completed'
+    && currentStatus !== 'cancelled';
+}
+
+export function canRefundOrder(
+  currentStatus: OrderStatus,
+  paymentMethod: PaymentMethod,
+  paymentStatus: PaymentStatus,
+  cashDueVnd: number,
+  pointsApplied: number,
+): boolean {
+  if (cashDueVnd <= 0 && pointsApplied <= 0) return false;
+  return paymentStatus === 'paid' || (paymentMethod === 'cod' && currentStatus === 'completed');
 }

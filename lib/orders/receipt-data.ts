@@ -4,6 +4,8 @@ export type OrderReceipt = {
   customerPhone: string;
   deliveryAddress: string | null;
   discountVnd: number;
+  pointsApplied: number;
+  cashDueVnd: number;
   fulfillment: 'pickup' | 'delivery';
   id: string;
   items: Array<{
@@ -75,6 +77,8 @@ export function parseOrderReceipt(value: unknown): OrderReceipt | null {
     || !isMoney(value.subtotalVnd)
     || !isMoney(value.discountVnd)
     || !isMoney(value.totalVnd)
+    || (value.pointsApplied !== undefined && !isMoney(value.pointsApplied))
+    || (value.cashDueVnd !== undefined && !isMoney(value.cashDueVnd))
     || !isText(value.createdAt)) return null;
 
   let payment: OrderReceipt['payment'] = null;
@@ -106,6 +110,8 @@ export function parseOrderReceipt(value: unknown): OrderReceipt | null {
     subtotalVnd: value.subtotalVnd,
     discountVnd: value.discountVnd,
     totalVnd: value.totalVnd,
+    pointsApplied: value.pointsApplied === undefined ? 0 : value.pointsApplied,
+    cashDueVnd: value.cashDueVnd === undefined ? value.totalVnd : value.cashDueVnd,
     paymentMethod: value.paymentMethod as OrderReceipt['paymentMethod'],
     payment,
     paymentStatus: value.paymentStatus as OrderReceipt['paymentStatus'],

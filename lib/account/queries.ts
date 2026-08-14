@@ -13,7 +13,7 @@ type AccountOrderItem = Pick<
 >;
 type AccountOrderWithItems = Pick<
   OrderRow,
-  'id' | 'order_code' | 'status' | 'payment_status' | 'fulfillment' | 'total_vnd' | 'voucher_code' | 'created_at'
+  'id' | 'order_code' | 'status' | 'payment_status' | 'fulfillment' | 'total_vnd' | 'points_applied' | 'cash_due_vnd' | 'voucher_code' | 'created_at'
 > & { order_items: AccountOrderItem[] | null };
 type MemberRequestRow = Database['public']['Functions']['get_member_requests']['Returns'][number];
 
@@ -24,6 +24,8 @@ export type MemberAccountOrder = {
   paymentStatus: OrderRow['payment_status'];
   fulfillment: OrderRow['fulfillment'];
   totalVnd: number;
+  pointsApplied: number;
+  cashDueVnd: number;
   voucherCode: string | null;
   createdAt: string;
   items: Array<{
@@ -46,6 +48,10 @@ export type MemberLoyaltySummary = {
   earnedPoints: number;
   redeemedPoints: number;
   totalSpentVnd: number;
+  availablePoints: number;
+  debtPoints: number;
+  topupPoints: number;
+  spentPoints: number;
 };
 
 export type MemberLoyaltyEntry = Pick<
@@ -117,7 +123,7 @@ function emptyAccountData(page: number, loyaltyPage: number, requestPage: number
 }
 
 function mapOrder(
-  order: Pick<OrderRow, 'id' | 'order_code' | 'status' | 'payment_status' | 'fulfillment' | 'total_vnd' | 'voucher_code' | 'created_at'>,
+  order: Pick<OrderRow, 'id' | 'order_code' | 'status' | 'payment_status' | 'fulfillment' | 'total_vnd' | 'points_applied' | 'cash_due_vnd' | 'voucher_code' | 'created_at'>,
   items: AccountOrderItem[]
 ): MemberAccountOrder {
   return {
@@ -127,6 +133,8 @@ function mapOrder(
     paymentStatus: order.payment_status,
     fulfillment: order.fulfillment,
     totalVnd: order.total_vnd,
+    pointsApplied: order.points_applied,
+    cashDueVnd: order.cash_due_vnd,
     voucherCode: order.voucher_code,
     createdAt: order.created_at,
     items: items.map((item) => ({
@@ -183,12 +191,12 @@ export async function getMemberAccountData(
   const [ordersResult, orderCountResult, loyaltyResult, loyaltyEntriesResult, rewardsResult, requestsResult, requestCountResult, vouchersResult] = await Promise.all([
     needsOrders ? supabase
       .from('orders')
-      .select('id, order_code, status, payment_status, fulfillment, total_vnd, voucher_code, created_at, order_items(id, order_id, product_name_vi, product_name_en, quantity, line_total_vnd)', { count: 'exact' })
+      .select('id, order_code, status, payment_status, fulfillment, total_vnd, points_applied, cash_due_vnd, voucher_code, created_at, order_items(id, order_id, product_name_vi, product_name_en, quantity, line_total_vnd)', { count: 'exact' })
       .eq('user_id', profile.id)
       .order('created_at', { ascending: false })
       .range((page - 1) * ORDER_PAGE_SIZE, page * ORDER_PAGE_SIZE - 1) : null,
     supabase.from('orders').select('id', { count: 'exact', head: true }).eq('user_id', profile.id),
-    needsMembership || needsRewards ? supabase.rpc('get_member_loyalty_summary', { p_user_id: profile.id }) : null,
+    needsMembership || needsRewards ? supabase.rpc('get_member_loyalty_summary_v2', { p_user_id: profile.id }) : null,
     needsMembership ? supabase.from('loyalty_ledger').select('id, points, source_type, voucher_code, note, created_at', { count: 'exact' }).eq('user_id', profile.id).order('created_at', { ascending: false }).range((loyaltyPage - 1) * LOYALTY_PAGE_SIZE, loyaltyPage * LOYALTY_PAGE_SIZE - 1) : null,
     needsRewards ? supabase.from('loyalty_rewards').select('id, name_vi, name_en, points_cost, discount_type, discount_value, minimum_subtotal_vnd, maximum_discount_vnd', { count: 'exact' }).eq('is_active', true).order('points_cost').range((rewardPage - 1) * REWARD_PAGE_SIZE, rewardPage * REWARD_PAGE_SIZE - 1) : null,
     needsRequests ? supabase.rpc('get_member_requests', { p_page: requestPage, p_page_size: REQUEST_PAGE_SIZE, p_user_id: profile.id }) : null,
@@ -229,8 +237,12 @@ export async function getMemberAccountData(
       policyEnabled: loyalty.policy_enabled,
       balancePoints: loyalty.balance_points,
       earnedPoints: loyalty.earned_points,
-      redeemedPoints: loyalty.redeemed_points,
+      redeemedPoints: loyalty.spent_points,
       totalSpentVnd: loyalty.total_spent_vnd,
+      availablePoints: loyalty.available_points,
+      debtPoints: loyalty.debt_points,
+      topupPoints: loyalty.topup_points,
+      spentPoints: loyalty.spent_points,
     } : null,
     loyaltyEntries: loyaltyEntriesResult?.data ?? [],
     rewards: rewardsResult?.data ?? [],
@@ -258,7 +270,7 @@ export async function getMemberAccountOrder(id: string): Promise<MemberAccountOr
   const supabase = await createServerSupabaseClient();
   const orderResult = await supabase
     .from('orders')
-    .select('id, order_code, status, payment_status, fulfillment, total_vnd, voucher_code, created_at, subtotal_vnd, discount_vnd, payment_method, customer_name, customer_phone, delivery_address, pickup_at, note')
+    .select('id, order_code, status, payment_status, fulfillment, total_vnd, points_applied, cash_due_vnd, voucher_code, created_at, subtotal_vnd, discount_vnd, payment_method, customer_name, customer_phone, delivery_address, pickup_at, note')
     .eq('user_id', profile.id)
     .eq('id', id)
     .maybeSingle();

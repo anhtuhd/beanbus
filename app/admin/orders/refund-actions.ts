@@ -23,12 +23,12 @@ export async function refundAdminOrder(
 
   const correlationId = await getRequestCorrelationId();
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase.rpc('refund_order_payment', { p_order_id: orderId });
+  const { data, error } = await supabase.rpc('refund_order_settlement', { p_order_id: orderId });
   if (error?.message.includes('REFUNDS_DISABLED')) return actionError('Chính sách hiện đang tắt hoàn tiền.');
   if (error?.message.includes('REFUND_WINDOW_EXPIRED')) return actionError('Đơn đã quá thời hạn hoàn tiền theo policy.');
   if (error?.message.includes('REFUND_NOT_ELIGIBLE') || error?.message.includes('PAYMENT_NOT_ELIGIBLE')) return actionError('Đơn chưa đủ điều kiện hoàn tiền.');
   if (error || !data?.[0]) {
-    logOperationalFailure({ correlationId, event: 'admin_operation_failed', operation: 'refund_order_payment', reason: error ? 'database_error' : 'missing_result' });
+    logOperationalFailure({ correlationId, event: 'admin_operation_failed', operation: 'refund_order_settlement', reason: error ? 'database_error' : 'missing_result' });
     return actionError('Không thể hoàn tiền đơn hàng.', correlationId);
   }
 

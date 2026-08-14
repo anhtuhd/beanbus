@@ -16,6 +16,7 @@ export type CreateOrderInput = {
   items: OrderItemInput[];
   note?: string;
   paymentMethod: 'cod' | 'sepay_qr';
+  pointsToApply: number;
   pickupAt?: string;
   voucherCode?: string;
 };
@@ -41,6 +42,7 @@ export function parseCreateOrderInput(value: unknown): ParseResult {
   const voucherCode = typeof input.voucherCode === 'string'
     ? input.voucherCode.trim().toUpperCase()
     : '';
+  const pointsToApply = input.pointsToApply === undefined ? 0 : Number(input.pointsToApply);
 
   if (!UUID.test(String(input.idempotencyKey ?? ''))) return { ok: false, error: 'INVALID_IDEMPOTENCY_KEY' };
   if (customerName.length < 2 || customerName.length > 100 || !customerPhone) {
@@ -51,6 +53,9 @@ export function parseCreateOrderInput(value: unknown): ParseResult {
   }
   if (!['cod', 'sepay_qr'].includes(String(input.paymentMethod))) {
     return { ok: false, error: 'INVALID_PAYMENT_METHOD' };
+  }
+  if (!Number.isInteger(pointsToApply) || pointsToApply < 0 || pointsToApply > 10_000_000) {
+    return { ok: false, error: 'INVALID_POINTS_PAYMENT' };
   }
   if (voucherCode && !/^[A-Z0-9-]{3,32}$/.test(voucherCode)) {
     return { ok: false, error: 'INVALID_VOUCHER' };
@@ -107,6 +112,7 @@ export function parseCreateOrderInput(value: unknown): ParseResult {
       deliveryAddress: input.fulfillment === 'delivery' ? deliveryAddress : undefined,
       note: note || undefined,
       paymentMethod: input.paymentMethod as CreateOrderInput['paymentMethod'],
+      pointsToApply,
       voucherCode: voucherCode || undefined,
       items,
     },

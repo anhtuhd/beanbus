@@ -38,6 +38,10 @@ export type OperationalOperation =
   | 'update_customer_request_status'
   | 'update_order_status'
   | 'update_loyalty_policy'
+  | 'update_points_payment_policy'
+  | 'admin_adjust_member_points'
+  | 'refund_order_settlement'
+  | 'compensate_order_payment_failure'
   | 'refund_order_payment'
   | 'update_stored_value_policy'
   | 'upsert_content'
@@ -56,6 +60,7 @@ export type OperationalReason =
   | 'missing_result'
   | 'payload_too_large'
   | 'payment_required'
+  | 'payment_lookup_failed'
   | 'provider_error'
   | 'refund_required'
   | 'unsupported_media_type';

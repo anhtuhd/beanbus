@@ -60,6 +60,10 @@ export default async function AdminMembersPage({ searchParams }: Props) {
   const members: MemberRow[] = result.data ?? [];
   const count = result.count ?? 0;
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
+  const { data: balanceRows } = members.length > 0
+    ? await supabase.rpc('get_admin_member_point_balances', { p_user_ids: members.map((member) => member.id) })
+    : { data: [] };
+  const balances = new Map((balanceRows ?? []).map((row) => [row.user_id, row]));
 
   return (
     <main className={`wrap ${styles.page}`}>
@@ -96,6 +100,7 @@ export default async function AdminMembersPage({ searchParams }: Props) {
               <div><span className={styles.label}>Hội viên</span><Link href={`/admin/members/${member.id}`} className={styles.detailLink}><strong>BB-{String(member.member_number).padStart(8, '0')}</strong></Link><small>{member.full_name || 'Chưa cập nhật tên'}</small></div>
               <div><span className={styles.label}>Liên hệ</span><strong>{member.phone ?? 'Chưa có số điện thoại'}</strong><small>{member.email ?? 'Chưa có email'}</small></div>
               <div><span className={styles.label}>Ngày sinh</span><strong>{member.birthday ? formatDate(member.birthday) : 'Chưa cập nhật'}</strong></div>
+              <div><span className={styles.label}>Điểm khả dụng</span><strong>{Number(balances.get(member.id)?.available_points ?? 0).toLocaleString('vi-VN')} điểm</strong><small>Số dư thực: {Number(balances.get(member.id)?.balance_points ?? 0).toLocaleString('vi-VN')}</small></div>
               <div><span className={styles.label}>Quyền / Ngày tham gia</span><MemberRoleForm userId={member.id} role={member.role} /><small>{formatDate(member.created_at)}</small></div>
             </article>
           ))}

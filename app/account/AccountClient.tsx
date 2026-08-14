@@ -63,6 +63,8 @@ function loyaltySourceLabel(sourceType: MemberLoyaltyEntry['source_type'], t: (v
     manual_adjustment: ['Điều chỉnh thủ công', 'Manual adjustment'],
     topup_credited: ['Nạp điểm', 'Top-up credit'],
     flash_sale_credited: ['Flash-sale điểm thưởng', 'Flash-sale credit'],
+    order_payment_debit: ['Dùng điểm thanh toán đơn', 'Points used for order payment'],
+    order_payment_refund: ['Hoàn điểm thanh toán đơn', 'Order payment points refund'],
   };
   const [vi, en] = labels[sourceType];
   return t(vi, en);
@@ -294,6 +296,7 @@ export default function AccountClient({
             <>
               <div className={styles.ptLabel}>{loyalty.policyEnabled ? t('Điểm thưởng', 'Reward points') : t('Điểm thưởng chưa kích hoạt', 'Rewards not activated')}</div>
               <div className={styles.ptValue}>{loyalty.balancePoints.toLocaleString('vi-VN')} <span>{t('điểm', 'pts')}</span></div>
+              {loyalty.debtPoints > 0 && <small>{t(`Đang âm ${loyalty.debtPoints.toLocaleString('vi-VN')} điểm`, `Negative balance ${loyalty.debtPoints.toLocaleString('vi-VN')} pts`)}</small>}
             </>
           )}
           {!production && (
@@ -534,7 +537,8 @@ export default function AccountClient({
                     </div>
                     <div className={styles.orderFoot}>
                       <span>{order.fulfillment === 'pickup' ? t('Nhận tại quán', 'Pickup') : t('Giao hàng', 'Delivery')}</span>
-                      <strong>{order.totalVnd.toLocaleString('vi-VN')}đ</strong>
+                      <strong>{t('Còn thanh toán:', 'Cash due:')} {order.cashDueVnd.toLocaleString('vi-VN')}đ</strong>
+                      {order.pointsApplied > 0 && <small>{t(`Đã dùng ${order.pointsApplied.toLocaleString('vi-VN')} điểm`, `${order.pointsApplied.toLocaleString('vi-VN')} pts used`)}</small>}
                       <form action={reorderAction}>
                         <input type="hidden" name="orderId" value={order.id} />
                         <button type="submit" className="btn btn-dark btn-sm" disabled={reorderPending}>

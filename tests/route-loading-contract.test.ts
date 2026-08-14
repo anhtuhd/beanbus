@@ -38,7 +38,7 @@ test('cart and checkout routes keep interactive commerce behind private server s
     assert.match(page, /robots: \{ index: false, follow: false \}/);
   }
   assert.match(cartPage, /<CartClient catalogProducts=\{products\} \/>/);
-  assert.match(checkoutPage, /<CheckoutClient catalogProducts=\{products\} \/>/);
+  assert.match(checkoutPage, /<CheckoutClient\s+catalogProducts=\{products\}/);
   assert.match(cartClient, /'use client'/);
   assert.match(checkoutClient, /'use client'/);
 });

@@ -5,6 +5,7 @@ import styles from '../../requests/requests.module.css';
 import { requireAdmin } from '@/lib/auth/session';
 import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import MemberPointsAdjustmentForm from './MemberPointsAdjustmentForm';
 
 type Profile = Pick<
   Database['public']['Tables']['profiles']['Row'],
@@ -68,7 +69,7 @@ export default async function AdminMemberDetailPage({
   const supabase = await createServerSupabaseClient();
   const [profileResult, loyaltyResult, ledgerResult, ordersResult, roleHistoryResult] = await Promise.all([
     supabase.from('profiles').select('id, member_number, full_name, phone, email, birthday, avatar_url, role, created_at').eq('id', id).maybeSingle(),
-    supabase.rpc('get_member_loyalty_summary', { p_user_id: id }),
+    supabase.rpc('get_member_loyalty_summary_v2', { p_user_id: id }),
     supabase.from('loyalty_ledger').select('id, points, amount_vnd, source_type, source_key, voucher_code, note, created_at', { count: 'exact' }).eq('user_id', id).order('created_at', { ascending: false }).range((ledgerPage - 1) * PAGE_SIZE, ledgerPage * PAGE_SIZE - 1),
     supabase.from('orders').select('id, order_code, order_number, total_vnd, status, payment_status, created_at', { count: 'exact' }).eq('user_id', id).order('created_at', { ascending: false }).range((orderPage - 1) * PAGE_SIZE, orderPage * PAGE_SIZE - 1),
     supabase.from('member_role_history').select('id, from_role, to_role, actor_user_id, created_at').eq('user_id', id).order('created_at', { ascending: false }).limit(20),
@@ -126,14 +127,21 @@ export default async function AdminMemberDetailPage({
         {!loyalty ? <div className={styles.stateBox}>Chưa có dữ liệu loyalty.</div> : (
           <div className={styles.requestList}>
             <article className={`${styles.requestRow} ${styles.memberRow}`}>
-              <div><span className={styles.label}>Số dư</span><strong>{Number(loyalty.balance_points).toLocaleString('vi-VN')} điểm</strong></div>
-              <div><span className={styles.label}>Đã tích</span><strong>{Number(loyalty.earned_points).toLocaleString('vi-VN')} điểm</strong></div>
-              <div><span className={styles.label}>Đã đổi</span><strong>{Number(loyalty.redeemed_points).toLocaleString('vi-VN')} điểm</strong></div>
-              <div><span className={styles.label}>Tổng chi tiêu</span><strong>{formatMoney(Number(loyalty.total_spent_vnd))}</strong><small>{loyalty.policy_enabled ? 'Policy đang bật' : 'Policy đang tắt'}</small></div>
+              <div><span className={styles.label}>Số dư thực</span><strong>{Number(loyalty.balance_points).toLocaleString('vi-VN')} điểm</strong></div>
+              <div><span className={styles.label}>Khả dụng</span><strong>{Number(loyalty.available_points).toLocaleString('vi-VN')} điểm</strong><small>Nợ âm: {Number(loyalty.debt_points).toLocaleString('vi-VN')}</small></div>
+              <div><span className={styles.label}>Đã nạp / Đã tích</span><strong>{Number(loyalty.topup_points).toLocaleString('vi-VN')} / {Number(loyalty.earned_points).toLocaleString('vi-VN')}</strong></div>
+              <div><span className={styles.label}>Đã dùng</span><strong>{Number(loyalty.spent_points).toLocaleString('vi-VN')} điểm</strong><small>Chi tiêu {formatMoney(Number(loyalty.total_spent_vnd))}</small></div>
             </article>
           </div>
         )}
       </section>
+
+      {profile.role === 'member' && loyalty && (
+        <section aria-labelledby="member-points-adjustment-title">
+          <header className={styles.sectionHeader}><h2 id="member-points-adjustment-title">Điều chỉnh điểm</h2><span>Ghi audit bắt buộc</span></header>
+          <MemberPointsAdjustmentForm userId={profile.id} balancePoints={Number(loyalty.balance_points)} />
+        </section>
+      )}
 
       <section aria-labelledby="member-ledger-title">
         <header className={styles.sectionHeader}><h2 id="member-ledger-title">Lịch sử điểm</h2><span>{ledgerResult.count ?? ledger.length} giao dịch</span></header>

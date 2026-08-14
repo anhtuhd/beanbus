@@ -14,6 +14,8 @@ const receipt = {
   subtotalVnd: 45000,
   discountVnd: 0,
   totalVnd: 45000,
+  pointsApplied: 0,
+  cashDueVnd: 45000,
   paymentMethod: 'cod',
   payment: null,
   paymentStatus: 'pending',
