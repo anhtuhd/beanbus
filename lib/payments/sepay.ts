@@ -24,6 +24,10 @@ type VerifyHmacInput = {
   timestamp: string | null;
 };
 
+function toSepayTransferMemo(paymentCode: string): string {
+  return paymentCode.trim().replaceAll('-', '').toUpperCase();
+}
+
 function boundedText(value: unknown, maxLength: number, allowEmpty = false): value is string {
   return typeof value === 'string'
     && value.length <= maxLength
@@ -81,7 +85,13 @@ const BEANBUS_PAYMENT_CODE_PATTERNS = [
   /\bDH-[0-9]{6}[A-Za-z0-9]{6}\b/i,
   /\bDH[0-9]{6}[A-Za-z0-9]{6}\b/i,
 ];
-const STORED_VALUE_PAYMENT_CODE_PATTERN = /\b(?:DH-(?:TP|FS)-[A-F0-9]{20}|B[TF][0-9]+)\b/i;
+const STORED_VALUE_PAYMENT_CODE_PATTERN = /\b(?:DH(?:TP|FS)[A-F0-9]{20}|DH-(?:TP|FS)-[A-F0-9]{20}|B[TF][0-9]+)\b/i;
+
+function normalizeStoredValuePaymentCode(value: string): string {
+  const normalized = value.toUpperCase();
+  const compactMatch = normalized.match(/^DH-(TP|FS)-([A-F0-9]{20})$/);
+  return compactMatch ? `DH${compactMatch[1]}${compactMatch[2]}` : normalized;
+}
 
 function normalizeBeanbusPaymentCode(value: string): string | null {
   for (const pattern of BEANBUS_PAYMENT_CODE_PATTERNS) {
@@ -101,7 +111,7 @@ export function resolveSepayPaymentCode(code: string | null, content: string): s
 
 export function resolveStoredValuePaymentCode(code: string | null, content: string): string | null {
   const match = `${code ?? ''} ${content}`.match(STORED_VALUE_PAYMENT_CODE_PATTERN)?.[0];
-  return match?.toUpperCase() ?? null;
+  return match ? normalizeStoredValuePaymentCode(match) : null;
 }
 
 export function parseSepayWebhook(value: unknown): SepayWebhook | null {
@@ -155,7 +165,7 @@ export function buildSepayQrUrl(input: {
   url.searchParams.set('acc', input.accountNumber);
   url.searchParams.set('bank', input.bankCode);
   url.searchParams.set('amount', String(input.amountVnd));
-  url.searchParams.set('des', input.paymentCode);
+  url.searchParams.set('des', toSepayTransferMemo(input.paymentCode));
   url.searchParams.set('template', 'compact');
   url.searchParams.set('showinfo', 'true');
   if (input.accountName) url.searchParams.set('holder', input.accountName);

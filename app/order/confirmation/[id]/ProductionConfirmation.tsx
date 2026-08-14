@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Check, CheckCircle2, CircleAlert, Copy, QrCode, ShoppingBag } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { toTransferMemo } from '@/lib/payments/transfer-code';
 import type { OrderReceipt } from '@/lib/orders/receipt-data';
 import styles from './confirmation.module.css';
 
@@ -55,6 +56,7 @@ export function ProductionConfirmation({
   const payment = order.payment
     ? { ...order.payment, status: liveStatus.paymentDetailStatus ?? order.payment.status }
     : null;
+  const transferMemo = payment ? toTransferMemo(payment.code) : '';
   const isPaymentPending = liveStatus.paymentStatus === 'pending' && payment?.status === 'pending';
 
   useEffect(() => {
@@ -212,8 +214,8 @@ export function ProductionConfirmation({
               <div className={styles.paymentRow}>
                 <span>{t('Nội dung', 'Transfer memo')}</span>
                 <span className={styles.copyGroup}>
-                  <strong className={styles.paymentCode}>{payment.code}</strong>
-                  <button type="button" onClick={() => copyValue(payment.code, 'code')} aria-label={t('Sao chép nội dung chuyển khoản', 'Copy transfer memo')}>
+                  <strong className={styles.paymentCode}>{transferMemo}</strong>
+                  <button type="button" onClick={() => copyValue(transferMemo, 'code')} aria-label={t('Sao chép nội dung chuyển khoản', 'Copy transfer memo')}>
                     {copied === 'code' ? <Check size={16} /> : <Copy size={16} />}
                   </button>
                 </span>

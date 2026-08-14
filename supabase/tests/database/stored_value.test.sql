@@ -131,7 +131,7 @@ create temporary table stored_topup_payment as
 select * from public.create_stored_value_payment(
   'topup', (select purchase_id from stored_topup_intent), 'MB', '0937936688'
 );
-select matches((select payment_code from stored_topup_payment), '^DH-TP-[A-F0-9]{20}$', 'top-up payment code contains DH and has a random suffix');
+select matches((select payment_code from stored_topup_payment), '^DHTP[A-F0-9]{20}$', 'top-up payment code contains DH and has a random suffix without separators');
 select is(
   (select count(*)::integer from public.create_stored_value_payment(
     'topup', (select purchase_id from stored_topup_intent), 'MB', '0937936688'
@@ -194,8 +194,8 @@ select * from public.create_stored_value_payment(
 );
 select matches(
   (select payment_code from rotated_legacy_payment),
-  '^DH-TP-[A-F0-9]{20}$',
-  'pending legacy payment code is rotated to a DH code'
+  '^DHTP[A-F0-9]{20}$',
+  'pending legacy payment code is rotated to a compact DH code'
 );
 select is(
   (select count(*)::integer from public.stored_value_payments where payment_code = 'BT999999'),
@@ -219,7 +219,7 @@ insert into public.stored_value_payments (
   topup_id, payment_code, amount_vnd, bank_code, account_number, expires_at
 ) values (
   '99999999-9999-4999-8999-999999999902',
-  'DH-TP-0123456789ABCDEF0123', 100000, 'MB', '0937936688', now() - interval '1 minute'
+  'DHTP0123456789ABCDEF0123', 100000, 'MB', '0937936688', now() - interval '1 minute'
 );
 select is(
   public.expire_pending_stored_value_payments(100),
@@ -248,7 +248,7 @@ create temporary table stored_flash_payment as
 select * from public.create_stored_value_payment(
   'flash_sale', (select purchase_id from stored_flash_intent), 'MB', '0937936688'
 );
-select matches((select payment_code from stored_flash_payment), '^DH-FS-[A-F0-9]{20}$', 'flash-sale payment code contains DH and has a random suffix');
+select matches((select payment_code from stored_flash_payment), '^DHFS[A-F0-9]{20}$', 'flash-sale payment code contains DH and has a random suffix without separators');
 select is(
   (select outcome from public.process_stored_value_webhook(
     91002, 'MBBank', now(), '0937936688', (select payment_code from stored_flash_payment),

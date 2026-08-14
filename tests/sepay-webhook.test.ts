@@ -9,6 +9,7 @@ import {
   resolveSepayPaymentCode,
   verifySepayHmac,
 } from '../lib/payments/sepay.ts';
+import { toTransferMemo } from '../lib/payments/transfer-code.ts';
 
 const payload = {
   id: 92704,
@@ -95,6 +96,11 @@ test('builds a VietQR URL from server-owned payment instructions', () => {
   assert.equal(url.origin, 'https://vietqr.app');
   assert.equal(url.searchParams.get('acc'), '0937936688');
   assert.equal(url.searchParams.get('amount'), '81000');
-  assert.equal(url.searchParams.get('des'), 'DH-260809ABC123');
+  assert.equal(url.searchParams.get('des'), 'DH260809ABC123');
   assert.equal(url.searchParams.get('template'), 'compact');
+});
+
+test('transfer memos remove separators while preserving the payment code', () => {
+  assert.equal(toTransferMemo('DH-260809ABC123'), 'DH260809ABC123');
+  assert.doesNotMatch(toTransferMemo('DH-260809ABC123'), /-/);
 });

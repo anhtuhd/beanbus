@@ -10,6 +10,7 @@ const expiryMigration = readFileSync('supabase/migrations/20260811014925_fix_sto
 const precedenceMigration = readFileSync('supabase/migrations/20260811050000_fix_flash_sale_error_precedence.sql', 'utf8');
 const secureCodeMigration = readFileSync('supabase/migrations/20260814100000_secure_stored_value_codes_and_history.sql', 'utf8');
 const expiryStatusMigration = readFileSync('supabase/migrations/20260814110000_expire_stored_value_payments.sql', 'utf8');
+const compactCodeMigration = readFileSync('supabase/migrations/20260814120000_compact_sepay_transfer_codes.sql', 'utf8');
 const databaseTest = readFileSync('supabase/tests/database/stored_value.test.sql', 'utf8');
 const action = readFileSync('app/account/stored-value-actions.ts', 'utf8');
 const client = readFileSync('app/account/StoredValueClient.tsx', 'utf8');
@@ -37,12 +38,14 @@ test('stored value intent input accepts only UUID identifiers and idempotency ke
 });
 
 test('stored-value webhook codes contain DH and use an unpredictable random suffix', () => {
-  assert.equal(resolveStoredValuePaymentCode('DH-TP-0123456789ABCDEF0123', ''), 'DH-TP-0123456789ABCDEF0123');
-  assert.equal(resolveStoredValuePaymentCode(null, 'paid DH-FS-ABCDEF0123456789ABCD'), 'DH-FS-ABCDEF0123456789ABCD');
+  assert.equal(resolveStoredValuePaymentCode('DHTP0123456789ABCDEF0123', ''), 'DHTP0123456789ABCDEF0123');
+  assert.equal(resolveStoredValuePaymentCode('DH-TP-0123456789ABCDEF0123', ''), 'DHTP0123456789ABCDEF0123');
+  assert.equal(resolveStoredValuePaymentCode(null, 'paid DHFSABCDEF0123456789ABCD'), 'DHFSABCDEF0123456789ABCD');
   assert.equal(resolveStoredValuePaymentCode('DH-260812ABC123', ''), null);
   assert.match(secureCodeMigration, /extensions\.gen_random_bytes\(10\)/i);
-  assert.match(secureCodeMigration, /DH-TP-/);
-  assert.match(secureCodeMigration, /DH-FS-/);
+  assert.match(compactCodeMigration, /DHTP/);
+  assert.match(compactCodeMigration, /DHFS/);
+  assert.match(compactCodeMigration, /replace\(payment_code, '-'/i);
 });
 
 test('stored-value UI does not expose the payment provider label', () => {
@@ -107,6 +110,7 @@ test('server action owns payment configuration and client has no payment-success
   assert.match(action, /createAdminSupabaseClient/);
   assert.match(action, /create_stored_value_payment/);
   assert.match(action, /buildSepayQrUrl/);
+  assert.match(client, /toTransferMemo/);
   assert.match(client, /getStoredValuePaymentStatus/);
   assert.doesNotMatch(client, /updateOrderStatus/);
   assert.doesNotMatch(client, /addPoints/);

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, CheckCircle, Clock3, Copy, History, LoaderCircle, QrCode, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { toTransferMemo } from '@/lib/payments/transfer-code';
 import { createStoredValuePayment, getStoredValuePaymentStatus, type StoredValueActionResult } from './stored-value-actions';
 import type { StoredValueCatalogItem, StoredValueKind } from '@/lib/stored-value/queries';
 import styles from './stored-value.module.css';
@@ -49,6 +50,7 @@ export default function StoredValueClient({
   const pollingRef = useRef(false);
   const idempotencyKeysRef = useRef<Record<string, string>>({});
   const paymentStatus = purchase?.payment_status ?? purchase?.purchase_status ?? null;
+  const transferMemo = purchase?.payment_code ? toTransferMemo(purchase.payment_code) : '';
 
   useEffect(() => {
     if (!purchase?.purchase_id || paymentStatus === 'paid' || paymentStatus === 'expired' || paymentStatus === 'failed') return;
@@ -94,7 +96,7 @@ export default function StoredValueClient({
 
   const copyCode = async () => {
     if (!payment || !navigator.clipboard) return;
-    await navigator.clipboard.writeText(purchase?.payment_code ?? '');
+    await navigator.clipboard.writeText(transferMemo);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
   };
@@ -148,7 +150,7 @@ export default function StoredValueClient({
               <div><span>Số tiền</span><strong>{formatMoney(purchase.amount_vnd)}</strong></div>
               <div>
                 <span>Nội dung chuyển khoản</span>
-                <strong className={styles.codeValue}>{purchase.payment_code}
+                <strong className={styles.codeValue}>{transferMemo}
                   <button type="button" onClick={copyCode} aria-label={t('Sao chép nội dung chuyển khoản', 'Copy transfer memo')} title={t('Sao chép nội dung chuyển khoản', 'Copy transfer memo')}>
                     {copied ? <CheckCircle size={15} /> : <Copy size={15} />}
                   </button>
