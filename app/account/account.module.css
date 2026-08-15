@@ -667,7 +667,76 @@
   color: #a89f97;
   border-top: 1px solid rgba(255,255,255,0.1);
   padding-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
+
+.memberPassButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  border: 1px solid rgba(255,255,255,0.45);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: #fff;
+  background: rgba(255,255,255,0.08);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.memberPassButton:hover,
+.memberPassButton:focus-visible { background: rgba(255,255,255,0.18); }
+
+.memberPassOverlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(43, 36, 32, 0.58);
+}
+
+.memberPassDialog {
+  position: relative;
+  width: min(100%, 390px);
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 28px;
+  border-radius: var(--radius);
+  color: var(--brown-dark);
+  background: var(--white);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+
+.memberPassDialog h2,
+.memberPassDialog p { margin: 0; }
+.memberPassDialog p { color: var(--brown); font-size: 13px; line-height: 1.5; }
+.memberPassClose { position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 50%; color: var(--brown); background: transparent; cursor: pointer; }
+.memberPassQr { width: min(280px, 100%); height: auto; aspect-ratio: 1; image-rendering: pixelated; }
+
+.voucherClaim {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 18px;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  background: var(--cream-light);
+}
+.voucherClaim h3 { display: flex; align-items: center; gap: 7px; margin: 0 0 4px; color: var(--brown-dark); font-size: 16px; }
+.voucherClaim p { margin: 0; color: var(--brown); font-size: 13px; }
+.voucherClaimRow { display: flex; gap: 8px; }
+.voucherClaimRow input { flex: 1; min-width: 0; }
+.voucherGroupTitle { margin: 18px 0 10px; color: var(--brown-dark); font-size: 18px; }
 
 .tierProgressCard {
   background: var(--cream-light);
@@ -1021,6 +1090,11 @@
 }
 
 @media (max-width: 900px) {
+  .vouchersGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
   .accountNavigation {
     padding-bottom: 8px;
   }

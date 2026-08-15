@@ -9,6 +9,7 @@ const checkout = readFileSync('app/order/checkout/CheckoutClient.tsx', 'utf8');
 const cartDrawer = readFileSync('components/ui/CartDrawer.tsx', 'utf8');
 const cartContext = readFileSync('context/CartContext.tsx', 'utf8');
 const pointsRoute = readFileSync('app/api/account/points/route.ts', 'utf8');
+const header = readFileSync('components/layout/Header.tsx', 'utf8');
 const adminMember = readFileSync('app/admin/members/[id]/page.tsx', 'utf8');
 const adminMembersList = readFileSync('app/admin/members/page.tsx', 'utf8');
 const pointsAdjustmentAction = readFileSync('app/admin/members/[id]/actions.ts', 'utf8');
@@ -74,6 +75,14 @@ test('points balance endpoint is member-only and never cached', () => {
   assert.match(pointsRoute, /profile\.role !== 'member'/);
   assert.match(pointsRoute, /no-store/);
   assert.match(pointsRoute, /availablePoints/);
+  assert.match(pointsRoute, /paymentEnabled/);
+});
+
+test('member header uses the ledger-backed balance in production', () => {
+  assert.match(header, /\/api\/account\/points/);
+  assert.match(header, /availablePoints/);
+  assert.match(header, /cache: 'no-store'/);
+  assert.match(header, /user\?\.role !== 'member'/);
 });
 
 test('SePay creation reads back an uncertain payment before compensation', () => {

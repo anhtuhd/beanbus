@@ -11,6 +11,8 @@ import { loadReorderItems } from './reorder-actions';
 import { initialReorderState } from './reorder-state';
 import RewardRedeemForm from './RewardRedeemForm';
 import PhoneVerificationPanel from './PhoneVerificationPanel';
+import MemberPassButton from './MemberPassButton';
+import ClaimVoucherForm from './ClaimVoucherForm';
 import CancelBookingForm from './requests/CancelBookingForm';
 import { useAuth } from '@/context/AuthContext';
 import { useOrders, type Order } from '@/context/OrderContext';
@@ -78,6 +80,9 @@ export default function AccountClient({
   storedValueConfigured = false,
   initialOrders,
   availableVouchers,
+  walletVoucherCodes = [],
+  voucherWalletEnabled = false,
+  memberPassEnabled = false,
   accountError,
   loyalty,
   loyaltyEntries = [],
@@ -103,6 +108,9 @@ export default function AccountClient({
   storedValueConfigured?: boolean;
   initialOrders?: MemberAccountOrder[];
   availableVouchers?: MemberVoucher[];
+  walletVoucherCodes?: string[];
+  voucherWalletEnabled?: boolean;
+  memberPassEnabled?: boolean;
   accountError?: string;
   loyalty?: MemberLoyaltySummary | null;
   loyaltyEntries?: MemberLoyaltyEntry[];
@@ -434,6 +442,7 @@ export default function AccountClient({
             </div>
             <div className={styles.cardBot}>
               <span>{t('Quét mã tại quầy để tích điểm & nhận ưu đãi', 'Scan at counter for points & discounts')}</span>
+              {production && memberPassEnabled && <MemberPassButton label={t('Mở mã QR hội viên', 'Open member QR')} />}
             </div>
           </div>
 
@@ -714,12 +723,15 @@ export default function AccountClient({
       {activeTab === 'vouchers' && (
         <div id="vouchers-panel" role="tabpanel" aria-labelledby="vouchers-tab" className={styles.tabContent}>
           {production ? (
-            (availableVouchers ?? []).length === 0 ? (
-              <p className={styles.emptyState}>{t('Hiện chưa có voucher khả dụng.', 'No active vouchers available.')}</p>
-            ) : (
-              <>
-                <div className={styles.vouchersGrid}>
-                  {(availableVouchers ?? []).map((voucher) => (
+            <>
+              {voucherWalletEnabled && <ClaimVoucherForm />}
+              {(availableVouchers ?? []).length === 0 ? (
+                <p className={styles.emptyState}>{t('Hiện chưa có voucher khả dụng.', 'No active vouchers available.')}</p>
+              ) : (
+                <>
+                  {voucherWalletEnabled && <h3 className={styles.voucherGroupTitle}>{t('Ví của tôi', 'My wallet')}</h3>}
+                  <div className={styles.vouchersGrid}>
+                    {(availableVouchers ?? []).filter((voucher) => !voucherWalletEnabled || walletVoucherCodes.includes(voucher.code)).map((voucher) => (
                     <div key={voucher.code} className={styles.vCard}>
                       <div className={styles.vLeft}>{voucher.code}</div>
                       <div className={styles.vRight}>
@@ -743,17 +755,24 @@ export default function AccountClient({
                         </button>
                       </div>
                     </div>
-                  ))}
-                </div>
-                {voucherTotalPages > 1 && (
-                  <nav className={styles.pagination} aria-label={t('Phân trang voucher', 'Voucher pagination')}>
-                    {voucherPage > 1 && <Link href={accountHref({ voucherPage: voucherPage - 1 })} aria-label={t('Trang voucher trước', 'Previous vouchers page')}>←</Link>}
-                    <span>{t(`Trang ${voucherPage} / ${voucherTotalPages}`, `Page ${voucherPage} / ${voucherTotalPages}`)}</span>
-                    {voucherPage < voucherTotalPages && <Link href={accountHref({ voucherPage: voucherPage + 1 })} aria-label={t('Trang voucher sau', 'Next vouchers page')}>→</Link>}
-                  </nav>
-                )}
-              </>
-            )
+                    ))}
+                  </div>
+                  {voucherTotalPages > 1 && (
+                    <nav className={styles.pagination} aria-label={t('Phân trang voucher', 'Voucher pagination')}>
+                      {voucherPage > 1 && <Link href={accountHref({ voucherPage: voucherPage - 1 })} aria-label={t('Trang voucher trước', 'Previous vouchers page')}>←</Link>}
+                      <span>{t(`Trang ${voucherPage} / ${voucherTotalPages}`, `Page ${voucherPage} / ${voucherTotalPages}`)}</span>
+                      {voucherPage < voucherTotalPages && <Link href={accountHref({ voucherPage: voucherPage + 1 })} aria-label={t('Trang voucher sau', 'Next vouchers page')}>→</Link>}
+                    </nav>
+                  )}
+                  {voucherWalletEnabled && (availableVouchers ?? []).some((voucher) => !walletVoucherCodes.includes(voucher.code)) && <>
+                    <h3 className={styles.voucherGroupTitle}>{t('Có thể lấy', 'Available to claim')}</h3>
+                    <div className={styles.vouchersGrid}>
+                      {(availableVouchers ?? []).filter((voucher) => !walletVoucherCodes.includes(voucher.code)).map((voucher) => <div key={`claim-${voucher.code}`} className={styles.vCard}><div className={styles.vLeft}>{voucher.code}</div><div className={styles.vRight}><h4>{voucher.discount_type === 'percent' ? `Giảm ${voucher.discount_value}%` : `Giảm ${voucher.discount_value.toLocaleString('vi-VN')}đ`}</h4><p>{t('Nhập mã ở trên để thêm vào ví.', 'Enter the code above to add it to your wallet.')}</p></div></div>)}
+                    </div>
+                  </>}
+                </>
+              )}
+            </>
           ) : <div className={styles.vouchersGrid}>
             <div className={styles.vCard}>
               <div className={styles.vLeft}>BEANBUS10</div>

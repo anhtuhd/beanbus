@@ -157,9 +157,59 @@ export const Header: React.FC = () => {
   const [mobileMenuPath, setMobileMenuPath] = useState<string | null>(null);
   const [hash, setHash] = useState('');
   const [scrolled, setScrolled] = useState(false);
+  const [availablePoints, setAvailablePoints] = useState<number | null>(null);
+  const [pointsUserId, setPointsUserId] = useState<string | null>(null);
   const burgerRef = useRef<HTMLButtonElement>(null);
   const mobileOpen = mobileMenuPath === pathname;
   const setMobileOpen = (open: boolean) => setMobileMenuPath(open ? pathname : null);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!isAuthReady || !isLoggedIn || user?.role !== 'member') {
+      return () => {
+        active = false;
+      };
+    }
+
+    if (process.env.NEXT_PUBLIC_APP_MODE !== 'production') {
+      return () => {
+        active = false;
+      };
+    }
+
+    const loadPoints = async () => {
+      try {
+        const response = await fetch('/api/account/points', {
+          credentials: 'same-origin',
+          cache: 'no-store',
+        });
+        if (!response.ok) throw new Error('Unable to load points');
+        const data = await response.json() as { availablePoints?: unknown };
+        const points = Number(data.availablePoints);
+        if (active) {
+          setAvailablePoints(Number.isFinite(points) && points >= 0 ? points : null);
+          setPointsUserId(user.id);
+        }
+      } catch {
+        if (active) {
+          setAvailablePoints(null);
+          setPointsUserId(user.id);
+        }
+      }
+    };
+
+    void loadPoints();
+    return () => {
+      active = false;
+    };
+  }, [isAuthReady, isLoggedIn, user?.id, user?.role, user?.points]);
+
+  const displayedPoints = user?.role === 'member' && isLoggedIn && isAuthReady
+    ? process.env.NEXT_PUBLIC_APP_MODE === 'production'
+      ? pointsUserId === user.id ? availablePoints : null
+      : user.points
+    : null;
 
   useEffect(() => {
     const updateHash = () => setHash(window.location.hash);
@@ -289,9 +339,9 @@ export const Header: React.FC = () => {
                       <Award size={16} />
                       <span>{user?.tier || 'Member'}</span>
                     </div>
-                    {user?.points !== undefined && (
+                    {displayedPoints !== null && (
                       <div className={styles.userPoints}>
-                        {user.points} points
+                        {displayedPoints.toLocaleString('vi-VN')} {t('điểm', 'points')}
                       </div>
                     )}
                   </div>

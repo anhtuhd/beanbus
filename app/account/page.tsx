@@ -44,6 +44,9 @@ export default async function AccountPage({
       storedValueConfigured={isStoredValueConfigured()}
       initialOrders={accountData.orders}
       availableVouchers={accountData.vouchers}
+      walletVoucherCodes={accountData.walletVoucherCodes}
+      voucherWalletEnabled={process.env.NEXT_PUBLIC_ENABLE_VOUCHER_WALLET === 'true'}
+      memberPassEnabled={process.env.ENABLE_POS_STAFF === 'true'}
       accountError={accountData.error}
       loyalty={accountData.loyalty}
       loyaltyEntries={accountData.loyaltyEntries}

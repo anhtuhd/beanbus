@@ -5,6 +5,7 @@ import { requireAdmin } from '@/lib/auth/session';
 import { boundedPage } from '@/lib/pagination';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import VoucherEditorForm from './VoucherEditorForm';
+import VoucherDistributionForm from './VoucherDistributionForm';
 import styles from '../requests/requests.module.css';
 import { LocalizedText } from '@/components/ui/LocalizedText';
 
@@ -63,6 +64,7 @@ export default async function AdminVouchersPage({ searchParams }: PageProps) {
             <Link href={pageLink(page, search)} aria-label="Đóng trình chỉnh sửa"><X size={18} /></Link>
           </div>
           <VoucherEditorForm voucher={editingVoucher} />
+          {editingVoucher && <VoucherDistributionForm code={editingVoucher.code} />}
         </section>
       )}
       <form className={styles.searchForm} action="/admin/vouchers" method="get">

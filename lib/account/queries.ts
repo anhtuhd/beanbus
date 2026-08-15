@@ -75,6 +75,7 @@ export type MemberRequest = {
 export type MemberAccountData = {
   orders: MemberAccountOrder[];
   vouchers: MemberVoucher[];
+  walletVoucherCodes: string[];
   loyalty: MemberLoyaltySummary | null;
   loyaltyEntries: MemberLoyaltyEntry[];
   rewards: MemberReward[];
@@ -107,7 +108,7 @@ export type MemberAccountOrderDetail = MemberAccountOrder & {
     id: number;
     fromStatus: string;
     toStatus: string;
-    actorType: 'admin' | 'system';
+    actorType: 'admin' | 'staff' | 'system';
     createdAt: string;
   }>;
 };
@@ -119,7 +120,7 @@ const REWARD_PAGE_SIZE = 20;
 const VOUCHER_PAGE_SIZE = 20;
 
 function emptyAccountData(page: number, loyaltyPage: number, requestPage: number, rewardPage: number, voucherPage: number, error?: string): MemberAccountData {
-  return { orders: [], vouchers: [], loyalty: null, loyaltyEntries: [], rewards: [], requests: [], page, totalPages: 1, totalOrders: 0, totalRequests: 0, loyaltyPage, loyaltyTotalPages: 1, requestPage, requestTotalPages: 1, rewardPage, rewardTotalPages: 1, voucherPage, voucherTotalPages: 1, error };
+  return { orders: [], vouchers: [], walletVoucherCodes: [], loyalty: null, loyaltyEntries: [], rewards: [], requests: [], page, totalPages: 1, totalOrders: 0, totalRequests: 0, loyaltyPage, loyaltyTotalPages: 1, requestPage, requestTotalPages: 1, rewardPage, rewardTotalPages: 1, voucherPage, voucherTotalPages: 1, error };
 }
 
 function mapOrder(
@@ -188,7 +189,8 @@ export async function getMemberAccountData(
   const needsRequests = activeTab === 'requests';
   const needsRewards = activeTab === 'rewards';
   const needsVouchers = activeTab === 'vouchers';
-  const [ordersResult, orderCountResult, loyaltyResult, loyaltyEntriesResult, rewardsResult, requestsResult, requestCountResult, vouchersResult] = await Promise.all([
+  const walletEnabled = process.env.NEXT_PUBLIC_ENABLE_VOUCHER_WALLET === 'true';
+  const [ordersResult, orderCountResult, loyaltyResult, loyaltyEntriesResult, rewardsResult, requestsResult, requestCountResult, vouchersResult, walletResult] = await Promise.all([
     needsOrders ? supabase
       .from('orders')
       .select('id, order_code, status, payment_status, fulfillment, total_vnd, points_applied, cash_due_vnd, voucher_code, created_at, order_items(id, order_id, product_name_vi, product_name_en, quantity, line_total_vnd)', { count: 'exact' })
@@ -209,6 +211,7 @@ export async function getMemberAccountData(
       .or(`ends_at.is.null,ends_at.gt.${nowIso}`)
       .order('created_at', { ascending: false })
       .range((voucherPage - 1) * VOUCHER_PAGE_SIZE, voucherPage * VOUCHER_PAGE_SIZE - 1) : null,
+    needsVouchers && walletEnabled ? supabase.from('voucher_wallet_entries').select('voucher_code').eq('user_id', profile.id).is('used_order_id', null) : null,
   ]);
 
   const orders = (ordersResult?.data ?? []) as unknown as AccountOrderWithItems[];
@@ -222,17 +225,19 @@ export async function getMemberAccountData(
     || (needsMembership && loyaltyEntriesResult?.error)
     || (needsRewards && rewardsResult?.error)
     || (needsRequests && requestsResult?.error)
-    || (needsVouchers && vouchersResult?.error)) {
+    || (needsVouchers && (vouchersResult?.error || (walletEnabled && walletResult?.error)))) {
     return emptyAccountData(page, loyaltyPage, requestPage, rewardPage, voucherPage, 'Không thể tải dữ liệu hội viên lúc này.');
   }
 
   const vouchers: MemberVoucher[] = vouchersResult?.data ?? [];
+  const walletVoucherCodes = walletEnabled ? (walletResult?.data ?? []).map((row) => row.voucher_code) : [];
 
   const requests = (requestsResult?.data ?? []).map(mapMemberRequest);
 
   return {
     orders: orders.map((order) => mapOrder(order, order.order_items ?? [])),
     vouchers,
+    walletVoucherCodes,
     loyalty: loyalty ? {
       policyEnabled: loyalty.policy_enabled,
       balancePoints: loyalty.balance_points,

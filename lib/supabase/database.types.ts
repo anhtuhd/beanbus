@@ -945,6 +945,8 @@ export type Database = {
       orders: {
         Row: {
           created_at: string;
+          created_by_user_id: string | null;
+          created_via: 'customer_web' | 'admin_panel' | 'pos';
           customer_name: string;
           customer_phone: string;
           delivery_address: string | null;
@@ -971,6 +973,8 @@ export type Database = {
         };
         Insert: {
           created_at?: string;
+          created_by_user_id?: string | null;
+          created_via?: 'customer_web' | 'admin_panel' | 'pos';
           customer_name: string;
           customer_phone: string;
           delivery_address?: string | null;
@@ -1002,9 +1006,24 @@ export type Database = {
         };
         Relationships: [];
       };
+      admin_order_creation_audit: {
+        Row: {
+          actor_user_id: string;
+          created_at: string;
+          order_id: string;
+          points_consent_confirmed: boolean;
+          points_consent_note: string | null;
+          target_user_id: string | null;
+          voucher_consent_confirmed: boolean;
+          voucher_consent_note: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       order_status_history: {
         Row: {
-          actor_type: 'admin' | 'system';
+          actor_type: 'admin' | 'staff' | 'system';
           actor_user_id: string | null;
           created_at: string;
           from_status: Database['public']['Enums']['order_status'];
@@ -1124,6 +1143,8 @@ export type Database = {
           id: string;
           member_number: number;
           phone: string | null;
+          pending_phone?: string | null;
+          membership_status?: Database['public']['Enums']['membership_status'];
           role: Database['public']['Enums']['app_role'];
           updated_at: string;
         };
@@ -1136,6 +1157,8 @@ export type Database = {
           id: string;
           member_number?: never;
           phone?: string | null;
+          pending_phone?: string | null;
+          membership_status?: Database['public']['Enums']['membership_status'];
           role?: Database['public']['Enums']['app_role'];
           updated_at?: string;
         };
@@ -1145,6 +1168,8 @@ export type Database = {
           email?: string | null;
           full_name?: string;
           phone?: string | null;
+          pending_phone?: string | null;
+          membership_status?: Database['public']['Enums']['membership_status'];
           role?: Database['public']['Enums']['app_role'];
           updated_at?: string;
         };
@@ -1193,6 +1218,25 @@ export type Database = {
           status: 'reserved' | 'consumed' | 'released';
           updated_at: string;
           voucher_code: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      voucher_wallet_entries: {
+        Row: {
+          id: string;
+          user_id: string;
+          voucher_code: string;
+          source: 'manual_claim' | 'admin_grant' | 'reward';
+          claimed_at: string;
+          used_order_id: string | null;
+          used_at: string | null;
+          created_by_user_id: string | null;
+          consent_confirmed: boolean;
+          consent_note: string | null;
+          created_at: string;
+          updated_at: string;
         };
         Insert: never;
         Update: never;
@@ -1398,6 +1442,79 @@ export type Database = {
         Args: Record<string, never>;
         Returns: Database['public']['Tables']['profiles']['Row'][];
       };
+      operator_search_members: {
+        Args: { p_query: string; p_limit?: number };
+        Returns: {
+          id: string;
+          member_number: number;
+          full_name: string;
+          phone: string | null;
+          pending_phone: string | null;
+          email: string | null;
+          membership_status: Database['public']['Enums']['membership_status'];
+          available_points: number;
+        }[];
+      };
+      operator_register_pending_member: {
+        Args: { p_user_id: string; p_pending_phone: string; p_full_name: string };
+        Returns: { member_id: string; member_number: number; membership_status: Database['public']['Enums']['membership_status'] }[];
+      };
+      operator_create_counter_order: {
+        Args: {
+          p_customer_name: string;
+          p_customer_phone: string;
+          p_delivery_address: string | null;
+          p_fulfillment: Database['public']['Enums']['order_fulfillment'];
+          p_idempotency_key: string;
+          p_items: Json;
+          p_note: string | null;
+          p_payment_method: Database['public']['Enums']['order_payment_method'];
+          p_pickup_at: string | null;
+          p_points_consent_confirmed: boolean;
+          p_points_consent_note: string | null;
+          p_points_to_apply: number;
+          p_target_member_id: string | null;
+          p_voucher_code: string | null;
+          p_voucher_consent_confirmed: boolean;
+          p_voucher_consent_note: string | null;
+        };
+        Returns: {
+          cash_due_vnd: number;
+          discount_vnd: number;
+          order_id: string;
+          order_number: number;
+          payment_status: Database['public']['Enums']['order_payment_status'];
+          points_applied: number;
+          receipt_token: string;
+          status: Database['public']['Enums']['order_status'];
+          subtotal_vnd: number;
+          total_vnd: number;
+        }[];
+      };
+      operator_advance_order: {
+        Args: { p_order_id: string };
+        Returns: { updated_order_id: string; updated_order_status: Database['public']['Enums']['order_status'] }[];
+      };
+      claim_voucher: {
+        Args: { p_voucher_code: string };
+        Returns: { voucher_code: string; claimed: boolean }[];
+      };
+      operator_claim_member_voucher: {
+        Args: { p_consent_confirmed: boolean; p_consent_note: string; p_member_id: string; p_voucher_code: string };
+        Returns: { voucher_code: string; claimed: boolean }[];
+      };
+      admin_distribute_voucher: {
+        Args: { p_voucher_code: string; p_member_ids: string[] };
+        Returns: number;
+      };
+      issue_member_pass_nonce: {
+        Args: { p_nonce_hash: string; p_expires_at: string };
+        Returns: boolean;
+      };
+      consume_member_pass_nonce: {
+        Args: { p_nonce_hash: string };
+        Returns: string;
+      };
       save_catalog_draft: {
         Args: {
           p_expected_lock_version: number;
@@ -1528,6 +1645,36 @@ export type Database = {
           points_applied: number;
           receipt_token: string;
           request_fingerprint: string;
+          subtotal_vnd: number;
+          total_vnd: number;
+        }[];
+      };
+      admin_create_server_priced_order: {
+        Args: {
+          p_customer_name: string;
+          p_customer_phone: string;
+          p_delivery_address: string | null;
+          p_fulfillment: Database['public']['Enums']['order_fulfillment'];
+          p_idempotency_key: string;
+          p_items: Json;
+          p_note: string | null;
+          p_payment_method: Database['public']['Enums']['order_payment_method'];
+          p_pickup_at: string | null;
+          p_points_consent_confirmed: boolean;
+          p_points_consent_note: string | null;
+          p_points_to_apply: number;
+          p_target_member_id: string | null;
+          p_voucher_code: string | null;
+        };
+        Returns: {
+          cash_due_vnd: number;
+          discount_vnd: number;
+          order_id: string;
+          order_number: number;
+          payment_status: Database['public']['Enums']['order_payment_status'];
+          points_applied: number;
+          receipt_token: string;
+          status: Database['public']['Enums']['order_status'];
           subtotal_vnd: number;
           total_vnd: number;
         }[];
@@ -2133,6 +2280,7 @@ export type Database = {
     };
     Enums: {
       app_role: 'member' | 'staff' | 'admin';
+      membership_status: 'pending' | 'active' | 'blocked';
       discount_type: 'percent' | 'fixed';
       order_fulfillment: 'pickup' | 'delivery';
       order_payment_method: 'sepay_qr' | 'cod';

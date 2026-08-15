@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Plus } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import styles from '../../requests/requests.module.css';
 import { requireAdmin } from '@/lib/auth/session';
@@ -94,7 +94,10 @@ export default async function AdminMemberDetailPage({
           <h1>Chi tiết hội viên</h1>
           <p>Quản lý hồ sơ, phân quyền, điểm loyalty và đơn hàng theo đúng quyền truy cập.</p>
         </div>
-        <span className={styles.total}>BB-{String(profile.member_number).padStart(8, '0')}</span>
+        <div className={styles.headerActions}>
+          {process.env.ENABLE_ADMIN_ASSISTED_ORDERS === 'true' && <Link href={`/admin/orders/new?memberId=${profile.id}`} className={styles.primaryLink}><Plus size={16} /> Tạo đơn cho hội viên</Link>}
+          <span className={styles.total}>BB-{String(profile.member_number).padStart(8, '0')}</span>
+        </div>
       </header>
 
       {dataError && <div className={styles.stateBox} role="alert">Một phần dữ liệu hội viên chưa thể tải.</div>}

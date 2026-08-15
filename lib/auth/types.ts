@@ -8,6 +8,8 @@ export type SessionProfile = {
   memberCode: string;
   name: string;
   phone: string;
+  pendingPhone?: string;
+  membershipStatus?: Database['public']['Enums']['membership_status'];
   email: string;
   birthday: string;
   avatar?: string;
@@ -32,6 +34,8 @@ export function toSessionProfile(profile: ProfileRow): SessionProfile {
     avatar: profile.avatar_url ?? undefined,
     role: profile.role,
     joinedDate: profile.created_at,
+    ...(profile.pending_phone ? { pendingPhone: profile.pending_phone } : {}),
+    ...(profile.membership_status && profile.membership_status !== 'active' ? { membershipStatus: profile.membership_status } : {}),
   };
 }
 

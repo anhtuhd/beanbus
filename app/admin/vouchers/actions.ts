@@ -8,6 +8,39 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import type { Database } from '@/lib/supabase/database.types';
 import type { VoucherState } from './voucher-state';
 
+export type VoucherMember = {
+  id: string;
+  memberNumber: number;
+  fullName: string | null;
+  phone: string | null;
+  email: string | null;
+};
+
+export async function searchVoucherMembers(query: string): Promise<VoucherMember[]> {
+  await requireAdmin();
+  const value = query.trim().slice(0, 80);
+  if (value.length < 2) return [];
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc('operator_search_members', { p_query: value, p_limit: 20 });
+  if (error) return [];
+  return (data ?? []).map((row) => ({ id: row.id, memberNumber: row.member_number, fullName: row.full_name, phone: row.phone ?? row.pending_phone, email: row.email }));
+}
+
+export async function distributeAdminVoucher(code: string, memberIds: string[]): Promise<{ ok: true; count: number } | { ok: false; error: string }> {
+  await requireAdmin();
+  const value = code.trim().toUpperCase().slice(0, 64);
+  const ids = [...new Set(memberIds.filter((id) => UUID.test(id)))].slice(0, 100);
+  if (!/^[A-Z0-9][A-Z0-9_-]{2,63}$/.test(value) || ids.length === 0) return { ok: false, error: 'Chọn ít nhất một hội viên và kiểm tra mã voucher.' };
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc('admin_distribute_voucher', { p_voucher_code: value, p_member_ids: ids });
+  if (error) return { ok: false, error: error.message.includes('INVALID_VOUCHER') ? 'Voucher không hợp lệ hoặc không phải voucher chiến dịch.' : 'Không thể phát voucher lúc này.' };
+  revalidatePath('/admin/vouchers');
+  revalidatePath('/account');
+  return { ok: true, count: Number(data ?? 0) };
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 function text(formData: FormData, key: string): string { return String(formData.get(key) ?? '').trim(); }
 function parseDate(value: string): string | null {
   if (!value) return null;

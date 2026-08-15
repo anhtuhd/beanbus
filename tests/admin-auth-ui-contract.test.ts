@@ -11,7 +11,7 @@ test('admin header is identified by the server-resolved profile role', () => {
 
 test('admin header hides member-only tier and points affordances', () => {
   assert.match(headerSource, /!isAdmin && \(/);
-  assert.match(headerSource, /user\?\.points !== undefined/);
+  assert.match(headerSource, /displayedPoints !== null/);
   assert.match(headerSource, /isAdmin \? '\/admin' : isLoggedIn \? '\/account'/);
   assert.match(headerSource, /isLoggedIn && !isAdmin/);
 });

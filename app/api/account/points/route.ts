@@ -16,12 +16,7 @@ function disabledResponse() {
 }
 
 export async function GET() {
-  if (
-    getAppMode() !== 'production' ||
-    process.env.NEXT_PUBLIC_ENABLE_POINTS_PAYMENT !== 'true'
-  ) {
-    return disabledResponse();
-  }
+  if (getAppMode() !== 'production') return disabledResponse();
 
   const profile = await getCurrentProfile();
   if (!profile || profile.role !== 'member') return disabledResponse();
@@ -32,14 +27,18 @@ export async function GET() {
   });
   const summary = data?.[0];
 
-  if (error || !summary || summary.points_payment_enabled !== true) {
+  if (error || !summary) {
     return disabledResponse();
   }
 
+  const availablePoints = Math.max(0, Number(summary.available_points ?? 0));
+  const paymentEnabled = process.env.NEXT_PUBLIC_ENABLE_POINTS_PAYMENT === 'true'
+    && summary.points_payment_enabled === true;
+
   return Response.json(
     {
-      enabled: true,
-      availablePoints: Math.max(0, Number(summary.available_points ?? 0)),
+      enabled: paymentEnabled,
+      availablePoints,
     },
     { headers: noStoreHeaders },
   );

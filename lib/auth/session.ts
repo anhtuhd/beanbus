@@ -30,3 +30,11 @@ export async function requireAdmin(): Promise<SessionProfile> {
 
   return profile;
 }
+
+export async function requireOperator(): Promise<SessionProfile> {
+  const profile = await requireProfile('/pos');
+
+  if (profile.role !== 'admin' && profile.role !== 'staff') redirect('/forbidden');
+
+  return profile;
+}

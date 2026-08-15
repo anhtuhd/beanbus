@@ -8,6 +8,7 @@ const components = [
   '../components/ui/ProductCustomizerModal.tsx',
   '../components/ui/SepayQRModal.tsx',
   '../app/events/RsvpButton.tsx',
+  '../app/account/MemberPassButton.tsx',
 ].map((path) => readFileSync(new URL(path, import.meta.url), 'utf8'));
 const cartDrawer = components[0];
 const sepayDialog = components[2];

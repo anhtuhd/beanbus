@@ -76,7 +76,7 @@ export const SepayQRModal: React.FC<Props> = ({ orderId, sepayCode, finalTotal, 
         {/* BODY */}
         <div className={styles.body}>
           <div className={styles.topInfo}>
-            <span className={styles.badge}>⚡ Tự động kiểm tra thanh toán</span>
+            <span className={styles.badge}>{t('⚡ Tự động kiểm tra thanh toán', '⚡ Automated payment verification')}</span>
             <p className={styles.guide}>
               {t(
                 'Mở ứng dụng ngân hàng hoặc ví điện tử bất kỳ (MoMo, ZaloPay, Vietcombank...) để quét mã QR.',

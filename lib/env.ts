@@ -35,6 +35,7 @@ const R2_MEDIA_KEYS = [
   'R2_SECRET_ACCESS_KEY',
   'NEXT_PUBLIC_R2_PUBLIC_BASE_URL',
 ] as const;
+const POS_KEYS = ['MEMBER_PASS_SECRET'] as const;
 
 export type AppMode = 'demo' | 'production';
 
@@ -81,6 +82,7 @@ export function assertProductionEnv(env: Environment = process.env): void {
     ...(env.NEXT_PUBLIC_ENABLE_GUEST_NOTIFICATIONS === 'true' ? GUEST_NOTIFICATION_KEYS : []),
     ...(env.NEXT_PUBLIC_ENABLE_WEB_PUSH === 'true' ? WEB_PUSH_KEYS : []),
     ...(env.NEXT_PUBLIC_ENABLE_R2_MEDIA === 'true' ? R2_MEDIA_KEYS : []),
+    ...(env.ENABLE_POS_STAFF === 'true' ? POS_KEYS : []),
   ];
   const missing = requiredKeys.filter((key) => !env[key]?.trim());
 

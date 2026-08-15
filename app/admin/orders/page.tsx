@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowLeft, Search } from 'lucide-react';
+import { ArrowLeft, Plus, Search } from 'lucide-react';
 import OrderStatusForm from './OrderStatusForm';
 import styles from '../requests/requests.module.css';
 import { normalizeVietnameseMobile } from '@/lib/auth/input';
@@ -107,7 +107,10 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
           <h1>Order Operations</h1>
           <p>Trạng thái thanh toán chỉ được thay đổi bởi luồng thanh toán đã xác minh.</p>
         </div>
-        <span className={styles.total}>{count} đơn</span>
+        <div className={styles.headerActions}>
+          {process.env.ENABLE_ADMIN_ASSISTED_ORDERS === 'true' && <Link href="/admin/orders/new" className={styles.primaryLink}><Plus size={16} /> Tạo đơn</Link>}
+          <span className={styles.total}>{count} đơn</span>
+        </div>
       </header>
 
       <form className={styles.searchForm} action="/admin/orders" method="get">

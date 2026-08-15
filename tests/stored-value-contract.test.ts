@@ -53,6 +53,13 @@ test('stored-value UI does not expose the payment provider label', () => {
   assert.doesNotMatch(client, /Sepay/i);
 });
 
+test('stored-value UI localizes payment states and package copy', () => {
+  assert.match(client, /const \{ lang, t \} = useLanguage\(\)/);
+  assert.match(client, /t\('Thanh toán chuyển khoản', 'Bank transfer payment'\)/);
+  assert.match(client, /t\('Đang chờ hệ thống xác nhận giao dịch.', 'Waiting for transaction confirmation.'\)/);
+  assert.match(client, /lang === 'en' \? item\.nameEn : item\.nameVi/);
+});
+
 test('stored-value header keeps navigation separate from the page title', () => {
   assert.match(client, /className={styles\.headerContent}/);
   assert.match(client, /className={styles\.headerNav}/);

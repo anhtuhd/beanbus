@@ -99,7 +99,7 @@ export default async function MemberOrderDetailPage({
           <div className={styles.loyaltyEntryList}>
             {order.statusHistory.map((entry) => (
               <div key={entry.id} className={styles.loyaltyEntry}>
-                <div><strong>{statusLabel(entry.fromStatus)} → {statusLabel(entry.toStatus)}</strong><small>{entry.actorType === 'admin' ? 'Beanbus Operations' : 'Hệ thống'}</small></div>
+                <div><strong>{statusLabel(entry.fromStatus)} → {statusLabel(entry.toStatus)}</strong><small>{entry.actorType === 'admin' || entry.actorType === 'staff' ? 'Beanbus Operations' : 'Hệ thống'}</small></div>
                 <time dateTime={entry.createdAt}>{formatDate(entry.createdAt)}</time>
               </div>
             ))}

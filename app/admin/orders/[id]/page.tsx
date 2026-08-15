@@ -10,6 +10,8 @@ import { requireAdmin } from '@/lib/auth/session';
 import type { Database } from '@/lib/supabase/database.types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { LocalizedText } from '@/components/ui/LocalizedText';
+import { getSiteUrl } from '@/lib/env';
+import CopyGuestReceiptLinkButton from './CopyGuestReceiptLinkButton';
 
 type Order = Database['public']['Tables']['orders']['Row'];
 type OrderItem = Pick<
@@ -24,7 +26,7 @@ type StatusHistory = Pick<
   Database['public']['Tables']['order_status_history']['Row'],
   'id' | 'from_status' | 'to_status' | 'actor_type' | 'created_at'
 >;
-type OrderDetail = Pick<Order, 'id' | 'order_code' | 'order_number' | 'customer_name' | 'customer_phone' | 'fulfillment' | 'pickup_at' | 'delivery_address' | 'note' | 'voucher_code' | 'subtotal_vnd' | 'discount_vnd' | 'total_vnd' | 'points_applied' | 'cash_due_vnd' | 'payment_method' | 'payment_status' | 'status' | 'created_at'> & {
+type OrderDetail = Pick<Order, 'id' | 'order_code' | 'order_number' | 'customer_name' | 'customer_phone' | 'fulfillment' | 'pickup_at' | 'delivery_address' | 'note' | 'voucher_code' | 'subtotal_vnd' | 'discount_vnd' | 'total_vnd' | 'points_applied' | 'cash_due_vnd' | 'payment_method' | 'payment_status' | 'status' | 'created_at' | 'created_via' | 'created_by_user_id' | 'receipt_token' | 'user_id'> & {
   order_items: Array<OrderItem & { order_item_options: ItemOption[] }>;
   order_status_history: StatusHistory[];
 };
@@ -73,6 +75,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
       id, order_code, order_number, customer_name, customer_phone, fulfillment,
       pickup_at, delivery_address, note, voucher_code, subtotal_vnd, discount_vnd,
       total_vnd, points_applied, cash_due_vnd, payment_method, payment_status, status, created_at,
+      created_via, created_by_user_id, receipt_token, user_id,
       order_items(
         id, product_name_vi, product_name_en, quantity, unit_price_vnd,
         line_total_vnd, special_note,
@@ -97,6 +100,11 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
           <h1>Đơn #{order.order_code}</h1>
           <p>Tạo lúc {formatDate(order.created_at)}</p>
         </div>
+        {order.created_via === 'admin_panel' && order.user_id === null && order.receipt_token && (
+          <div className={styles.headerActions}>
+            <CopyGuestReceiptLinkButton url={`${getSiteUrl()}/order/confirmation/${order.id}?receipt=${encodeURIComponent(order.receipt_token)}`} />
+          </div>
+        )}
       </header>
 
       <section className={styles.detailWorkflow} aria-labelledby="order-workflow-title">

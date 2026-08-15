@@ -18,16 +18,9 @@ function formatMoney(value: number): string {
   return `${value.toLocaleString('vi-VN')}đ`;
 }
 
-function formatDate(value: string | null): string {
+function formatDate(value: string | null, lang: 'vi' | 'en'): string {
   if (!value) return '';
-  return new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(value));
-}
-
-function statusText(status: string): string {
-  if (status === 'paid') return 'Đã ghi nhận thanh toán và cộng điểm.';
-  if (status === 'expired') return 'Yêu cầu đã hết hạn. Bạn có thể tạo yêu cầu mới.';
-  if (status === 'failed') return 'Thanh toán không thành công.';
-  return 'Đang chờ hệ thống xác nhận giao dịch.';
+  return new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'vi-VN', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(value));
 }
 
 export default function StoredValueClient({
@@ -47,7 +40,7 @@ export default function StoredValueClient({
   const [pendingItemId, setPendingItemId] = useState<string | null>(null);
   const [actionError, setActionError] = useState('');
   const [copied, setCopied] = useState(false);
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
   const router = useRouter();
   const pollingRef = useRef(false);
   const idempotencyKeysRef = useRef<Record<string, string>>({});
@@ -109,10 +102,16 @@ export default function StoredValueClient({
     window.setTimeout(() => setCopied(false), 1800);
   };
 
-  const title = kind === 'topup' ? 'Nạp điểm hội viên' : 'Flash-sale điểm thưởng';
+  const title = kind === 'topup' ? t('Nạp điểm hội viên', 'Member points top-up') : t('Flash-sale điểm thưởng', 'Bonus points flash sale');
   const description = kind === 'topup'
-    ? 'Chọn gói, chuyển khoản đúng số tiền và chờ hệ thống xác nhận.'
-    : 'Suất flash-sale được giữ trong thời gian ngắn và chỉ cộng điểm sau giao dịch đã xác minh.';
+    ? t('Chọn gói, chuyển khoản đúng số tiền và chờ hệ thống xác nhận.', 'Choose a package, transfer the exact amount, then wait for confirmation.')
+    : t('Suất flash-sale được giữ trong thời gian ngắn và chỉ cộng điểm sau giao dịch đã xác minh.', 'A flash-sale slot is held briefly and points are added only after payment is verified.');
+  const statusText = (status: string): string => {
+    if (status === 'paid') return t('Đã ghi nhận thanh toán và cộng điểm.', 'Payment recorded and points added.');
+    if (status === 'expired') return t('Yêu cầu đã hết hạn. Bạn có thể tạo yêu cầu mới.', 'This request expired. You can create a new one.');
+    if (status === 'failed') return t('Thanh toán không thành công.', 'Payment was unsuccessful.');
+    return t('Đang chờ hệ thống xác nhận giao dịch.', 'Waiting for transaction confirmation.');
+  };
 
   return (
     <div className="wrap">
@@ -133,8 +132,8 @@ export default function StoredValueClient({
         <div className={styles.statusPanel} role="status">
           <Clock3 size={20} />
           <div>
-            <strong>Chức năng chưa được kích hoạt</strong>
-            <p>Chương trình sẽ chỉ mở sau khi chính sách điểm và thanh toán được phê duyệt.</p>
+            <strong>{t('Chức năng chưa được kích hoạt', 'This feature is not enabled')}</strong>
+            <p>{t('Chương trình sẽ chỉ mở sau khi chính sách điểm và thanh toán được phê duyệt.', 'This programme opens after its points and payment policy is approved.')}</p>
           </div>
         </div>
       ) : error ? (
@@ -145,19 +144,19 @@ export default function StoredValueClient({
             <div className={styles.sectionHeading}>
               <QrCode size={20} />
               <div>
-                <h2 id="stored-value-payment-title">Thanh toán chuyển khoản</h2>
-                <p>Không xác nhận thủ công. Hệ thống chỉ cộng điểm sau webhook hợp lệ.</p>
+                <h2 id="stored-value-payment-title">{t('Thanh toán chuyển khoản', 'Bank transfer payment')}</h2>
+                <p>{t('Không xác nhận thủ công. Hệ thống chỉ cộng điểm sau webhook hợp lệ.', 'There is no manual confirmation. Points are added only after a valid payment callback.')}</p>
               </div>
             </div>
             <div className={styles.qrWrap}>
-              <Image src={payment.qrUrl} alt="Mã QR thanh toán" width={280} height={280} unoptimized />
+              <Image src={payment.qrUrl} alt={t('Mã QR thanh toán', 'Payment QR code')} width={280} height={280} unoptimized />
             </div>
             <div className={styles.paymentDetails}>
-              <div><span>Ngân hàng</span><strong>{payment.bankCode}</strong></div>
-              <div><span>Số tài khoản</span><strong>{payment.accountNumber}</strong></div>
-              <div><span>Số tiền</span><strong>{formatMoney(purchase.amount_vnd)}</strong></div>
+              <div><span>{t('Ngân hàng', 'Bank')}</span><strong>{payment.bankCode}</strong></div>
+              <div><span>{t('Số tài khoản', 'Account number')}</span><strong>{payment.accountNumber}</strong></div>
+              <div><span>{t('Số tiền', 'Amount')}</span><strong>{formatMoney(purchase.amount_vnd)}</strong></div>
               <div>
-                <span>Nội dung chuyển khoản</span>
+                <span>{t('Nội dung chuyển khoản', 'Transfer memo')}</span>
                 <strong className={styles.codeValue}>{transferMemo}
                   <button type="button" onClick={copyCode} aria-label={t('Sao chép nội dung chuyển khoản', 'Copy transfer memo')} title={t('Sao chép nội dung chuyển khoản', 'Copy transfer memo')}>
                     {copied ? <CheckCircle size={15} /> : <Copy size={15} />}
@@ -169,7 +168,7 @@ export default function StoredValueClient({
               {paymentStatus === 'paid' ? <CheckCircle size={18} /> : paymentStatus === 'expired' || paymentStatus === 'failed' ? <Clock3 size={18} /> : <LoaderCircle size={18} className={styles.spin} />}
               <div>
                 <strong>{statusText(paymentStatus ?? 'pending')}</strong>
-                <span>Hết hạn: {formatDate(purchase.expires_at)}</span>
+                <span>{t('Hết hạn', 'Expires')}: {formatDate(purchase.expires_at, lang)}</span>
                 {(paymentStatus === 'expired' || paymentStatus === 'failed') && activeItem && (
                   <button type="button" className="btn btn-secondary btn-sm" onClick={retryPayment} disabled={pendingItemId !== null}>
                     {pendingItemId === activeItem.id ? <LoaderCircle size={15} className={styles.spin} /> : <QrCode size={15} />}
@@ -185,14 +184,14 @@ export default function StoredValueClient({
           {actionError && <div className={styles.errorStatus} role="alert">{actionError}</div>}
           <div className={styles.itemGrid}>
             {items.length === 0 ? (
-              <div className={styles.statusPanel} role="status"><Clock3 size={20} /><div><strong>Chưa có gói khả dụng</strong><p>Vui lòng quay lại sau khi chương trình được cập nhật.</p></div></div>
+              <div className={styles.statusPanel} role="status"><Clock3 size={20} /><div><strong>{t('Chưa có gói khả dụng', 'No package is available yet')}</strong><p>{t('Vui lòng quay lại sau khi chương trình được cập nhật.', 'Please check back after the programme is updated.')}</p></div></div>
             ) : items.map((item) => (
               <article className={styles.item} key={item.id}>
-                <div className={styles.itemTop}><span>{kind === 'topup' ? 'Gói nạp' : 'Suất giới hạn'}</span><strong>{formatMoney(item.amountVnd)}</strong></div>
-                <h2>{item.nameVi}</h2>
-                <p>{item.nameEn}</p>
-                <div className={styles.points}>{item.points.toLocaleString('vi-VN')} điểm</div>
-                {item.remainingQuantity !== null && <small>Còn {item.remainingQuantity} suất</small>}
+                <div className={styles.itemTop}><span>{kind === 'topup' ? t('Gói nạp', 'Top-up package') : t('Suất giới hạn', 'Limited slot')}</span><strong>{formatMoney(item.amountVnd)}</strong></div>
+                <h2>{lang === 'en' ? item.nameEn : item.nameVi}</h2>
+                <p>{lang === 'en' ? item.nameVi : item.nameEn}</p>
+                <div className={styles.points}>{item.points.toLocaleString(lang === 'en' ? 'en-GB' : 'vi-VN')} {t('điểm', 'points')}</div>
+                {item.remainingQuantity !== null && <small>{t('Còn', 'Remaining')} {item.remainingQuantity} {t('suất', 'slots')}</small>}
                 <button type="button" className="btn btn-primary" onClick={() => handleCreate(item)} disabled={pendingItemId !== null}>
                   {pendingItemId === item.id ? <LoaderCircle size={16} className={styles.spin} /> : <QrCode size={16} />}
                   {pendingItemId === item.id ? t('Đang khởi tạo...', 'Initializing...') : t('Tạo mã thanh toán', 'Create payment code')}

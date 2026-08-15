@@ -8,6 +8,7 @@ const languageContext = readFileSync('context/LanguageContext.tsx', 'utf8');
 const header = readFileSync('components/layout/Header.tsx', 'utf8');
 const headerStyles = readFileSync('components/layout/Header.module.css', 'utf8');
 const home = readFileSync('app/HomeClient.tsx', 'utf8');
+const globalCss = readFileSync('app/globals.css', 'utf8');
 
 test('mobile product customizer collapses options and keeps footer inside the modal', () => {
   assert.match(modalCss, /@media\s*\(max-width:\s*600px\)/);
@@ -46,4 +47,8 @@ test('home gallery captions provide English alternatives', () => {
   assert.match(home, /captionVi:/);
   assert.match(home, /captionEn:/);
   assert.match(home, /lang === 'en' \? img\.captionEn : img\.captionVi/);
+});
+
+test('mobile form controls avoid iOS viewport zoom on focus', () => {
+  assert.match(globalCss, /@media \(max-width: 640px\)[\s\S]*?input:not\(\[type='hidden'\]\),[\s\S]*?font-size: 16px;/);
 });
